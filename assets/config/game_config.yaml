@@ -1,0 +1,436 @@
+# ---------------------------------------------------------------------------
+# Sprout game rules
+#
+# Every balance number in the game lives in this one file. Change a value,
+# push to GitHub, and the next APK uses it. A test checks this file on every
+# build, so a typo shows up as a failed build instead of a broken app.
+#
+# Times are in minutes unless the key says otherwise.
+# Rarities: common, uncommon, rare.
+# Quest categories: sleep, movement, mind, social, home, food_water, study_work.
+# ---------------------------------------------------------------------------
+
+quests:
+  # How many counted quest completions fill the Seed Meter and earn one seed.
+  quests_per_seed: 3
+  # Completions beyond this many per day still count as done, but don't fill
+  # the meter. 9 = up to 3 seeds a day.
+  max_counted_completions_per_day: 9
+  # How long the "Undo" button stays available after completing a quest.
+  undo_seconds: 10
+  # Points each difficulty adds when deciding a seed's rarity.
+  difficulty_points:
+    small: 1
+    medium: 2
+    big: 3
+
+# Seed rarity comes from the total difficulty points of the 3 quests that
+# filled the meter (3 smalls = 3 points, 3 bigs = 9 points). The tier with the
+# highest min_points that the total reaches is used. Odds in a tier must add
+# up to 1.0.
+rarity_tiers:
+  - min_points: 3 # mostly small
+    odds: { common: 1.0 }
+  - min_points: 5 # a mix
+    odds: { common: 0.40, uncommon: 0.55, rare: 0.05 }
+  - min_points: 7 # some big ones
+    odds: { common: 0.10, uncommon: 0.55, rare: 0.35 }
+  - min_points: 9 # all big
+    odds: { uncommon: 0.40, rare: 0.60 }
+
+# When picking which species of a family you get, species that can grow in a
+# plot you've already unlocked are this many times more likely.
+unlocked_environment_bias: 3.0
+
+# Which plant family each quest category grows.
+category_families:
+  movement: sunflower
+  mind: lavender
+  sleep: moonflower
+  food_water: berry
+  social: rose
+  home: herb
+  study_work: bamboo
+
+families:
+  sunflower: { name: Sunflower family, emoji: "🌻" }
+  lavender: { name: Lavender family, emoji: "🪻" }
+  moonflower: { name: Moonflower family, emoji: "🌙" }
+  berry: { name: Berry family, emoji: "🫐" }
+  rose: { name: Rose family, emoji: "🌹" }
+  herb: { name: Herb & vine family, emoji: "🌿" }
+  bamboo: { name: Bamboo & focus family, emoji: "🎋" }
+
+seed_bag:
+  # Quest seeds always go into the bag. Mystery packs can't be bought while
+  # the bag is at the cap.
+  cap: 40
+  # Coins for composting one spare seed.
+  compost_coins: { common: 3, uncommon: 8, rare: 20 }
+
+# Garden plots, in unlock order. Each plot has `slots` plant spaces.
+# `price` is in coins. The first plot is free and unlocked from the start.
+environments:
+  meadow:
+    name: Meadow
+    emoji: "🌼"
+    price: 0
+    slots: 3
+    description: Soft grass, wildflowers and a gentle breeze.
+  forest:
+    name: Forest
+    emoji: "🌲"
+    price: 150
+    slots: 3
+    description: Dappled shade, mossy logs and fireflies at dusk.
+  orchard:
+    name: Orchard
+    emoji: "🧺"
+    price: 350
+    slots: 3
+    description: Neat rows of fruit trees and a picnic blanket.
+  wetland:
+    name: Pond
+    emoji: "🪷"
+    price: 600
+    slots: 3
+    description: Still water, reeds and a chorus of frogs.
+  desert:
+    name: Desert
+    emoji: "🏜️"
+    price: 900
+    slots: 3
+    description: Warm sand, big skies and starry nights.
+  tropical:
+    name: Tropical
+    emoji: "🌴"
+    price: 1300
+    slots: 3
+    description: Lush leaves, warm rain and bright birds.
+  alpine:
+    name: Alpine
+    emoji: "🏔️"
+    price: 1800
+    slots: 3
+    description: Crisp air, snowy peaks and wildflower slopes.
+
+# ---------------------------------------------------------------------------
+# Plant species
+#
+# growth_minutes: time spent in each stage before moving to the next
+#   (seed -> sprout -> young -> mature). Once mature the plant is permanent
+#   and starts its fruit timer.
+# fruit:
+#   timer_minutes        time to grow one harvest
+#   per_harvest          fruit collected per harvest
+#   max_stored_harvests  harvests that can wait for you while you're away
+#   sell_price           coins per fruit
+# ---------------------------------------------------------------------------
+species:
+  # --- Meadow ---------------------------------------------------------------
+  apple_tree:
+    name: Apple tree
+    family: rose
+    rarity: common
+    environments: [meadow, orchard]
+    growth_minutes: { seed: 30, sprout: 90, young: 180 }
+    fruit: { name: Apple, emoji: "🍎", timer_minutes: 180, per_harvest: 3, max_stored_harvests: 3, sell_price: 5 }
+  giant_sunflower:
+    name: Giant sunflower
+    family: sunflower
+    rarity: common
+    environments: [meadow]
+    growth_minutes: { seed: 20, sprout: 60, young: 150 }
+    fruit: { name: Sunflower seeds, emoji: "🌻", timer_minutes: 150, per_harvest: 3, max_stored_harvests: 3, sell_price: 4 }
+  berry_bush:
+    name: Berry bush
+    family: berry
+    rarity: common
+    environments: [meadow, forest, alpine]
+    growth_minutes: { seed: 20, sprout: 60, young: 120 }
+    fruit: { name: Raspberries, emoji: "🍓", timer_minutes: 120, per_harvest: 3, max_stored_harvests: 3, sell_price: 4 }
+  lavender_hedge:
+    name: Lavender hedge
+    family: lavender
+    rarity: common
+    environments: [meadow]
+    growth_minutes: { seed: 30, sprout: 60, young: 150 }
+    fruit: { name: Lavender bundle, emoji: "💐", timer_minutes: 180, per_harvest: 2, max_stored_harvests: 3, sell_price: 7 }
+
+  # --- Forest ---------------------------------------------------------------
+  oak:
+    name: Great oak
+    family: bamboo
+    rarity: uncommon
+    environments: [forest]
+    growth_minutes: { seed: 60, sprout: 240, young: 480 }
+    fruit: { name: Acorns, emoji: "🌰", timer_minutes: 300, per_harvest: 4, max_stored_harvests: 3, sell_price: 8 }
+  mushroom_grove:
+    name: Mushroom grove
+    family: moonflower
+    rarity: common
+    environments: [forest, wetland]
+    growth_minutes: { seed: 20, sprout: 60, young: 150 }
+    fruit: { name: Mushrooms, emoji: "🍄", timer_minutes: 150, per_harvest: 3, max_stored_harvests: 3, sell_price: 5 }
+  hazelnut:
+    name: Hazel tree
+    family: herb
+    rarity: common
+    environments: [forest, meadow]
+    growth_minutes: { seed: 30, sprout: 90, young: 180 }
+    fruit: { name: Hazelnuts, emoji: "🥜", timer_minutes: 180, per_harvest: 3, max_stored_harvests: 3, sell_price: 5 }
+  fern_canopy:
+    name: Fern canopy
+    family: moonflower
+    rarity: common
+    environments: [forest]
+    growth_minutes: { seed: 30, sprout: 60, young: 150 }
+    fruit: { name: Fiddleheads, emoji: "🌿", timer_minutes: 180, per_harvest: 3, max_stored_harvests: 3, sell_price: 5 }
+
+  # --- Orchard --------------------------------------------------------------
+  cherry:
+    name: Cherry tree
+    family: rose
+    rarity: uncommon
+    environments: [orchard]
+    growth_minutes: { seed: 60, sprout: 180, young: 480 }
+    fruit: { name: Cherries, emoji: "🍒", timer_minutes: 240, per_harvest: 4, max_stored_harvests: 3, sell_price: 9 }
+  peach:
+    name: Peach tree
+    family: sunflower
+    rarity: common
+    environments: [orchard]
+    growth_minutes: { seed: 30, sprout: 90, young: 240 }
+    fruit: { name: Peach, emoji: "🍑", timer_minutes: 210, per_harvest: 3, max_stored_harvests: 3, sell_price: 6 }
+  plum:
+    name: Plum tree
+    family: rose
+    rarity: uncommon
+    environments: [orchard]
+    growth_minutes: { seed: 60, sprout: 180, young: 420 }
+    fruit: { name: Plums, emoji: "🟣", timer_minutes: 240, per_harvest: 4, max_stored_harvests: 3, sell_price: 9 }
+  pear:
+    name: Pear tree
+    family: herb
+    rarity: common
+    environments: [orchard]
+    growth_minutes: { seed: 30, sprout: 90, young: 240 }
+    fruit: { name: Pear, emoji: "🍐", timer_minutes: 210, per_harvest: 3, max_stored_harvests: 3, sell_price: 6 }
+
+  # --- Pond -----------------------------------------------------------------
+  lotus:
+    name: Giant lotus
+    family: lavender
+    rarity: uncommon
+    environments: [wetland]
+    growth_minutes: { seed: 60, sprout: 180, young: 480 }
+    fruit: { name: Lotus pods, emoji: "🪷", timer_minutes: 270, per_harvest: 3, max_stored_harvests: 3, sell_price: 12 }
+  cranberry_bog:
+    name: Cranberry bog
+    family: berry
+    rarity: common
+    environments: [wetland]
+    growth_minutes: { seed: 30, sprout: 60, young: 180 }
+    fruit: { name: Cranberries, emoji: "🔴", timer_minutes: 180, per_harvest: 4, max_stored_harvests: 3, sell_price: 5 }
+  bamboo:
+    name: Bamboo grove
+    family: bamboo
+    rarity: common
+    environments: [wetland, tropical]
+    growth_minutes: { seed: 20, sprout: 60, young: 150 }
+    fruit: { name: Bamboo shoots, emoji: "🎋", timer_minutes: 150, per_harvest: 3, max_stored_harvests: 3, sell_price: 6 }
+  willow:
+    name: Weeping willow
+    family: moonflower
+    rarity: uncommon
+    environments: [wetland]
+    growth_minutes: { seed: 60, sprout: 240, young: 480 }
+    fruit: { name: Willow catkins, emoji: "🌾", timer_minutes: 300, per_harvest: 3, max_stored_harvests: 3, sell_price: 12 }
+
+  # --- Desert ---------------------------------------------------------------
+  date_palm:
+    name: Date palm
+    family: sunflower
+    rarity: uncommon
+    environments: [desert, tropical]
+    growth_minutes: { seed: 60, sprout: 240, young: 480 }
+    fruit: { name: Dates, emoji: "🟤", timer_minutes: 300, per_harvest: 4, max_stored_harvests: 3, sell_price: 11 }
+  prickly_pear:
+    name: Prickly pear
+    family: herb
+    rarity: uncommon
+    environments: [desert]
+    growth_minutes: { seed: 60, sprout: 180, young: 420 }
+    fruit: { name: Cactus fruit, emoji: "🌵", timer_minutes: 270, per_harvest: 3, max_stored_harvests: 3, sell_price: 12 }
+  giant_cactus:
+    name: Night-blooming cactus
+    family: moonflower
+    rarity: rare
+    environments: [desert]
+    growth_minutes: { seed: 120, sprout: 480, young: 1080 }
+    fruit: { name: Moon blossom, emoji: "🌸", timer_minutes: 420, per_harvest: 2, max_stored_harvests: 3, sell_price: 40 }
+  aloe:
+    name: Giant aloe
+    family: lavender
+    rarity: common
+    environments: [desert]
+    growth_minutes: { seed: 30, sprout: 90, young: 180 }
+    fruit: { name: Aloe leaf, emoji: "🪴", timer_minutes: 210, per_harvest: 3, max_stored_harvests: 3, sell_price: 7 }
+
+  # --- Tropical -------------------------------------------------------------
+  banana:
+    name: Banana plant
+    family: berry
+    rarity: uncommon
+    environments: [tropical]
+    growth_minutes: { seed: 60, sprout: 180, young: 420 }
+    fruit: { name: Bananas, emoji: "🍌", timer_minutes: 240, per_harvest: 5, max_stored_harvests: 3, sell_price: 9 }
+  mango:
+    name: Mango tree
+    family: sunflower
+    rarity: rare
+    environments: [tropical]
+    growth_minutes: { seed: 120, sprout: 480, young: 1200 }
+    fruit: { name: Mango, emoji: "🥭", timer_minutes: 420, per_harvest: 3, max_stored_harvests: 3, sell_price: 30 }
+  coconut_palm:
+    name: Coconut palm
+    family: berry
+    rarity: rare
+    environments: [tropical]
+    growth_minutes: { seed: 120, sprout: 480, young: 1200 }
+    fruit: { name: Coconut, emoji: "🥥", timer_minutes: 480, per_harvest: 3, max_stored_harvests: 3, sell_price: 32 }
+  cacao:
+    name: Cacao tree
+    family: herb
+    rarity: rare
+    environments: [tropical]
+    growth_minutes: { seed: 120, sprout: 600, young: 1200 }
+    fruit: { name: Cacao pods, emoji: "🍫", timer_minutes: 480, per_harvest: 3, max_stored_harvests: 3, sell_price: 35 }
+
+  # --- Alpine ---------------------------------------------------------------
+  pine:
+    name: Mountain pine
+    family: bamboo
+    rarity: rare
+    environments: [alpine, forest]
+    growth_minutes: { seed: 120, sprout: 600, young: 1200 }
+    fruit: { name: Pine cones, emoji: "🌲", timer_minutes: 420, per_harvest: 4, max_stored_harvests: 3, sell_price: 25 }
+  blueberry:
+    name: Blueberry thicket
+    family: bamboo
+    rarity: uncommon
+    environments: [alpine, forest]
+    growth_minutes: { seed: 60, sprout: 180, young: 420 }
+    fruit: { name: Blueberries, emoji: "🫐", timer_minutes: 240, per_harvest: 4, max_stored_harvests: 3, sell_price: 9 }
+  edelweiss:
+    name: Giant edelweiss
+    family: lavender
+    rarity: rare
+    environments: [alpine]
+    growth_minutes: { seed: 120, sprout: 480, young: 1080 }
+    fruit: { name: Edelweiss star, emoji: "⭐", timer_minutes: 420, per_harvest: 2, max_stored_harvests: 3, sell_price: 45 }
+  snow_pear:
+    name: Snow-pear tree
+    family: rose
+    rarity: rare
+    environments: [alpine]
+    growth_minutes: { seed: 120, sprout: 540, young: 1200 }
+    fruit: { name: Snow-pear, emoji: "❄️", timer_minutes: 450, per_harvest: 3, max_stored_harvests: 3, sell_price: 35 }
+
+# ---------------------------------------------------------------------------
+# Garden visitors
+#
+# A visitor can appear when ALL of its conditions hold:
+#   environments      plots it visits (empty list = any plot)
+#   min_mature_plants mature plants in that plot
+#   min_streak_days   current gentle streak (days with a quest or a rest day)
+#   time_of_day       any, day or night
+#   chance            chance per garden visit, once the conditions hold
+# Feeding a visitor its favourite fruit gives a small thank-you in coins.
+# ---------------------------------------------------------------------------
+visitors:
+  butterfly: { name: Butterfly, emoji: "🦋", environments: [], min_mature_plants: 1, min_streak_days: 0, time_of_day: day, chance: 0.6, favourite_fruit: lavender_hedge, thanks_coins: 6 }
+  bee: { name: Bumblebee, emoji: "🐝", environments: [], min_mature_plants: 2, min_streak_days: 0, time_of_day: day, chance: 0.5, favourite_fruit: giant_sunflower, thanks_coins: 6 }
+  songbird: { name: Songbird, emoji: "🐦", environments: [], min_mature_plants: 1, min_streak_days: 3, time_of_day: day, chance: 0.4, favourite_fruit: berry_bush, thanks_coins: 8 }
+  ladybird: { name: Ladybird, emoji: "🐞", environments: [meadow, orchard], min_mature_plants: 1, min_streak_days: 0, time_of_day: day, chance: 0.35, favourite_fruit: apple_tree, thanks_coins: 5 }
+  hedgehog: { name: Hedgehog, emoji: "🦔", environments: [meadow, forest], min_mature_plants: 2, min_streak_days: 5, time_of_day: night, chance: 0.35, favourite_fruit: apple_tree, thanks_coins: 10 }
+  firefly: { name: Fireflies, emoji: "✨", environments: [forest], min_mature_plants: 1, min_streak_days: 0, time_of_day: night, chance: 0.7, favourite_fruit: mushroom_grove, thanks_coins: 6 }
+  squirrel: { name: Squirrel, emoji: "🐿️", environments: [forest], min_mature_plants: 2, min_streak_days: 0, time_of_day: day, chance: 0.5, favourite_fruit: hazelnut, thanks_coins: 8 }
+  fox: { name: Fox, emoji: "🦊", environments: [forest, alpine], min_mature_plants: 3, min_streak_days: 7, time_of_day: any, chance: 0.25, favourite_fruit: blueberry, thanks_coins: 15 }
+  rabbit: { name: Rabbit, emoji: "🐇", environments: [orchard, meadow], min_mature_plants: 2, min_streak_days: 2, time_of_day: day, chance: 0.4, favourite_fruit: pear, thanks_coins: 8 }
+  frog: { name: Frog, emoji: "🐸", environments: [wetland], min_mature_plants: 1, min_streak_days: 0, time_of_day: any, chance: 0.7, favourite_fruit: cranberry_bog, thanks_coins: 7 }
+  duck: { name: Duck, emoji: "🦆", environments: [wetland], min_mature_plants: 2, min_streak_days: 0, time_of_day: day, chance: 0.5, favourite_fruit: lotus, thanks_coins: 10 }
+  lizard: { name: Lizard, emoji: "🦎", environments: [desert], min_mature_plants: 1, min_streak_days: 0, time_of_day: day, chance: 0.6, favourite_fruit: prickly_pear, thanks_coins: 10 }
+  owl: { name: Owl, emoji: "🦉", environments: [desert, forest], min_mature_plants: 2, min_streak_days: 3, time_of_day: night, chance: 0.4, favourite_fruit: giant_cactus, thanks_coins: 12 }
+  parrot: { name: Parrot, emoji: "🦜", environments: [tropical], min_mature_plants: 1, min_streak_days: 0, time_of_day: day, chance: 0.6, favourite_fruit: mango, thanks_coins: 12 }
+  sloth: { name: Sloth, emoji: "🦥", environments: [tropical], min_mature_plants: 3, min_streak_days: 5, time_of_day: any, chance: 0.3, favourite_fruit: banana, thanks_coins: 15 }
+  goat: { name: Mountain goat, emoji: "🐐", environments: [alpine], min_mature_plants: 1, min_streak_days: 0, time_of_day: day, chance: 0.5, favourite_fruit: snow_pear, thanks_coins: 12 }
+
+# Each plot slowly moves through the seasons, starting from the day it was
+# unlocked. One full year takes 4 x days_per_season.
+seasons:
+  days_per_season: 7
+
+# Cosmetics: one item can be placed per kind in each plot.
+# Kinds: path, fence, pond, bench, lantern, background.
+cosmetics:
+  stone_path: { name: Stepping stones, emoji: "🪨", kind: path, price: 40 }
+  flower_path: { name: Petal path, emoji: "🌸", kind: path, price: 70 }
+  picket_fence: { name: Picket fence, emoji: "🪵", kind: fence, price: 50 }
+  hedge_fence: { name: Little hedge, emoji: "🌳", kind: fence, price: 80 }
+  lily_pond: { name: Lily pond, emoji: "💧", kind: pond, price: 120 }
+  wooden_bench: { name: Wooden bench, emoji: "🪑", kind: bench, price: 60 }
+  paper_lantern: { name: Paper lanterns, emoji: "🏮", kind: lantern, price: 60 }
+  fairy_lights: { name: Fairy lights, emoji: "✨", kind: lantern, price: 90 }
+  sunset_sky: { name: Sunset sky, emoji: "🌇", kind: background, price: 100 }
+  aurora_sky: { name: Aurora sky, emoji: "🌌", kind: background, price: 160 }
+
+# Mystery seed packs. On purpose, these are a worse deal than doing quests.
+mystery_packs:
+  small_pack:
+    name: Mystery seed
+    emoji: "🎁"
+    price: 60
+    seeds: 1
+    odds: { common: 0.85, uncommon: 0.13, rare: 0.02 }
+
+# Recipes turn fruit into small bonuses.
+# Ingredients use species ids (the fruit of that plant).
+# Effects:
+#   growth_boost  plants in all plots grow `multiplier` times faster for `hours`
+#   coins         gives `amount` coins
+#   visitor_lure  doubles visitor chances for `hours`
+recipes:
+  fruit_salad:
+    name: Fruit salad
+    emoji: "🥗"
+    ingredients: { apple_tree: 2, berry_bush: 2 }
+    effect: { type: coins, amount: 35 }
+  calming_tea:
+    name: Calming tea
+    emoji: "🍵"
+    ingredients: { lavender_hedge: 2 }
+    effect: { type: visitor_lure, hours: 6 }
+  sunny_granola:
+    name: Sunny granola
+    emoji: "🥣"
+    ingredients: { giant_sunflower: 3, hazelnut: 2 }
+    effect: { type: growth_boost, multiplier: 1.5, hours: 4 }
+  forest_stew:
+    name: Forest stew
+    emoji: "🍲"
+    ingredients: { mushroom_grove: 3, fern_canopy: 2 }
+    effect: { type: growth_boost, multiplier: 1.5, hours: 6 }
+  orchard_pie:
+    name: Orchard pie
+    emoji: "🥧"
+    ingredients: { cherry: 2, pear: 2, peach: 2 }
+    effect: { type: coins, amount: 90 }
+  hot_cocoa:
+    name: Hot cocoa
+    emoji: "☕"
+    ingredients: { cacao: 2, coconut_palm: 1 }
+    effect: { type: growth_boost, multiplier: 2.0, hours: 6 }
+
+# The free seed planted during onboarding.
+starter_seed: giant_sunflower
