@@ -123,8 +123,9 @@ class SettingsScreen extends ConsumerWidget {
                     context: context,
                     initialTime: TimeOfDay(hour: s.checkInReminderMinutes ~/ 60, minute: s.checkInReminderMinutes % 60),
                   );
-                  if (t != null)
+                  if (t != null) {
                     await notifier.update((x) => x.copyWith(checkInReminderMinutes: t.hour * 60 + t.minute));
+                  }
                 },
               ),
             ],
