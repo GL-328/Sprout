@@ -8,16 +8,20 @@ import '../../ui/widgets/motion.dart';
 import '../today/quest_actions.dart';
 import '../today/today_providers.dart';
 import '../today/today_screen.dart';
-import 'home_tutorial.dart';
 import '../../ui/art/icon_art.dart';
 
-/// The "Today's quests" sheet on Home: the Seed Meter and today's quests.
+/// The "Today's quests" panel on Home: the Seed Meter and the first two
+/// quests due today. It never scrolls; "See all" opens the Today tab.
 class QuestsPanel extends ConsumerWidget {
-  const QuestsPanel({super.key, required this.scrollController, required this.bottomInset});
+  const QuestsPanel({super.key, required this.bottomInset, this.shown = QuestsPanel.defaultShown});
 
-  final ScrollController scrollController;
+  /// How many quests the panel shows normally.
+  static const defaultShown = 2;
 
-  /// Space at the bottom for the floating navigation bar.
+  /// How many quests to show (fewer on very short screens).
+  final int shown;
+
+  /// Space at the bottom for the floating navigation bar and system bar.
   final double bottomInset;
 
   @override
@@ -25,7 +29,7 @@ class QuestsPanel extends ConsumerWidget {
     final theme = Theme.of(context);
     final view = ref.watch(todayViewProvider).value;
     final calm = reduceMotion(context, ref);
-    final quests = <Quest>[...?view?.todo, ...?view?.later];
+    final due = <Quest>[...?view?.todo, ...?view?.later];
     final dark = theme.brightness == Brightness.dark;
 
     return DecoratedBox(
@@ -36,52 +40,61 @@ class QuestsPanel extends ConsumerWidget {
           BoxShadow(color: Colors.black.withValues(alpha: 0.12), blurRadius: 24, offset: const Offset(0, -4)),
         ],
       ),
-      child: ListView(
-        controller: scrollController,
-        padding: EdgeInsets.fromLTRB(18, 0, 18, bottomInset + 16),
-        children: [
-          Center(
-            child: Container(
-              width: 40,
-              height: 5,
-              margin: const EdgeInsets.symmetric(vertical: 10),
-              decoration: BoxDecoration(
-                color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.3),
-                borderRadius: BorderRadius.circular(3),
-              ),
-            ),
-          ),
-          const HomeTutorial(),
-          Row(
-            children: [
-              Expanded(child: Text("Today's quests", style: theme.textTheme.titleMedium)),
-              TextButton(onPressed: () => context.go('/today'), child: const Text('See all')),
-            ],
-          ),
-          const _MeterBar(),
-          const SizedBox(height: 12),
-          if (view != null && quests.isEmpty)
-            _Empty(allDone: view.done.isNotEmpty)
-          else
-            for (final q in quests)
-              Padding(
-                key: ValueKey(q.id),
-                padding: const EdgeInsets.only(bottom: 10),
-                child: QuestRow(
-                  quest: q,
-                  compact: true,
-                  reduceMotion: calm,
-                  onComplete: () => completeQuestFlow(context, ref, q),
-                  onMenu: () => showQuestMenu(context, ref, q, isLater: view?.later.contains(q) ?? false),
+      child: Padding(
+        padding: EdgeInsets.fromLTRB(18, 6, 18, bottomInset + 10),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              children: [
+                // At very large text sizes the row scales down to one line
+                // rather than stacking letters.
+                Expanded(
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    alignment: Alignment.centerLeft,
+                    child: Text("Today's quests", style: theme.textTheme.titleMedium),
+                  ),
                 ),
-              ),
-        ],
+                Flexible(
+                  fit: FlexFit.tight,
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    alignment: Alignment.centerRight,
+                    child: TextButton(
+                      onPressed: () => context.go('/today'),
+                      child: Text(due.length > shown ? 'See all (${due.length})' : 'See all'),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const _MeterBar(),
+            const SizedBox(height: 10),
+            if (view != null && due.isEmpty)
+              _Empty(allDone: view.done.isNotEmpty)
+            else
+              for (final q in due.take(shown))
+                Padding(
+                  key: ValueKey(q.id),
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: QuestRow(
+                    quest: q,
+                    compact: true,
+                    reduceMotion: calm,
+                    onComplete: () => completeQuestFlow(context, ref, q),
+                    onMenu: () => showQuestMenu(context, ref, q, isLater: view?.later.contains(q) ?? false),
+                  ),
+                ),
+          ],
+        ),
       ),
     );
   }
 }
 
-/// The Seed Meter as a slim segmented bar with its kind message.
+/// The Seed Meter as a slim segmented bar with a short count.
 class _MeterBar extends ConsumerWidget {
   const _MeterBar();
 
@@ -113,15 +126,9 @@ class _MeterBar extends ConsumerWidget {
               ),
             ),
           const SizedBox(width: 6),
-          Flexible(
-            flex: 4,
-            child: Text(
-              rules.message(filled: filled, countedToday: meter?.countedToday ?? 0),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: theme.textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w700),
-            ),
-          ),
+          // A short count keeps the panel small; the Today tab has the full,
+          // kind message.
+          Text('$filled of $total', style: theme.textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w800)),
         ],
       ),
     );
