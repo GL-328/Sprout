@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sprout/core/clock.dart';
 import 'package:sprout/data/repositories/quest_repository.dart';
