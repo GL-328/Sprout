@@ -79,14 +79,6 @@ class QuestRepository {
     );
   }
 
-  Future<void> addStarterQuests(Set<QuestCategory> focus) async {
-    final keys = focus.isEmpty ? defaultStarterKeys : [for (final c in focus) ...?starterKeysByCategory[c]];
-    for (final key in keys) {
-      final p = premadeByKey(key);
-      if (p != null) await addPremade(p);
-    }
-  }
-
   Future<void> update(Quest q) async {
     await (_db.update(_db.quests)..where((t) => t.id.equals(q.id))).write(
       QuestsCompanion(
