@@ -9,6 +9,7 @@ import '../../ui/art/plant_art_provider.dart';
 import '../../ui/theme/category_style.dart';
 
 Future<void> showPlantSheet(BuildContext context, Plant plant) => showModalBottomSheet<void>(
+  useRootNavigator: true,
   context: context,
   isScrollControlled: true,
   useSafeArea: true,

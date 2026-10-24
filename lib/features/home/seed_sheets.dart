@@ -20,6 +20,7 @@ String? seedHint(GameConfig config, SpeciesConfig species, Set<String> unlocked)
 
 Future<void> showChooseSeedSheet(BuildContext context, {required String envId, required int slot}) =>
     showModalBottomSheet<void>(
+      useRootNavigator: true,
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
@@ -149,6 +150,7 @@ class _SeedTile extends ConsumerWidget {
 }
 
 Future<void> showSeedBagSheet(BuildContext context) => showModalBottomSheet<void>(
+  useRootNavigator: true,
   context: context,
   isScrollControlled: true,
   useSafeArea: true,

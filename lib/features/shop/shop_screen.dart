@@ -290,6 +290,7 @@ class _CosmeticsTab extends ConsumerWidget {
   const _CosmeticsTab();
 
   Future<void> _place(BuildContext context, WidgetRef ref, CosmeticConfig c) => showModalBottomSheet<void>(
+    useRootNavigator: true,
     context: context,
     builder: (_) => Consumer(
       builder: (context, ref, _) {

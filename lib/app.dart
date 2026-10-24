@@ -60,6 +60,8 @@ class SproutApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Keeps reminders in sync with settings and quests.
+    ref.listen(reminderSyncProvider, (_, _) {});
     final theme = ref.watch(settingsProvider.select((s) => s.theme));
     final accent = ref.watch(settingsProvider.select((s) => s.accent));
     return MaterialApp.router(

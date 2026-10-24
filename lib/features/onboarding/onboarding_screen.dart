@@ -76,6 +76,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             onboardingDone: true,
           ),
         );
+    if (_reminders) await ref.read(reminderSchedulerProvider).requestPermission();
+    ref.invalidate(reminderSyncProvider);
     if (mounted) context.go(Routes.home);
   }
 

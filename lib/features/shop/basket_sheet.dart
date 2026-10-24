@@ -8,6 +8,7 @@ import '../../ui/widgets/motion.dart';
 import '../home/garden_providers.dart';
 
 Future<void> showBasketSheet(BuildContext context) => showModalBottomSheet<void>(
+  useRootNavigator: true,
   context: context,
   isScrollControlled: true,
   useSafeArea: true,

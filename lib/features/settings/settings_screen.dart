@@ -6,6 +6,7 @@ import '../../domain/models/app_settings.dart';
 import '../../ui/theme/app_theme.dart';
 import '../../ui/widgets/soft_card.dart';
 import 'about_screen.dart';
+import 'data_section.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -104,9 +105,21 @@ class SettingsScreen extends ConsumerWidget {
             children: [
               SwitchListTile(
                 title: const Text('Gentle reminders'),
-                subtitle: const Text('A soft daily nudge to check in'),
+                subtitle: const Text('Turn on a daily check-in nudge, plus any quest reminders you set'),
                 value: s.remindersOn,
-                onChanged: (v) => notifier.update((x) => x.copyWith(remindersOn: v)),
+                onChanged: (v) async {
+                  if (v && !await ref.read(reminderSchedulerProvider).requestPermission()) {
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Notifications are turned off for Sprout in your phone settings.'),
+                        ),
+                      );
+                    }
+                    return;
+                  }
+                  await notifier.update((x) => x.copyWith(remindersOn: v));
+                },
               ),
               ListTile(
                 enabled: s.remindersOn,
@@ -130,6 +143,7 @@ class SettingsScreen extends ConsumerWidget {
               ),
             ],
           ),
+          const _Section(title: 'Your data', children: [DataSection()]),
           _Section(
             title: 'About',
             children: [

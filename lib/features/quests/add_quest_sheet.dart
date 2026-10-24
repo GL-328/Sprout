@@ -10,6 +10,7 @@ import '../today/today_providers.dart';
 import 'quest_editor_screen.dart';
 
 Future<void> showAddQuestSheet(BuildContext context) => showModalBottomSheet<void>(
+  useRootNavigator: true,
   context: context,
   isScrollControlled: true,
   useSafeArea: true,

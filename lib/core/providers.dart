@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../config/game_config.dart';
@@ -7,12 +8,15 @@ import '../data/repositories/quest_repository.dart';
 import '../data/repositories/seed_repository.dart';
 import '../data/repositories/settings_repository.dart';
 import '../data/repositories/wellbeing_repository.dart';
+import '../data/services/backup_service.dart';
 import '../data/services/economy_service.dart';
 import '../data/services/garden_service.dart';
 import '../data/services/progress_service.dart';
+import '../domain/logic/reminders.dart';
 import '../domain/logic/seed_roller.dart';
 import '../domain/models/app_settings.dart';
 import 'clock.dart';
+import 'notifications_service.dart';
 
 /// Overridden in `main.dart` once the config has been loaded.
 final gameConfigProvider = Provider<GameConfig>((ref) => throw UnimplementedError('gameConfigProvider not set'));
@@ -38,6 +42,11 @@ class SettingsNotifier extends Notifier<AppSettings> {
   Future<void> update(AppSettings Function(AppSettings s) change) async {
     state = change(state);
     await ref.read(settingsRepositoryProvider).save(state);
+  }
+
+  /// Re-reads settings from the database, after an import or a reset.
+  Future<void> reload() async {
+    state = await ref.read(settingsRepositoryProvider).load();
   }
 }
 
@@ -79,9 +88,21 @@ final todayKeyProvider = Provider<String>((ref) {
   return dayKey(now);
 });
 
+/// The platform notification scheduler. Overridden with a no-op in tests.
+final reminderSchedulerProvider = Provider<ReminderScheduler>((ref) => LocalNotificationScheduler());
+
 /// Re-schedules reminder notifications. Invalidate it after quests or
-/// reminder settings change. Replaced with the real scheduler in Stage 5.
-final reminderSyncProvider = FutureProvider<void>((ref) async {});
+/// reminder settings change.
+final reminderSyncProvider = FutureProvider<void>((ref) async {
+  final settings = ref.watch(settingsProvider);
+  final quests = await ref.read(questRepositoryProvider).watchQuests(includeArchived: false).first;
+  try {
+    await ref.read(reminderSchedulerProvider).replaceAll(planReminders(settings, quests));
+  } catch (e) {
+    // Reminders are a nice-to-have; never break the app over them.
+    debugPrint('Could not schedule reminders: $e');
+  }
+});
 
 final gardenServiceProvider = Provider<GardenService>(
   (ref) => GardenService(
@@ -108,4 +129,8 @@ final economyServiceProvider = Provider<EconomyService>(
 
 final wellbeingRepositoryProvider = Provider<WellbeingRepository>(
   (ref) => WellbeingRepository(ref.watch(databaseProvider), ref.watch(clockProvider)),
+);
+
+final backupServiceProvider = Provider<BackupService>(
+  (ref) => BackupService(ref.watch(databaseProvider), ref.watch(clockProvider)),
 );
