@@ -87,6 +87,35 @@ Keep a backup of the keystore and password somewhere safe outside GitHub (a
 password manager works well). Secrets can't be read back once saved, and a
 lost key means every phone has to uninstall once to switch to a new one.
 
+## Friends (optional)
+
+Friends lets you add friends with a code and visit each other's gardens. It is
+**off by default** and only works in builds made with a Firebase project.
+
+**What is shared when Friends is on:** your display name, your friend code,
+who your friends are, once-a-day "visited you" notes, and a picture of your
+garden (your plots, what grows in each spot and how far along it is, and your
+decorations). **Never shared:** quests, moods, notes, helpful contacts or any
+history. Turning Friends off in Settings deletes what was shared.
+
+**Setting it up (free Firebase Spark plan):**
+
+1. At console.firebase.google.com, create a project. Analytics can stay off.
+2. **Build → Authentication → Sign-in method**: turn on **Anonymous**.
+3. **Build → Firestore Database → Create database**, in production mode, in a
+   region near you.
+4. **Firestore → Rules**: paste the contents of `firestore.rules` from this
+   repository and tap **Publish**.
+5. **Project settings → Your apps → Add app → Android**, package name
+   `app.sprout.sprout`. Download `google-services.json`.
+6. In this GitHub repository: **Settings → Secrets and variables → Actions →
+   New repository secret**, name `GOOGLE_SERVICES_JSON`, value: the whole
+   contents of that file.
+
+The next build switches Friends on. Without the secret, builds still work and
+Friends simply says it isn't set up. The security rules are tested against the
+Firestore emulator in `firestore-tests/` (`npm install && npm test`).
+
 ## Tweaking the game
 
 All game rules live in one file:
