@@ -5,19 +5,18 @@
 library;
 
 enum QuestCategory {
-  sleep('sleep', 'Sleep', '😴'),
-  movement('movement', 'Movement', '🏃'),
-  mind('mind', 'Mind', '🧘'),
-  social('social', 'Social', '💬'),
-  home('home', 'Home', '🏡'),
-  foodWater('food_water', 'Food and water', '🥤'),
-  studyWork('study_work', 'Study/Work', '📚');
+  sleep('sleep', 'Sleep'),
+  movement('movement', 'Movement'),
+  mind('mind', 'Mind'),
+  social('social', 'Social'),
+  home('home', 'Home'),
+  foodWater('food_water', 'Food and water'),
+  studyWork('study_work', 'Study/Work');
 
-  const QuestCategory(this.id, this.label, this.emoji);
+  const QuestCategory(this.id, this.label);
 
   final String id;
   final String label;
-  final String emoji;
 
   static QuestCategory fromId(String id) =>
       values.firstWhere((c) => c.id == id, orElse: () => throw FormatException('Unknown quest category "$id"'));

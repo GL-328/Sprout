@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../ui/widgets/soft_card.dart';
 import '../../ui/layout/insets.dart';
+import '../../ui/art/icon_art.dart';
 
 /// Shared wording for the wellbeing note, also shown in the Journal.
 const notMedicalAdviceNote =
@@ -25,7 +26,7 @@ class AboutScreen extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('🌱', style: TextStyle(fontSize: 48)),
+                const ArtIcon('sprout', size: 60),
                 const SizedBox(height: 12),
                 Text('Sprout', style: theme.textTheme.headlineSmall),
                 const SizedBox(height: 8),

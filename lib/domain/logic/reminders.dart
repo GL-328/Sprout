@@ -25,14 +25,14 @@ List<ReminderPlan> planReminders(AppSettings settings, List<Quest> quests) {
   final plans = <ReminderPlan>[
     ReminderPlan(
       id: checkInReminderId,
-      title: 'Your garden says hi 🌱',
+      title: 'Your garden says hi',
       body: 'Want to take a moment to check in? No pressure at all.',
       minutes: settings.checkInReminderMinutes,
     ),
   ];
   for (final (i, q) in quests.indexed) {
     if (!q.reminderOn || q.archived || !q.showOnToday || q.reminderMinutes == null) continue;
-    const body = 'A gentle nudge, only if it feels right today 💛';
+    const body = 'A gentle nudge, only if it feels right today.';
     final base = 1000 + i * 10;
     if (q.repeat == RepeatKind.weekdays) {
       for (final d in q.weekdays) {

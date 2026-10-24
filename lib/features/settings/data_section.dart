@@ -26,7 +26,7 @@ class DataSection extends ConsumerWidget {
         mimeType: 'application/json',
         dialogTitle: 'Save your Sprout backup',
       );
-      if (context.mounted && saved != null) _say(context, 'Backup saved 🌱');
+      if (context.mounted && saved != null) _say(context, 'Backup saved.');
     } catch (e) {
       if (context.mounted) _say(context, 'Could not save the backup: $e');
     }
@@ -56,7 +56,7 @@ class DataSection extends ConsumerWidget {
       await ref.read(gardenServiceProvider).ensureStartingPlot();
       await ref.read(settingsProvider.notifier).reload();
       ref.invalidate(reminderSyncProvider);
-      if (context.mounted) _say(context, 'Backup restored 🌷');
+      if (context.mounted) _say(context, 'Backup restored.');
     } on BackupException catch (e) {
       if (context.mounted) _say(context, e.message);
     } catch (e) {

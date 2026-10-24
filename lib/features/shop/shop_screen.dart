@@ -20,6 +20,7 @@ import '../home/garden_providers.dart';
 import '../today/seed_reveal.dart';
 import '../today/today_providers.dart';
 import 'ben.dart';
+import '../../ui/art/icon_art.dart';
 
 enum ShopSection { plots, sell, recipes, decor }
 
@@ -59,8 +60,8 @@ class _ShopScreenState extends ConsumerState<ShopScreen> {
                           color: const Color(0xFFF4B740).withValues(alpha: 0.22),
                           borderRadius: BorderRadius.circular(100),
                         ),
-                        child: Text(
-                          '🪙 $coins',
+                        child: IconText(
+                          '{coin} $coins',
                           style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w800),
                         ),
                       ),
@@ -182,7 +183,7 @@ class _ShopCard extends ConsumerWidget {
     final theme = Theme.of(context);
     return Semantics(
       button: true,
-      label: '$name, $pill',
+      label: '$name, ${IconText.plain(pill)}',
       excludeSemantics: true,
       onTap: onTap,
       child: Bouncy(
@@ -237,7 +238,7 @@ class _ShopCard extends ConsumerWidget {
                   color: const Color(0xFFF4B740).withValues(alpha: 0.22),
                   borderRadius: BorderRadius.circular(100),
                 ),
-                child: Text(pill, style: theme.textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w800)),
+                child: IconText(pill, style: theme.textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w800)),
               ),
             ],
           ),
@@ -299,7 +300,7 @@ Future<void> _showItemSheet(
                         Navigator.pop(sheet);
                         await onAction();
                       },
-                child: Text(action),
+                child: IconText(action),
               ),
             ),
             if (secondary != null && onSecondary != null)
@@ -325,7 +326,7 @@ void _celebrate(WidgetRef ref, BenLineType reaction, Sfx sfx) {
 
 void _toast(BuildContext context, String message) => ScaffoldMessenger.of(context)
   ..hideCurrentSnackBar()
-  ..showSnackBar(SnackBar(content: Text(message)));
+  ..showSnackBar(SnackBar(content: IconText(message)));
 
 // --- Plots --------------------------------------------------------------------
 
@@ -341,32 +342,31 @@ class _PlotsGrid extends ConsumerWidget {
     Widget thumb(EnvironmentConfig env, {double radius = 0}) => CustomPaint(
       size: Size.infinite,
       painter: GardenScenePainter(hour: 13, envId: env.id, season: Season.summer, silhouette: false),
-      child: Center(child: Text(env.emoji, style: const TextStyle(fontSize: 40))),
     );
 
     void open(EnvironmentConfig env) {
       final owned = plots.containsKey(env.id);
       final affordable = coins >= env.price;
       if (!owned && !affordable) ref.read(benProvider.notifier).react(BenLineType.noCoins);
-      final grows = config.speciesForEnvironment(env.id).map((s) => s.fruit.emoji).join('  ');
+      final grows = config.speciesForEnvironment(env.id).map((s) => '{fruit:${s.id}}').join(' ');
       _showItemSheet(
         context,
         picture: SizedBox.expand(child: thumb(env)),
         tint: const Color(0xFFCDEBD9),
         title: env.name,
         line: env.description,
-        extra: Text('Grows: $grows', style: const TextStyle(fontSize: 18)),
+        extra: IconText('Grows: $grows', textAlign: TextAlign.center, style: const TextStyle(fontSize: 18)),
         action: owned
-            ? 'Already yours 🌱'
+            ? 'Already yours'
             : affordable
-            ? 'Unlock for 🪙 ${env.price}'
-            : '🪙 ${env.price - coins} more to go',
+            ? 'Unlock for {coin} ${env.price}'
+            : '{coin} ${env.price - coins} more to go',
         onAction: owned || !affordable
             ? null
             : () async {
                 await ref.read(economyServiceProvider).unlockPlot(env.id);
                 _celebrate(ref, BenLineType.unlock, Sfx.coin);
-                if (context.mounted) _toast(context, 'The ${env.name} is yours! Find it from the plot name on Home 🌱');
+                if (context.mounted) _toast(context, 'The ${env.name} is yours! Find it from the plot name on Home.');
               },
       );
     }
@@ -377,16 +377,16 @@ class _PlotsGrid extends ConsumerWidget {
         _ShopCard(
           picture: SizedBox.expand(child: thumb(env)),
           name: env.name,
-          pill: plots.containsKey(env.id) ? 'Yours ✓' : '🪙 ${env.price}',
+          pill: plots.containsKey(env.id) ? 'Yours {check}' : '{coin} ${env.price}',
           tint: const Color(0xFFCDEBD9),
           faded: !plots.containsKey(env.id) && coins < env.price,
           onTap: () => open(env),
         ),
       for (final pack in packs)
         _ShopCard(
-          picture: Text(pack.emoji, style: const TextStyle(fontSize: 56)),
+          picture: ArtIcon('pack:${pack.id}', size: 76),
           name: pack.name,
-          pill: '🪙 ${pack.price}',
+          pill: '{coin} ${pack.price}',
           tint: const Color(0xFFE6D5F7),
           faded: coins < pack.price,
           onTap: () {
@@ -394,11 +394,11 @@ class _PlotsGrid extends ConsumerWidget {
             if (!affordable) ref.read(benProvider.notifier).react(BenLineType.noCoins);
             _showItemSheet(
               context,
-              picture: Text(pack.emoji, style: const TextStyle(fontSize: 80)),
+              picture: ArtIcon('pack:${pack.id}', size: 110),
               tint: const Color(0xFFE6D5F7),
               title: pack.name,
               line: 'A surprise seed. Quests are still the best way to grow rare ones.',
-              action: affordable ? 'Buy for 🪙 ${pack.price}' : '🪙 ${pack.price - coins} more to go',
+              action: affordable ? 'Buy for {coin} ${pack.price}' : '{coin} ${pack.price - coins} more to go',
               onAction: affordable
                   ? () async {
                       try {
@@ -436,7 +436,7 @@ class _SellGrid extends ConsumerWidget {
         child: Padding(
           padding: EdgeInsets.all(28),
           child: Text(
-            'Nothing to sell yet. Harvest a ripe plant and bring the fruit here 🧺',
+            'Nothing to sell yet. Harvest a ripe plant and bring the fruit here.',
             textAlign: TextAlign.center,
           ),
         ),
@@ -452,22 +452,22 @@ class _SellGrid extends ConsumerWidget {
             Future<void> sell(int qty) async {
               final coins = await ref.read(economyServiceProvider).sellFruit(e.key, qty);
               _celebrate(ref, BenLineType.sell, Sfx.coin);
-              if (context.mounted) _toast(context, 'Sold for $coins coins 🪙');
+              if (context.mounted) _toast(context, 'Sold for {coin} $coins');
             }
 
             return _ShopCard(
-              picture: Text(s.fruit.emoji, style: const TextStyle(fontSize: 56)),
+              picture: ArtIcon('fruit:${s.id}', size: 76),
               name: s.fruit.name,
-              pill: '🪙 $each each',
+              pill: '{coin} $each each',
               tint: const Color(0xFFFFE2B8),
               badge: '×${e.value}',
               onTap: () => _showItemSheet(
                 context,
-                picture: Text(s.fruit.emoji, style: const TextStyle(fontSize: 80)),
+                picture: ArtIcon('fruit:${s.id}', size: 110),
                 tint: const Color(0xFFFFE2B8),
                 title: '${s.fruit.name} ×${e.value}',
                 line: 'From your ${s.name}. Worth $each coins each.',
-                action: 'Sell all for 🪙 ${each * e.value}',
+                action: 'Sell all for {coin} ${each * e.value}',
                 onAction: () => sell(e.value),
                 secondary: e.value > 1 ? 'Sell just one' : null,
                 onSecondary: e.value > 1 ? () => sell(1) : null,
@@ -483,7 +483,7 @@ class _SellGrid extends ConsumerWidget {
             return _ShopCard(
               picture: plantArtProvider.seed(s, size: 70),
               name: s.name,
-              pill: '♻️ +$coins',
+              pill: '{compost} +$coins',
               tint: rarityColor(s.rarity),
               onTap: () => _showItemSheet(
                 context,
@@ -491,11 +491,11 @@ class _SellGrid extends ConsumerWidget {
                 tint: rarityColor(s.rarity),
                 title: s.name,
                 line: 'A spare ${s.rarity.label.toLowerCase()} seed. Compost it for a few coins, or keep it to plant.',
-                action: 'Compost for 🪙 $coins',
+                action: 'Compost for {coin} $coins',
                 onAction: () async {
                   await ref.read(economyServiceProvider).compostSeed(seed.id);
                   _celebrate(ref, BenLineType.compost, Sfx.coin);
-                  if (context.mounted) _toast(context, 'Composted. +$coins coins 🪙');
+                  if (context.mounted) _toast(context, 'Composted. +{coin} $coins');
                 },
               ),
             );
@@ -526,25 +526,22 @@ class _RecipesGrid extends ConsumerWidget {
         Builder(
           builder: (context) {
             final can = economy.canCook(r, inventory);
-            final needs = [for (final e in r.ingredients.entries) '${config.speciesById(e.key).fruit.emoji}${e.value}']
-                .join(' ');
+            final needs = [for (final e in r.ingredients.entries) '{fruit:${e.key}}${e.value}'].join(' ');
             return _ShopCard(
-              picture: Text(r.emoji, style: const TextStyle(fontSize: 56)),
+              picture: ArtIcon('recipe:${r.id}', size: 76),
               name: r.name,
               pill: needs,
               tint: const Color(0xFFF8D3DA),
               faded: !can,
               onTap: () => _showItemSheet(
                 context,
-                picture: Text(r.emoji, style: const TextStyle(fontSize: 80)),
+                picture: ArtIcon('recipe:${r.id}', size: 110),
                 tint: const Color(0xFFF8D3DA),
                 title: r.name,
                 line: effectLine(r.effect),
-                extra: Text(
-                  [
-                    for (final e in r.ingredients.entries)
-                      '${config.speciesById(e.key).fruit.emoji} ${inventory[e.key] ?? 0}/${e.value}',
-                  ].join('    '),
+                extra: IconText(
+                  [for (final e in r.ingredients.entries) '{fruit:${e.key}} ${inventory[e.key] ?? 0}/${e.value}']
+                      .join('    '),
                   style: const TextStyle(fontSize: 16),
                 ),
                 action: can ? 'Make it' : 'A little more fruit needed',
@@ -598,7 +595,8 @@ class _DecorGrid extends ConsumerWidget {
               const SizedBox(height: 8),
               for (final env in config.environments.where((e) => plots.containsKey(e.id)))
                 SwitchListTile(
-                  title: Text('${env.emoji} ${env.name}'),
+                  secondary: ArtIcon('plot:${env.id}', size: 32),
+                  title: Text(env.name),
                   value: placed[env.id]?[c.kind] == c.id,
                   onChanged: (on) => ref.read(economyServiceProvider).placeCosmetic(env.id, c.kind, on ? c.id : null),
                 ),
@@ -622,9 +620,9 @@ class _DecorGrid extends ConsumerWidget {
             final has = owned.contains(c.id);
             final affordable = coins >= c.price;
             return _ShopCard(
-              picture: Text(c.emoji, style: const TextStyle(fontSize: 56)),
+              picture: ArtIcon('cosmetic:${c.id}', size: 76),
               name: c.name,
-              pill: has ? 'Owned ✓' : '🪙 ${c.price}',
+              pill: has ? 'Owned {check}' : '{coin} ${c.price}',
               tint: tint,
               faded: !has && !affordable,
               onTap: () {
@@ -635,11 +633,11 @@ class _DecorGrid extends ConsumerWidget {
                 if (!affordable) ref.read(benProvider.notifier).react(BenLineType.noCoins);
                 _showItemSheet(
                   context,
-                  picture: Text(c.emoji, style: const TextStyle(fontSize: 80)),
+                  picture: ArtIcon('cosmetic:${c.id}', size: 110),
                   tint: tint,
                   title: c.name,
                   line: 'A cosy ${c.kind == 'background' ? 'sky' : c.kind} for any of your plots.',
-                  action: affordable ? 'Buy for 🪙 ${c.price}' : '🪙 ${c.price - coins} more to go',
+                  action: affordable ? 'Buy for {coin} ${c.price}' : '{coin} ${c.price - coins} more to go',
                   onAction: affordable
                       ? () async {
                           await ref.read(economyServiceProvider).buyCosmetic(c.id);

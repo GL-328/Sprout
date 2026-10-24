@@ -35,7 +35,7 @@ void main() {
 
   testWidgets('every Shop tab opens', (tester) async {
     await open(tester, 'Shop');
-    expect(find.text('Yours ✓'), findsOneWidget, reason: 'the Meadow is unlocked');
+    expect(find.textContaining('Yours'), findsOneWidget, reason: 'the Meadow is unlocked');
     expect(find.bySemanticsLabel(RegExp('Ben the shopkeeper')), findsOneWidget);
     for (final tab in ['Sell', 'Recipes', 'Decor', 'Plots']) {
       await tester.tap(find.bySemanticsLabel(RegExp('^$tab')));

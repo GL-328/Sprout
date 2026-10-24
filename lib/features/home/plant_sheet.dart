@@ -8,6 +8,7 @@ import '../../domain/models/plant.dart';
 import '../../ui/art/plant_art_provider.dart';
 import '../../ui/theme/category_style.dart';
 import '../../ui/layout/insets.dart';
+import '../../ui/art/icon_art.dart';
 
 Future<void> showPlantSheet(BuildContext context, Plant plant) =>
     showSproutSheet<void>(context, builder: (_) => _PlantSheet(plant: plant));
@@ -88,8 +89,8 @@ class _PlantSheet extends ConsumerWidget {
           const SizedBox(height: 10),
           Text(detail, textAlign: TextAlign.center, style: theme.textTheme.bodyMedium),
           const SizedBox(height: 6),
-          Text(
-            'Fruit: ${species.fruit.emoji} ${species.fruit.name}, ${species.fruit.perHarvest} per harvest, '
+          IconText(
+            'Fruit: {fruit:${species.id}} ${species.fruit.name}, ${species.fruit.perHarvest} per harvest, '
             'worth ${species.fruit.sellPrice} coins each. Picked ${plant.harvests} times so far.',
             textAlign: TextAlign.center,
             style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),

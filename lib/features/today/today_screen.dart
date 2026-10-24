@@ -19,6 +19,7 @@ import '../quests/quest_editor_screen.dart';
 import 'quest_actions.dart';
 import 'today_providers.dart';
 import '../../ui/layout/insets.dart';
+import '../../ui/art/icon_art.dart';
 
 class TodayScreen extends ConsumerStatefulWidget {
   const TodayScreen({super.key});
@@ -194,7 +195,7 @@ class _TodayMenu extends ConsumerWidget {
         if (v == 'all') pushPage(context, const MyQuestsScreen());
       },
       itemBuilder: (_) => [
-        PopupMenuItem(value: 'rest', child: Text(resting ? 'End rest day' : 'Take a rest day 🌙')),
+        PopupMenuItem(value: 'rest', child: Text(resting ? 'End rest day' : 'Take a rest day')),
         const PopupMenuItem(value: 'all', child: Text('All quests')),
       ],
     );
@@ -217,9 +218,9 @@ class SeedMeterCard extends ConsumerWidget {
     final day = ref.watch(todayKeyProvider);
     final resting = (ref.watch(restDaysProvider).value ?? const {}).contains(day);
     final sub = resting
-        ? 'Rest day. Your garden keeps growing 🌙'
+        ? 'Rest day. Your garden keeps growing.'
         : streak > 1
-        ? '$streak days of caring for yourself 🌿'
+        ? '$streak days of caring for yourself'
         : null;
     return SoftCard(
       color: const Color(0xFF7FC48B).withValues(alpha: 0.14),
@@ -257,7 +258,7 @@ class _AllClear extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 28),
       child: Column(
         children: [
-          Text(hasDone ? '🌷' : '🌤️', style: const TextStyle(fontSize: 40)),
+          ArtIcon(hasDone ? 'tulip' : 'cloud_sun', size: 52),
           const SizedBox(height: 8),
           Text(
             hasDone ? 'All done for today. Take it easy.' : 'Nothing planned yet.',

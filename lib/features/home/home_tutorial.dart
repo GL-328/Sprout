@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/providers.dart';
+import '../../ui/art/icon_art.dart';
 
 /// Settings key set once the first-run tips have been seen.
 const tutorialDoneKey = 'tutorial_done';
@@ -11,9 +12,9 @@ final tutorialDoneProvider = FutureProvider<bool>(
 );
 
 const _tips = [
-  ('🌱', 'Finish quests to fill your Seed Meter. Every 3 earns a seed.'),
-  ('➕', 'Tap a "+" ring to plant a seed. Use the arrows to visit each spot.'),
-  ('🎒', 'Your Bag holds your seeds and fruit. Sell fruit in the Shop.'),
+  ('seed', 'Finish quests to fill your Seed Meter. Every 3 earns a seed.'),
+  ('plus', 'Tap a "+" ring to plant a seed. Use the arrows to visit each spot.'),
+  ('bag', 'Your Bag holds your seeds and fruit. Sell fruit in the Shop.'),
 ];
 
 /// Three gentle first-run tips on Home, shown once. Skippable.
@@ -50,7 +51,7 @@ class _HomeTutorialState extends ConsumerState<HomeTutorial> {
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(emoji, style: const TextStyle(fontSize: 22)),
+                ArtIcon(emoji, size: 26),
                 const SizedBox(width: 10),
                 Expanded(
                   child: Text(text, style: theme.textTheme.bodyMedium?.copyWith(color: Colors.white, height: 1.35)),

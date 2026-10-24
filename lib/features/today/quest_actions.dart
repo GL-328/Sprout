@@ -25,7 +25,7 @@ Future<void> completeQuestFlow(BuildContext context, WidgetRef ref, Quest quest,
     ..showSnackBar(
       SnackBar(
         duration: Duration(seconds: ref.read(gameConfigProvider).undoSeconds),
-        content: Text(result.counted ? '"${quest.title}" done 🌱' : '"${quest.title}" done. Well done you 💛'),
+        content: Text(result.counted ? '"${quest.title}" done' : '"${quest.title}" done. Well done you.'),
         action: SnackBarAction(
           label: 'Undo',
           onPressed: () async {

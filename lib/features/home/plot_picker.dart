@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/providers.dart';
 import 'garden_providers.dart';
 import '../../ui/layout/insets.dart';
+import '../../ui/art/icon_art.dart';
 
 /// A small sheet for switching plots. Locked plots point to the Shop.
 Future<String?> showPlotPicker(BuildContext context, {required String current}) => showSproutSheet<String>(
@@ -30,11 +31,11 @@ Future<String?> showPlotPicker(BuildContext context, {required String current}) 
                   child: ListTile(
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
                     selected: env.id == current,
-                    leading: Text(env.emoji, style: const TextStyle(fontSize: 26)),
+                    leading: ArtIcon('plot:${env.id}', size: 36),
                     title: Text(env.name),
                     trailing: plots.containsKey(env.id)
                         ? (env.id == current ? const Icon(Icons.check_rounded) : null)
-                        : Text('🪙 ${env.price}', style: theme.textTheme.labelLarge),
+                        : IconText('{coin} ${env.price}', style: theme.textTheme.labelLarge),
                     onTap: () {
                       if (plots.containsKey(env.id)) {
                         Navigator.pop(sheet, env.id);

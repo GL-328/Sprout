@@ -73,7 +73,7 @@ void main() {
       await tester.tap(find.text(tab).last);
       await tester.pumpAndSettle();
     }
-    expect(find.textContaining('🌼 Meadow'), findsOneWidget);
+    expect(find.bySemanticsLabel(RegExp('Change plot, now Meadow')), findsOneWidget);
     expect(find.bySemanticsLabel(RegExp('Empty spot')), findsWidgets);
     expect(find.text("Today's quests"), findsOneWidget);
   });

@@ -18,6 +18,7 @@ import '../mood/moods.dart';
 import '../settings/about_screen.dart';
 import 'contacts_screen.dart';
 import '../../ui/layout/insets.dart';
+import '../../ui/art/icon_art.dart';
 
 final _moodsProvider = StreamProvider<Map<String, MoodEntry>>(
   (ref) => ref.watch(wellbeingRepositoryProvider).watchMoods(),
@@ -141,8 +142,10 @@ class _MoodsTabState extends ConsumerState<_MoodsTab> {
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: mood == null
-                                ? Text(isRest ? '🌙' : '$d', style: theme.textTheme.bodySmall)
-                                : Text(moodOption(mood.value).emoji, style: const TextStyle(fontSize: 18)),
+                                ? (isRest
+                                      ? const ArtIcon('moon', size: 18)
+                                      : Text('$d', style: theme.textTheme.bodySmall))
+                                : ArtIcon(moodOption(mood.value).icon, size: 24),
                           ),
                         );
                       },
@@ -165,7 +168,7 @@ class _MoodsTabState extends ConsumerState<_MoodsTab> {
                   children: [
                     for (final o in moodOptions)
                       Chip(
-                        avatar: Text(o.emoji),
+                        avatar: ArtIcon(o.icon, size: 20),
                         label: Text('${inMonth.where((m) => m.value == o.value).length}'),
                         backgroundColor: o.color.withValues(alpha: 0.6),
                       ),
@@ -174,7 +177,7 @@ class _MoodsTabState extends ConsumerState<_MoodsTab> {
                 for (final m in inMonth.where((m) => m.note.isNotEmpty).toList().reversed.take(5))
                   ListTile(
                     contentPadding: EdgeInsets.zero,
-                    leading: Text(moodOption(m.value).emoji, style: const TextStyle(fontSize: 24)),
+                    leading: ArtIcon(moodOption(m.value).icon, size: 32),
                     title: Text(m.note),
                     subtitle: Text(DateFormat('EEE d MMM').format(DateTime.parse(m.day))),
                   ),
@@ -222,7 +225,7 @@ class _HistoryTab extends ConsumerWidget {
     final theme = Theme.of(context);
     final history = ref.watch(_historyProvider).value ?? const <Completion>[];
     if (history.isEmpty) {
-      return const Center(child: Text('Quests you finish will be remembered here 🌱'));
+      return const Center(child: Text('Quests you finish will be remembered here.'));
     }
     final byDay = <String, List<Completion>>{};
     for (final c in history) {
@@ -249,7 +252,11 @@ class _HistoryTab extends ConsumerWidget {
                     leading: CircleAvatar(
                       radius: 16,
                       backgroundColor: categoryColor(c.category),
-                      child: Text(c.category.emoji, style: const TextStyle(fontSize: 14)),
+                      child: Icon(
+                        categoryIcon(c.category),
+                        size: 16,
+                        color: Color.lerp(categoryColor(c.category), Colors.black, 0.55),
+                      ),
                     ),
                     title: Text(c.title),
                     trailing: Text(DateFormat.jm().format(c.completedAt)),
@@ -290,7 +297,7 @@ class _PlantsTab extends ConsumerWidget {
                       height: 80,
                       child: discovered.contains(s.id)
                           ? plantArtProvider.plant(s, GrowthStage.mature, size: 80)
-                          : const Center(child: Text('❔', style: TextStyle(fontSize: 34))),
+                          : const Center(child: ArtIcon('question', size: 44)),
                     ),
                     Text(
                       discovered.contains(s.id) ? s.name : '???',
@@ -298,8 +305,8 @@ class _PlantsTab extends ConsumerWidget {
                       maxLines: 2,
                       style: theme.textTheme.labelMedium?.copyWith(fontWeight: FontWeight.w800),
                     ),
-                    Text(
-                      s.rarity == Rarity.rare ? '✨ ${s.rarity.label}' : s.rarity.label,
+                    IconText(
+                      s.rarity == Rarity.rare ? '{sparkle} ${s.rarity.label}' : s.rarity.label,
                       style: theme.textTheme.labelSmall?.copyWith(color: rarityColor(s.rarity)),
                     ),
                   ],
@@ -362,7 +369,7 @@ class _VisitorsTab extends ConsumerWidget {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text(seen.containsKey(v.id) ? v.emoji : '❔', style: const TextStyle(fontSize: 34)),
+                    ArtIcon(seen.containsKey(v.id) ? 'visitor:${v.id}' : 'question', size: 44),
                     const SizedBox(height: 4),
                     Text(
                       seen.containsKey(v.id) ? v.name : '???',
@@ -394,15 +401,15 @@ class _StatsTab extends ConsumerWidget {
     int v(String key) => c[key] ?? 0;
 
     final items = [
-      ('✅', 'Quests completed', v(CounterKeys.questsCompleted)),
-      ('🌱', 'Seeds earned', v(CounterKeys.seedsEarned)),
-      ('🌳', 'Plants grown', v(CounterKeys.plantsGrown)),
-      ('🧺', 'Fruit harvested', v(CounterKeys.fruitHarvested)),
-      ('🪙', 'Coins earned', v(CounterKeys.coinsEarned)),
-      ('🥧', 'Recipes made', v(CounterKeys.recipesMade)),
-      ('🗺️', 'Plots tended', plots),
-      ('🦋', 'Visitors met', visitors),
-      ('🌿', 'Current gentle streak', streak),
+      ('check', 'Quests completed', v(CounterKeys.questsCompleted)),
+      ('seed', 'Seeds earned', v(CounterKeys.seedsEarned)),
+      ('tree', 'Plants grown', v(CounterKeys.plantsGrown)),
+      ('basket', 'Fruit harvested', v(CounterKeys.fruitHarvested)),
+      ('coin', 'Coins earned', v(CounterKeys.coinsEarned)),
+      ('recipe:orchard_pie', 'Recipes made', v(CounterKeys.recipesMade)),
+      ('map', 'Plots tended', plots),
+      ('visitor:butterfly', 'Visitors met', visitors),
+      ('leaf', 'Current gentle streak', streak),
     ];
     return ListView(
       padding: AppInsets.list(context, top: 16),
@@ -416,13 +423,13 @@ class _StatsTab extends ConsumerWidget {
           columns: 2,
           spacing: 12,
           children: [
-            for (final (emoji, label, value) in items)
+            for (final (icon, label, value) in items)
               SoftCard(
                 padding: const EdgeInsets.all(14),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(emoji, style: const TextStyle(fontSize: 28)),
+                    ArtIcon(icon, size: 36),
                     const SizedBox(height: 10),
                     Text('$value', style: theme.textTheme.headlineSmall),
                     Text(label, style: theme.textTheme.bodySmall),

@@ -9,6 +9,7 @@ import '../today/quest_actions.dart';
 import '../today/today_providers.dart';
 import '../today/today_screen.dart';
 import 'home_tutorial.dart';
+import '../../ui/art/icon_art.dart';
 
 /// The "Today's quests" sheet on Home: the Seed Meter and today's quests.
 class QuestsPanel extends ConsumerWidget {
@@ -96,7 +97,7 @@ class _MeterBar extends ConsumerWidget {
       label: 'Seed Meter, $filled of $total',
       child: Row(
         children: [
-          const Text('🌱', style: TextStyle(fontSize: 18)),
+          const ArtIcon('seed', size: 22),
           const SizedBox(width: 8),
           for (var i = 0; i < total; i++)
             Expanded(
@@ -139,7 +140,7 @@ class _Empty extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 12),
       child: Column(
         children: [
-          Text(allDone ? 'All done for today 🌷' : 'No quests planned for today', style: theme.textTheme.titleSmall),
+          Text(allDone ? 'All done for today' : 'No quests planned for today', style: theme.textTheme.titleSmall),
           if (!allDone) ...[
             const SizedBox(height: 10),
             FilledButton.tonalIcon(

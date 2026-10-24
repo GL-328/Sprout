@@ -27,6 +27,7 @@ import 'plant_sheet.dart';
 import 'plot_picker.dart';
 import 'quests_panel.dart';
 import 'seed_sheets.dart';
+import '../../ui/art/icon_art.dart';
 
 /// Height of the floating navigation bar, including its margin.
 const _navBarSpace = 92.0;
@@ -89,13 +90,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with SingleTickerProvid
       context,
       from: globalPos,
       target: CounterTargets.bag,
-      emoji: species.fruit.emoji,
+      icon: 'fruit:${species.id}',
       count: math.min(result.fruit, 8),
       reduceMotion: reduceMotion(context, ref),
     );
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
-      ..showSnackBar(SnackBar(content: Text('Picked ${result.fruit} ${species.fruit.name} ${species.fruit.emoji}')));
+      ..showSnackBar(SnackBar(content: IconText('Picked ${result.fruit} ${species.fruit.name} {fruit:${species.id}}')));
   }
 
   Future<void> _pickPlot(String current) async {
@@ -236,7 +237,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with SingleTickerProvid
                     top: safeTop + 8,
                     child: _Header(
                       greeting: greetingFor(now, name),
-                      plotLabel: '${env.emoji} ${env.name}',
+                      plotLabel: '{plot:${env.id}} ${env.name}',
                       color: onScene,
                       onPlotTap: () => _pickPlot(envId),
                     ),
@@ -271,9 +272,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with SingleTickerProvid
       return Positioned(
         left: w * x - size / 2,
         top: h * y - size / 2,
-        child: IgnorePointer(
-          child: Text(c.emoji, style: TextStyle(fontSize: size)),
-        ),
+        child: IgnorePointer(child: ArtIcon('cosmetic:${c.id}', size: size * 1.2)),
       );
     }
 
@@ -302,10 +301,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with SingleTickerProvid
       child: Semantics(
         button: true,
         label: '${v.name} visiting',
-        child: GestureDetector(
-          onTap: () => showVisitorSheet(context, v),
-          child: Text(v.emoji, style: const TextStyle(fontSize: 28)),
-        ),
+        child: GestureDetector(onTap: () => showVisitorSheet(context, v), child: ArtIcon('visitor:${v.id}', size: 36)),
       ),
     );
   }
@@ -341,7 +337,7 @@ class _Header extends ConsumerWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 child: Row(
                   children: [
-                    const Text('🪙', style: TextStyle(fontSize: 15)),
+                    const ArtIcon('coin', size: 20),
                     const SizedBox(width: 5),
                     AnimatedCount(
                       value: coins,
@@ -362,10 +358,7 @@ class _Header extends ConsumerWidget {
                 label: 'Bag, $seeds seeds and $fruit fruit',
                 circle: true,
                 onTap: () => showBagSheet(context),
-                child: const Padding(
-                  padding: EdgeInsets.all(9),
-                  child: Text('🎒', style: TextStyle(fontSize: 18)),
-                ),
+                child: const Padding(padding: EdgeInsets.all(9), child: ArtIcon('bag', size: 24)),
               ),
             ),
           ],
@@ -377,7 +370,7 @@ class _Header extends ConsumerWidget {
         ),
         Semantics(
           button: true,
-          label: 'Change plot, now $plotLabel',
+          label: 'Change plot, now ${IconText.plain(plotLabel)}',
           child: InkWell(
             borderRadius: BorderRadius.circular(100),
             onTap: onPlotTap,
@@ -386,7 +379,7 @@ class _Header extends ConsumerWidget {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(plotLabel, style: theme.textTheme.bodySmall?.copyWith(color: color.withValues(alpha: 0.75))),
+                  IconText(plotLabel, style: theme.textTheme.bodySmall?.copyWith(color: color.withValues(alpha: 0.75))),
                   Icon(Icons.expand_more_rounded, size: 16, color: color.withValues(alpha: 0.75)),
                 ],
               ),

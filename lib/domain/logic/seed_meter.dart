@@ -23,7 +23,7 @@ class SeedMeterRules {
           'Anything else you do still counts for you, and the meter waits for tomorrow.';
     }
     final left = questsPerSeed - filled;
-    if (filled == 0) return 'Finish $questsPerSeed quests to earn a seed 🌱';
+    if (filled == 0) return 'Finish $questsPerSeed quests to earn a seed';
     if (left == 1) return '$filled of $questsPerSeed, one more for a seed!';
     return '$filled of $questsPerSeed, $left more for a seed';
   }

@@ -138,7 +138,8 @@ class _QuestEditorScreenState extends ConsumerState<QuestEditorScreen> {
             children: [
               for (final c in QuestCategory.values)
                 ChoiceChip(
-                  label: Text('${c.emoji} ${c.label}'),
+                  avatar: Icon(categoryIcon(c), size: 18),
+                  label: Text(c.label),
                   selected: _category == c,
                   selectedColor: categoryColor(c),
                   onSelected: (_) => setState(() => _category = c),

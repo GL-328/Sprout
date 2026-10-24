@@ -7,6 +7,7 @@ import '../../domain/logic/growth.dart';
 import '../../domain/models/enums.dart';
 import '../../domain/models/plant.dart';
 import '../../ui/art/plant_art_provider.dart';
+import '../../ui/art/icon_art.dart';
 
 /// One plot's slots, one large plant at a time. Neighbours peek in from the
 /// sides; arrows and swipes move between them.
@@ -69,7 +70,9 @@ class PlantCarousel extends StatelessWidget {
                 itemBuilder: (context, i) => AnimatedBuilder(
                   animation: controller,
                   builder: (context, child) {
-                    final current = controller.hasClients && controller.position.haveDimensions
+                    // While a rebuild briefly attaches two views, fall back to
+                    // the settled page instead of reading an ambiguous position.
+                    final current = controller.positions.length == 1 && controller.position.haveDimensions
                         ? controller.page ?? page.toDouble()
                         : page.toDouble();
                     final distance = (current - i).abs().clamp(0.0, 1.0);
@@ -210,7 +213,7 @@ class _Slot extends StatelessWidget {
           return Column(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
-              if (showBubble) const _Bubble("I'd love a seed here 🌱"),
+              if (showBubble) const _Bubble("I'd love a seed here"),
               const SizedBox(height: 12),
               Flexible(
                 child: FittedBox(
@@ -290,17 +293,17 @@ String statusLine(SpeciesConfig species, GrowthStatus s) {
   if (s.canHarvest) return 'Tap to harvest';
   if (!s.isMature) return '${s.stage.label} · ${friendlyDuration(s.untilNextStage!)}';
   if (s.untilNextHarvest == null) return 'Tap to harvest';
-  return 'Next ${species.fruit.emoji} in ${friendlyDuration(s.untilNextHarvest!)}';
+  return 'Next {fruit:${species.id}} in ${friendlyDuration(s.untilNextHarvest!)}';
 }
 
 /// What the plant says, like a little friend.
 String bubbleLine(SpeciesConfig species, GrowthStatus s) {
-  if (s.canHarvest) return "${species.fruit.emoji} Fruit's ready for you!";
+  if (s.canHarvest) return "{fruit:${species.id}} Fruit's ready for you!";
   return switch (s.stage) {
     GrowthStage.seed => 'Snug in the soil, getting ready…',
-    GrowthStage.sprout => "I'm sprouting! 🌱",
-    GrowthStage.young => 'Growing up nicely ☀️',
-    _ => 'Thanks for looking after me 💛',
+    GrowthStage.sprout => "I'm sprouting!",
+    GrowthStage.young => 'Growing up nicely',
+    _ => 'Thanks for looking after me',
   };
 }
 
@@ -318,7 +321,7 @@ class _Bubble extends StatelessWidget {
       borderRadius: BorderRadius.circular(18),
       boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.08), blurRadius: 10, offset: const Offset(0, 3))],
     ),
-    child: Text(
+    child: IconText(
       text,
       maxLines: 2,
       overflow: TextOverflow.ellipsis,
@@ -338,7 +341,7 @@ class _Label extends StatelessWidget {
     margin: const EdgeInsets.only(top: 6),
     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
     decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.6), borderRadius: BorderRadius.circular(100)),
-    child: Text(
+    child: IconText(
       text,
       style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFF4A4257)),
     ),
