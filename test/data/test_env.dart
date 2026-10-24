@@ -9,6 +9,8 @@ import 'package:sprout/data/db/app_database.dart';
 import 'package:sprout/data/repositories/counters_repository.dart';
 import 'package:sprout/data/repositories/quest_repository.dart';
 import 'package:sprout/data/repositories/seed_repository.dart';
+import 'package:sprout/data/repositories/settings_repository.dart';
+import 'package:sprout/data/services/economy_service.dart';
 import 'package:sprout/data/services/garden_service.dart';
 import 'package:sprout/data/services/progress_service.dart';
 import 'package:sprout/domain/logic/seed_roller.dart';
@@ -23,6 +25,8 @@ class TestEnv {
     quests = QuestRepository(db, clock);
     progress = ProgressService(db, config, clock, seeds, counters, SeedRoller(config, Random(seed)));
     garden = GardenService(db, config, clock, seeds, counters);
+    settings = SettingsRepository(db);
+    economy = EconomyService(db, config, clock, seeds, counters, garden, settings, SeedRoller(config, Random(seed)));
   }
 
   static final config = GameConfig.parse(File('assets/config/game_config.yaml').readAsStringSync());
@@ -34,6 +38,8 @@ class TestEnv {
   late final QuestRepository quests;
   late final ProgressService progress;
   late final GardenService garden;
+  late final SettingsRepository settings;
+  late final EconomyService economy;
 
   Future<void> close() => db.close();
 }
