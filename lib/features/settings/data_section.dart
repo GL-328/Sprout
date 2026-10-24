@@ -38,6 +38,7 @@ class DataSection extends ConsumerWidget {
     final ok = await showDialog<bool>(
       context: context,
       builder: (c) => AlertDialog(
+        scrollable: true,
         title: const Text('Restore this backup?'),
         content: const Text(
           'Everything currently in Sprout (quests, garden, moods, settings) will be replaced with the backup.',
@@ -67,6 +68,7 @@ class DataSection extends ConsumerWidget {
     final first = await showDialog<bool>(
       context: context,
       builder: (c) => AlertDialog(
+        scrollable: true,
         title: const Text('Delete all data?'),
         content: const Text(
           'This permanently removes your quests, garden, seeds, coins, moods, journal and settings from this phone. '
@@ -88,6 +90,7 @@ class DataSection extends ConsumerWidget {
       context: context,
       builder: (c) => StatefulBuilder(
         builder: (c, setState) => AlertDialog(
+          scrollable: true,
           title: const Text('Are you sure?'),
           content: Column(
             mainAxisSize: MainAxisSize.min,

@@ -6,6 +6,7 @@ import '../../domain/models/enums.dart';
 import '../../domain/models/quest.dart';
 import '../../ui/theme/category_style.dart';
 import '../../ui/widgets/soft_card.dart';
+import '../../ui/layout/insets.dart';
 
 /// Create a custom quest, or edit an existing one.
 class QuestEditorScreen extends ConsumerStatefulWidget {
@@ -85,6 +86,7 @@ class _QuestEditorScreenState extends ConsumerState<QuestEditorScreen> {
     final ok = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
+        scrollable: true,
         title: const Text('Delete this quest?'),
         content: const Text("It will be removed from your list. Times you've already done it stay in your journal."),
         actions: [
@@ -112,7 +114,7 @@ class _QuestEditorScreenState extends ConsumerState<QuestEditorScreen> {
         ],
       ),
       body: ListView(
-        padding: const EdgeInsets.fromLTRB(20, 8, 20, 40),
+        padding: AppInsets.list(context),
         children: [
           TextField(
             controller: _title,

@@ -12,6 +12,7 @@ import '../../domain/models/seed.dart';
 import '../../ui/art/plant_art_provider.dart';
 import '../../ui/art/scene_painter.dart';
 import '../../ui/theme/category_style.dart';
+import '../../ui/layout/insets.dart';
 import '../../ui/widgets/bouncy.dart';
 import '../../ui/widgets/fly_to_counter.dart';
 import '../../ui/widgets/motion.dart';
@@ -74,7 +75,7 @@ class _ShopScreenState extends ConsumerState<ShopScreen> {
               ),
             ),
             SliverPadding(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 130),
+              padding: EdgeInsets.fromLTRB(16, 0, 16, AppInsets.scrollEnd(context)),
               sliver: switch (_section) {
                 ShopSection.plots => const _PlotsGrid(),
                 ShopSection.sell => const _SellGrid(),
@@ -266,10 +267,8 @@ Future<void> _showItemSheet(
   Widget? extra,
   String? secondary,
   Future<void> Function()? onSecondary,
-}) => showModalBottomSheet<void>(
-  context: context,
-  useRootNavigator: true,
-  isScrollControlled: true,
+}) => showSproutSheet<void>(
+  context,
   builder: (sheet) {
     final theme = Theme.of(sheet);
     return SafeArea(
@@ -582,18 +581,18 @@ class _DecorGrid extends ConsumerWidget {
     'background': Color(0xFFDDD3F4),
   };
 
-  Future<void> _place(BuildContext context, CosmeticConfig c) => showModalBottomSheet<void>(
-    context: context,
-    useRootNavigator: true,
+  Future<void> _place(BuildContext context, CosmeticConfig c) => showSproutSheet<void>(
+    context,
     builder: (_) => Consumer(
       builder: (context, ref, _) {
         final config = ref.watch(gameConfigProvider);
         final plots = ref.watch(plotsProvider).value ?? const {};
         final placed = ref.watch(placedCosmeticsProvider).value ?? const {};
-        return SafeArea(
-          child: ListView(
-            shrinkWrap: true,
-            padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+        return Padding(
+          padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text('Place ${c.name}', style: Theme.of(context).textTheme.titleLarge),
               const SizedBox(height: 8),

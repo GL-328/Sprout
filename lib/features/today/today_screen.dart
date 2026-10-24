@@ -18,6 +18,7 @@ import '../quests/my_quests_screen.dart';
 import '../quests/quest_editor_screen.dart';
 import 'quest_actions.dart';
 import 'today_providers.dart';
+import '../../ui/layout/insets.dart';
 
 class TodayScreen extends ConsumerStatefulWidget {
   const TodayScreen({super.key});
@@ -61,7 +62,7 @@ class _TodayScreenState extends ConsumerState<TodayScreen> {
 
     return Scaffold(
       floatingActionButton: Padding(
-        padding: const EdgeInsets.only(bottom: 84),
+        padding: EdgeInsets.only(bottom: AppInsets.covered(context)),
         child: FloatingActionButton(
           tooltip: 'Add a quest',
           onPressed: () => showAddChooser(context),
@@ -76,7 +77,7 @@ class _TodayScreenState extends ConsumerState<TodayScreen> {
               loading: () => const Center(child: CircularProgressIndicator()),
               error: (e, _) => Center(child: Text('Something went a little wrong: $e')),
               data: (v) => ListView(
-                padding: const EdgeInsets.fromLTRB(20, 16, 20, 180),
+                padding: AppInsets.list(context, top: 16, withFab: true),
                 children: [
                   Row(
                     children: [
@@ -139,9 +140,8 @@ class _TodayScreenState extends ConsumerState<TodayScreen> {
 }
 
 /// The "+" chooser: make a quest, browse ideas, or manage all quests.
-Future<void> showAddChooser(BuildContext context) => showModalBottomSheet<void>(
-  context: context,
-  useRootNavigator: true,
+Future<void> showAddChooser(BuildContext context) => showSproutSheet<void>(
+  context,
   builder: (sheet) => SafeArea(
     child: Column(
       mainAxisSize: MainAxisSize.min,
@@ -151,7 +151,7 @@ Future<void> showAddChooser(BuildContext context) => showModalBottomSheet<void>(
           title: const Text('Make my own quest'),
           onTap: () {
             Navigator.pop(sheet);
-            Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const QuestEditorScreen()));
+            pushPage(context, const QuestEditorScreen());
           },
         ),
         ListTile(
@@ -168,7 +168,7 @@ Future<void> showAddChooser(BuildContext context) => showModalBottomSheet<void>(
           subtitle: const Text('Choose what shows today, edit or archive'),
           onTap: () {
             Navigator.pop(sheet);
-            Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const MyQuestsScreen()));
+            pushPage(context, const MyQuestsScreen());
           },
         ),
         const SizedBox(height: 8),
@@ -191,7 +191,7 @@ class _TodayMenu extends ConsumerWidget {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
       onSelected: (v) {
         if (v == 'rest') ref.read(wellbeingRepositoryProvider).setRestDay(day, !resting);
-        if (v == 'all') Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const MyQuestsScreen()));
+        if (v == 'all') pushPage(context, const MyQuestsScreen());
       },
       itemBuilder: (_) => [
         PopupMenuItem(value: 'rest', child: Text(resting ? 'End rest day' : 'Take a rest day 🌙')),

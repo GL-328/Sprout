@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/haptics.dart';
+import '../../ui/layout/insets.dart';
 
 /// Scaffold with the floating, rounded bottom navigation bar.
 class AppShell extends StatelessWidget {
@@ -19,17 +20,22 @@ class AppShell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final navHeight = AppInsets.shellNavHeight(MediaQuery.viewPaddingOf(context).bottom);
     return Scaffold(
       extendBody: true,
-      body: navigationShell,
+      body: ShellInsets(navBarHeight: navHeight, child: navigationShell),
       bottomNavigationBar: SafeArea(
-        minimum: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-        child: _FloatingNavBar(
-          currentIndex: navigationShell.currentIndex,
-          onTap: (i) {
-            Haptics.selection();
-            navigationShell.goBranch(i, initialLocation: i == navigationShell.currentIndex);
-          },
+        minimum: const EdgeInsets.fromLTRB(16, 0, 16, AppInsets.navBarMargin),
+        // Labels stay readable but never outgrow the bar at large font sizes.
+        child: MediaQuery.withClampedTextScaling(
+          maxScaleFactor: 1.15,
+          child: _FloatingNavBar(
+            currentIndex: navigationShell.currentIndex,
+            onTap: (i) {
+              Haptics.selection();
+              navigationShell.goBranch(i, initialLocation: i == navigationShell.currentIndex);
+            },
+          ),
         ),
       ),
     );
@@ -47,7 +53,7 @@ class _FloatingNavBar extends StatelessWidget {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
     return Container(
-      height: 68,
+      height: AppInsets.navBar,
       decoration: BoxDecoration(
         color: scheme.surface,
         borderRadius: BorderRadius.circular(34),
@@ -68,7 +74,7 @@ class _FloatingNavBar extends StatelessWidget {
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 250),
                     curve: Curves.easeOutCubic,
-                    margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 2),
+                    margin: const EdgeInsets.symmetric(vertical: 7, horizontal: 1),
                     decoration: BoxDecoration(
                       color: i == currentIndex ? scheme.primary.withValues(alpha: 0.16) : Colors.transparent,
                       borderRadius: BorderRadius.circular(26),
@@ -82,11 +88,16 @@ class _FloatingNavBar extends StatelessWidget {
                           size: 24,
                         ),
                         const SizedBox(height: 2),
-                        Text(
-                          tab.label,
-                          style: theme.textTheme.labelSmall?.copyWith(
-                            fontWeight: FontWeight.w800,
-                            color: i == currentIndex ? scheme.primary : scheme.onSurfaceVariant,
+                        FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text(
+                            tab.label,
+                            maxLines: 1,
+                            softWrap: false,
+                            style: theme.textTheme.labelSmall?.copyWith(
+                              fontWeight: FontWeight.w800,
+                              color: i == currentIndex ? scheme.primary : scheme.onSurfaceVariant,
+                            ),
                           ),
                         ),
                       ],

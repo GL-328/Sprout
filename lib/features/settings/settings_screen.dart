@@ -8,6 +8,7 @@ import '../../ui/widgets/soft_card.dart';
 import 'about_screen.dart';
 import 'data_section.dart';
 import 'updates_section.dart';
+import '../../ui/layout/insets.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -21,7 +22,7 @@ class SettingsScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(title: const Text('Settings')),
       body: ListView(
-        padding: const EdgeInsets.fromLTRB(20, 8, 20, 120),
+        padding: AppInsets.list(context),
         children: [
           _Section(
             title: 'You',
@@ -154,7 +155,7 @@ class SettingsScreen extends ConsumerWidget {
                 title: const Text('About Sprout'),
                 subtitle: const Text('And a little note about wellbeing'),
                 trailing: const Icon(Icons.chevron_right),
-                onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const AboutScreen())),
+                onTap: () => pushPage(context, const AboutScreen()),
               ),
             ],
           ),
@@ -168,6 +169,7 @@ class SettingsScreen extends ConsumerWidget {
     return showDialog<String>(
       context: context,
       builder: (context) => AlertDialog(
+        scrollable: true,
         title: const Text('What should we call you?'),
         content: TextField(
           controller: controller,

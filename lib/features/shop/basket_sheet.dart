@@ -7,14 +7,10 @@ import '../../core/sound_service.dart';
 import '../../ui/widgets/fly_to_counter.dart';
 import '../../ui/widgets/motion.dart';
 import '../home/garden_providers.dart';
+import '../../ui/layout/insets.dart';
 
-Future<void> showBasketSheet(BuildContext context) => showModalBottomSheet<void>(
-  useRootNavigator: true,
-  context: context,
-  isScrollControlled: true,
-  useSafeArea: true,
-  builder: (_) => const FractionallySizedBox(heightFactor: 0.7, child: FruitBasket()),
-);
+Future<void> showBasketSheet(BuildContext context) =>
+    showSproutSheet<void>(context, heightFactor: 0.7, builder: (_) => const FruitBasket());
 
 /// The fruit you've picked, with buttons to sell it.
 class FruitBasket extends ConsumerWidget {
@@ -118,6 +114,6 @@ class FruitBasket extends ConsumerWidget {
     ];
 
     if (embedded) return Column(children: list);
-    return ListView(padding: const EdgeInsets.fromLTRB(20, 0, 20, 32), children: list);
+    return ListView(padding: AppInsets.list(context, top: 0), children: list);
   }
 }

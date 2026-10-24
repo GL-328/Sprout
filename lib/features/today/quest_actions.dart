@@ -8,6 +8,7 @@ import '../../domain/models/quest.dart';
 import '../../ui/theme/category_style.dart';
 import '../quests/quest_editor_screen.dart';
 import 'seed_reveal.dart';
+import '../../ui/layout/insets.dart';
 
 /// Completes [quest]: haptic, sound, the undo snackbar and, when the Seed Meter
 /// fills, the seed reveal. Shared by the Home quests panel and the Today tab.
@@ -49,9 +50,8 @@ Future<void> completeQuestFlow(BuildContext context, WidgetRef ref, Quest quest,
 Future<void> showQuestMenu(BuildContext context, WidgetRef ref, Quest quest, {bool isLater = false}) async {
   final repo = ref.read(questRepositoryProvider);
   final day = ref.read(todayKeyProvider);
-  final choice = await showModalBottomSheet<String>(
-    context: context,
-    useRootNavigator: true,
+  final choice = await showSproutSheet<String>(
+    context,
     builder: (context) => SafeArea(
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -89,7 +89,7 @@ Future<void> showQuestMenu(BuildContext context, WidgetRef ref, Quest quest, {bo
   if (!context.mounted) return;
   switch (choice) {
     case 'edit':
-      await Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => QuestEditorScreen(quest: quest)));
+      await pushPage(context, QuestEditorScreen(quest: quest));
     case 'skip':
       await repo.setDayMark(quest.id, day, DayMarkKind.skip);
     case 'later':
@@ -98,6 +98,7 @@ Future<void> showQuestMenu(BuildContext context, WidgetRef ref, Quest quest, {bo
       final ok = await showDialog<bool>(
         context: context,
         builder: (c) => AlertDialog(
+          scrollable: true,
           title: const Text('Delete this quest?'),
           content: const Text("Times you've already done it stay in your journal."),
           actions: [

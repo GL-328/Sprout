@@ -5,6 +5,7 @@ import '../../core/haptics.dart';
 import '../../core/providers.dart';
 import '../../ui/widgets/soft_card.dart';
 import '../home/garden_providers.dart';
+import '../../ui/layout/insets.dart';
 import 'moods.dart';
 
 /// The daily check-in: one small card. Changes the sky in the garden.
@@ -79,16 +80,13 @@ Future<void> showMoodSheet(BuildContext context, WidgetRef ref, {int? initial}) 
   final existing = ref.read(todayMoodProvider).value;
   var value = initial ?? existing?.value ?? 3;
   final note = TextEditingController(text: existing?.note ?? '');
-  final saved = await showModalBottomSheet<bool>(
-    useRootNavigator: true,
-    context: context,
-    isScrollControlled: true,
-    useSafeArea: true,
+  final saved = await showSproutSheet<bool>(
+    context,
     builder: (context) => StatefulBuilder(
       builder: (context, setState) {
         final theme = Theme.of(context);
-        return SingleChildScrollView(
-          padding: EdgeInsets.fromLTRB(20, 0, 20, 24 + MediaQuery.of(context).viewInsets.bottom),
+        return Padding(
+          padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,

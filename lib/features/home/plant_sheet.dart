@@ -7,14 +7,10 @@ import '../../domain/logic/growth.dart';
 import '../../domain/models/plant.dart';
 import '../../ui/art/plant_art_provider.dart';
 import '../../ui/theme/category_style.dart';
+import '../../ui/layout/insets.dart';
 
-Future<void> showPlantSheet(BuildContext context, Plant plant) => showModalBottomSheet<void>(
-  useRootNavigator: true,
-  context: context,
-  isScrollControlled: true,
-  useSafeArea: true,
-  builder: (_) => _PlantSheet(plant: plant),
-);
+Future<void> showPlantSheet(BuildContext context, Plant plant) =>
+    showSproutSheet<void>(context, builder: (_) => _PlantSheet(plant: plant));
 
 class _PlantSheet extends ConsumerWidget {
   const _PlantSheet({required this.plant});
@@ -33,6 +29,7 @@ class _PlantSheet extends ConsumerWidget {
       final ok = await showDialog<bool>(
         context: context,
         builder: (c) => AlertDialog(
+          scrollable: true,
           title: Text('Move on from your ${species.name}?'),
           content: const Text(
             'It will be kept as a keepsake in your Journal, and this spot will be free for a new seed. '
