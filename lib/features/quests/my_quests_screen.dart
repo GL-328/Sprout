@@ -67,7 +67,7 @@ class MyQuestsScreen extends ConsumerWidget {
     );
 
     return Scaffold(
-      appBar: AppBar(title: const Text('My quests')),
+      appBar: AppBar(title: const Text('All quests')),
       floatingActionButton: FloatingActionButton(
         onPressed: () => showAddQuestSheet(context),
         child: const Icon(Icons.add),

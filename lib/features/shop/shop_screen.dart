@@ -6,313 +6,605 @@ import '../../core/haptics.dart';
 import '../../core/providers.dart';
 import '../../core/sound_service.dart';
 import '../../data/services/garden_service.dart';
-import '../../domain/models/enums.dart';
+import '../../domain/logic/ben.dart';
+import '../../domain/logic/seasons.dart';
 import '../../domain/models/seed.dart';
 import '../../ui/art/plant_art_provider.dart';
-import '../../ui/theme/app_theme.dart';
+import '../../ui/art/scene_painter.dart';
 import '../../ui/theme/category_style.dart';
+import '../../ui/widgets/bouncy.dart';
 import '../../ui/widgets/fly_to_counter.dart';
-import '../../ui/widgets/soft_card.dart';
+import '../../ui/widgets/motion.dart';
 import '../home/garden_providers.dart';
 import '../today/seed_reveal.dart';
 import '../today/today_providers.dart';
-import 'basket_sheet.dart';
+import 'ben.dart';
 
-class ShopScreen extends ConsumerWidget {
+enum ShopSection { plots, sell, recipes, decor }
+
+/// A Finch-like shop: Ben at his stall, four big section tiles and a grid of
+/// soft cards. Details live in a bottom sheet.
+class ShopScreen extends ConsumerStatefulWidget {
   const ShopScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<ShopScreen> createState() => _ShopScreenState();
+}
+
+class _ShopScreenState extends ConsumerState<ShopScreen> {
+  ShopSection _section = ShopSection.plots;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final coins = ref.watch(coinsProvider).value ?? 0;
-    return DefaultTabController(
-      length: 5,
-      child: Scaffold(
-        appBar: AppBar(
-          title: const Text('Shop'),
-          actions: [
-            Container(
-              key: CounterTargets.shopCoins,
-              margin: const EdgeInsets.only(right: 16),
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-              decoration: BoxDecoration(
-                color: SproutColors.coin.withValues(alpha: 0.22),
-                borderRadius: BorderRadius.circular(100),
+    return Scaffold(
+      body: SafeArea(
+        bottom: false,
+        child: CustomScrollView(
+          slivers: [
+            SliverPadding(
+              padding: const EdgeInsets.fromLTRB(16, 10, 16, 0),
+              sliver: SliverList.list(
+                children: [
+                  Row(
+                    children: [
+                      Text('Shop', style: theme.textTheme.titleLarge),
+                      const Spacer(),
+                      Container(
+                        key: CounterTargets.shopCoins,
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF4B740).withValues(alpha: 0.22),
+                          borderRadius: BorderRadius.circular(100),
+                        ),
+                        child: Text(
+                          '🪙 $coins',
+                          style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w800),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  BenWindow(height: (MediaQuery.sizeOf(context).height * 0.22).clamp(150.0, 200.0)),
+                  const SizedBox(height: 14),
+                  _SectionTiles(selected: _section, onSelect: (s) => setState(() => _section = s)),
+                  const SizedBox(height: 16),
+                ],
               ),
-              child: Text('🪙 $coins', style: Theme.of(context).textTheme.titleMedium),
+            ),
+            SliverPadding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 130),
+              sliver: switch (_section) {
+                ShopSection.plots => const _PlotsGrid(),
+                ShopSection.sell => const _SellGrid(),
+                ShopSection.recipes => const _RecipesGrid(),
+                ShopSection.decor => const _DecorGrid(),
+              },
             ),
           ],
-          bottom: const TabBar(
-            isScrollable: true,
-            tabAlignment: TabAlignment.start,
-            tabs: [
-              Tab(text: 'Plots'),
-              Tab(text: 'Sell & compost'),
-              Tab(text: 'Recipes'),
-              Tab(text: 'Decorations'),
-              Tab(text: 'Mystery seeds'),
-            ],
-          ),
         ),
-        body: const TabBarView(children: [_PlotsTab(), _SellTab(), _RecipesTab(), _CosmeticsTab(), _MysteryTab()]),
       ),
     );
   }
+}
+
+class _SectionTiles extends ConsumerWidget {
+  const _SectionTiles({required this.selected, required this.onSelect});
+
+  final ShopSection selected;
+  final ValueChanged<ShopSection> onSelect;
+
+  static const _tiles = [
+    (ShopSection.plots, Icons.landscape_rounded, 'Plots', Color(0xFFCDEBD9)),
+    (ShopSection.sell, Icons.shopping_basket_rounded, 'Sell', Color(0xFFFFE2B8)),
+    (ShopSection.recipes, Icons.soup_kitchen_rounded, 'Recipes', Color(0xFFF8D3DA)),
+    (ShopSection.decor, Icons.chair_rounded, 'Decor', Color(0xFFDDD3F4)),
+  ];
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final calm = reduceMotion(context, ref);
+    return Row(
+      children: [
+        for (final (section, icon, label, color) in _tiles)
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4),
+              child: Semantics(
+                button: true,
+                selected: section == selected,
+                label: label,
+                excludeSemantics: true,
+                onTap: () => onSelect(section),
+                child: Bouncy(
+                  enabled: !calm,
+                  onTap: () {
+                    Haptics.selection();
+                    onSelect(section);
+                  },
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    decoration: BoxDecoration(
+                      color: section == selected ? color : color.withValues(alpha: 0.45),
+                      borderRadius: BorderRadius.circular(22),
+                      border: Border.all(
+                        color: section == selected ? Color.lerp(color, Colors.black, 0.25)! : Colors.transparent,
+                        width: 2,
+                      ),
+                    ),
+                    child: Column(
+                      children: [
+                        Icon(icon, size: 28, color: Color.lerp(color, Colors.black, 0.6)),
+                        const SizedBox(height: 4),
+                        Text(label, style: theme.textTheme.labelLarge?.copyWith(color: const Color(0xFF3B3346))),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+// --- Shared card and sheet ----------------------------------------------------
+
+/// A soft shop card: picture, a short name and a price pill. Nothing else.
+class _ShopCard extends ConsumerWidget {
+  const _ShopCard({
+    required this.picture,
+    required this.name,
+    required this.pill,
+    required this.tint,
+    required this.onTap,
+    this.faded = false,
+    this.badge,
+  });
+
+  final Widget picture;
+  final String name;
+  final String pill;
+  final Color tint;
+  final VoidCallback onTap;
+
+  /// Soft and faded when it can't be afforded yet. Never red.
+  final bool faded;
+  final String? badge;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    return Semantics(
+      button: true,
+      label: '$name, $pill',
+      excludeSemantics: true,
+      onTap: onTap,
+      child: Bouncy(
+        enabled: !reduceMotion(context, ref),
+        onTap: onTap,
+        child: Opacity(
+          opacity: faded ? 0.55 : 1,
+          child: Column(
+            children: [
+              Expanded(
+                child: Container(
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    color: tint.withValues(alpha: 0.55),
+                    borderRadius: BorderRadius.circular(26),
+                  ),
+                  clipBehavior: Clip.antiAlias,
+                  child: Stack(
+                    children: [
+                      Positioned.fill(child: Center(child: picture)),
+                      if (badge != null)
+                        Positioned(
+                          right: 10,
+                          top: 10,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.9),
+                              borderRadius: BorderRadius.circular(100),
+                            ),
+                            child: Text(
+                              badge!,
+                              style: theme.textTheme.labelMedium?.copyWith(fontWeight: FontWeight.w800),
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                name,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w800),
+              ),
+              const SizedBox(height: 4),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 3),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF4B740).withValues(alpha: 0.22),
+                  borderRadius: BorderRadius.circular(100),
+                ),
+                child: Text(pill, style: theme.textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w800)),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+SliverGrid _grid(List<Widget> cards) => SliverGrid.count(
+  crossAxisCount: 2,
+  mainAxisSpacing: 16,
+  crossAxisSpacing: 14,
+  childAspectRatio: 0.78,
+  children: cards,
+);
+
+/// Bigger picture, one line, one clear button.
+Future<void> _showItemSheet(
+  BuildContext context, {
+  required Widget picture,
+  required Color tint,
+  required String title,
+  required String line,
+  required String action,
+  required Future<void> Function()? onAction,
+  Widget? extra,
+  String? secondary,
+  Future<void> Function()? onSecondary,
+}) => showModalBottomSheet<void>(
+  context: context,
+  useRootNavigator: true,
+  isScrollControlled: true,
+  builder: (sheet) {
+    final theme = Theme.of(sheet);
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(24, 0, 24, 20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              height: 170,
+              width: double.infinity,
+              decoration: BoxDecoration(color: tint.withValues(alpha: 0.55), borderRadius: BorderRadius.circular(28)),
+              clipBehavior: Clip.antiAlias,
+              child: Center(child: picture),
+            ),
+            const SizedBox(height: 14),
+            Text(title, style: theme.textTheme.titleLarge),
+            const SizedBox(height: 6),
+            Text(line, textAlign: TextAlign.center, style: theme.textTheme.bodyMedium),
+            if (extra != null) ...[const SizedBox(height: 12), extra],
+            const SizedBox(height: 18),
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton(
+                onPressed: onAction == null
+                    ? null
+                    : () async {
+                        Navigator.pop(sheet);
+                        await onAction();
+                      },
+                child: Text(action),
+              ),
+            ),
+            if (secondary != null && onSecondary != null)
+              TextButton(
+                onPressed: () async {
+                  Navigator.pop(sheet);
+                  await onSecondary();
+                },
+                child: Text(secondary),
+              ),
+          ],
+        ),
+      ),
+    );
+  },
+);
+
+void _celebrate(WidgetRef ref, BenLineType reaction, Sfx sfx) {
+  Haptics.medium();
+  ref.read(soundServiceProvider).play(sfx);
+  ref.read(benProvider.notifier).react(reaction);
 }
 
 void _toast(BuildContext context, String message) => ScaffoldMessenger.of(context)
   ..hideCurrentSnackBar()
   ..showSnackBar(SnackBar(content: Text(message)));
 
-Future<bool> _confirm(BuildContext context, String title, String body, String action) async =>
-    await showDialog<bool>(
-      context: context,
-      builder: (c) => AlertDialog(
-        title: Text(title),
-        content: Text(body),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(c, false), child: const Text('Not now')),
-          FilledButton(onPressed: () => Navigator.pop(c, true), child: Text(action)),
-        ],
-      ),
-    ) ==
-    true;
+// --- Plots --------------------------------------------------------------------
 
-const _listPadding = EdgeInsets.fromLTRB(20, 16, 20, 120);
-
-class _PlotsTab extends ConsumerWidget {
-  const _PlotsTab();
+class _PlotsGrid extends ConsumerWidget {
+  const _PlotsGrid();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final theme = Theme.of(context);
     final config = ref.watch(gameConfigProvider);
     final plots = ref.watch(plotsProvider).value ?? const {};
     final coins = ref.watch(coinsProvider).value ?? 0;
-    return ListView(
-      padding: _listPadding,
-      children: [
-        Text(
-          'Each new plot has its own 3 spots, its own look, and new plants that only grow there.',
-          style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
-        ),
-        const SizedBox(height: 16),
-        for (final env in config.environments)
-          Padding(
-            padding: const EdgeInsets.only(bottom: 12),
-            child: SoftCard(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Text(env.emoji, style: const TextStyle(fontSize: 34)),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(env.name, style: theme.textTheme.titleMedium),
-                            Text(env.description, style: theme.textTheme.bodySmall),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 10),
-                  Wrap(
-                    spacing: 6,
-                    runSpacing: 6,
-                    children: [
-                      for (final s in config.speciesForEnvironment(env.id))
-                        Chip(
-                          visualDensity: VisualDensity.compact,
-                          label: Text('${s.fruit.emoji} ${s.name}'),
-                          backgroundColor: rarityColor(s.rarity).withValues(alpha: 0.2),
-                        ),
-                    ],
-                  ),
-                  const SizedBox(height: 10),
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: plots.containsKey(env.id)
-                        ? const Chip(label: Text('✅ Unlocked'))
-                        : FilledButton(
-                            onPressed: coins >= env.price
-                                ? () async {
-                                    if (!await _confirm(
-                                      context,
-                                      'Unlock the ${env.name}?',
-                                      'This uses ${env.price} coins.',
-                                      'Unlock',
-                                    )) {
-                                      return;
-                                    }
-                                    await ref.read(economyServiceProvider).unlockPlot(env.id);
-                                    Haptics.medium();
-                                    ref.read(soundServiceProvider).play(Sfx.coin);
-                                    if (context.mounted) {
-                                      _toast(context, 'The ${env.name} is yours! Swipe to it on Home 🌱');
-                                    }
-                                  }
-                                : null,
-                            child: Text('🪙 ${env.price}'),
-                          ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-      ],
+
+    Widget thumb(EnvironmentConfig env, {double radius = 0}) => CustomPaint(
+      size: Size.infinite,
+      painter: GardenScenePainter(hour: 13, envId: env.id, season: Season.summer, silhouette: false),
+      child: Center(child: Text(env.emoji, style: const TextStyle(fontSize: 40))),
     );
+
+    void open(EnvironmentConfig env) {
+      final owned = plots.containsKey(env.id);
+      final affordable = coins >= env.price;
+      if (!owned && !affordable) ref.read(benProvider.notifier).react(BenLineType.noCoins);
+      final grows = config.speciesForEnvironment(env.id).map((s) => s.fruit.emoji).join('  ');
+      _showItemSheet(
+        context,
+        picture: SizedBox.expand(child: thumb(env)),
+        tint: const Color(0xFFCDEBD9),
+        title: env.name,
+        line: env.description,
+        extra: Text('Grows: $grows', style: const TextStyle(fontSize: 18)),
+        action: owned
+            ? 'Already yours 🌱'
+            : affordable
+            ? 'Unlock for 🪙 ${env.price}'
+            : '🪙 ${env.price - coins} more to go',
+        onAction: owned || !affordable
+            ? null
+            : () async {
+                await ref.read(economyServiceProvider).unlockPlot(env.id);
+                _celebrate(ref, BenLineType.unlock, Sfx.coin);
+                if (context.mounted) _toast(context, 'The ${env.name} is yours! Find it from the plot name on Home 🌱');
+              },
+      );
+    }
+
+    final packs = config.mysteryPacks.values.toList();
+    return _grid([
+      for (final env in config.environments)
+        _ShopCard(
+          picture: SizedBox.expand(child: thumb(env)),
+          name: env.name,
+          pill: plots.containsKey(env.id) ? 'Yours ✓' : '🪙 ${env.price}',
+          tint: const Color(0xFFCDEBD9),
+          faded: !plots.containsKey(env.id) && coins < env.price,
+          onTap: () => open(env),
+        ),
+      for (final pack in packs)
+        _ShopCard(
+          picture: Text(pack.emoji, style: const TextStyle(fontSize: 56)),
+          name: pack.name,
+          pill: '🪙 ${pack.price}',
+          tint: const Color(0xFFE6D5F7),
+          faded: coins < pack.price,
+          onTap: () {
+            final affordable = coins >= pack.price;
+            if (!affordable) ref.read(benProvider.notifier).react(BenLineType.noCoins);
+            _showItemSheet(
+              context,
+              picture: Text(pack.emoji, style: const TextStyle(fontSize: 80)),
+              tint: const Color(0xFFE6D5F7),
+              title: pack.name,
+              line: 'A surprise seed. Quests are still the best way to grow rare ones.',
+              action: affordable ? 'Buy for 🪙 ${pack.price}' : '🪙 ${pack.price - coins} more to go',
+              onAction: affordable
+                  ? () async {
+                      try {
+                        final seeds = await ref.read(economyServiceProvider).buyMysteryPack(pack.id);
+                        _celebrate(ref, BenLineType.buy, Sfx.seed);
+                        for (final s in seeds) {
+                          if (context.mounted) await showSeedReveal(context, s, title: 'A mystery seed!');
+                        }
+                      } on GardenException catch (e) {
+                        if (context.mounted) _toast(context, e.message);
+                      }
+                    }
+                  : null,
+            );
+          },
+        ),
+    ]);
   }
 }
 
-class _SellTab extends ConsumerWidget {
-  const _SellTab();
+// --- Sell and compost ---------------------------------------------------------
+
+class _SellGrid extends ConsumerWidget {
+  const _SellGrid();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final theme = Theme.of(context);
     final config = ref.watch(gameConfigProvider);
+    final inventory = ref.watch(inventoryProvider).value ?? const <String, int>{};
     final seeds = ref.watch(seedBagProvider).value ?? const <Seed>[];
-    return ListView(
-      padding: _listPadding,
-      children: [
-        Text('Fruit', style: theme.textTheme.titleMedium),
-        const SizedBox(height: 8),
-        const FruitBasket(embedded: true),
-        const SizedBox(height: 24),
-        Text('Spare seeds', style: theme.textTheme.titleMedium),
-        const SizedBox(height: 4),
-        Text(
-          'Compost seeds you don\'t need for a few coins. Seeds never expire, so there\'s no rush.',
-          style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
-        ),
-        const SizedBox(height: 8),
-        if (seeds.isEmpty) const Padding(padding: EdgeInsets.all(16), child: Text('No spare seeds right now.')),
-        for (final seed in seeds)
-          Builder(
-            builder: (context) {
-              final s = config.speciesById(seed.speciesId);
-              final coins = config.compostCoins[seed.rarity] ?? 0;
-              return ListTile(
-                contentPadding: EdgeInsets.zero,
-                leading: plantArtProvider.seed(s, size: 44),
-                title: Text(s.name),
-                subtitle: Text(seed.rarity.label),
-                trailing: OutlinedButton(
-                  onPressed: () async {
-                    if (!await _confirm(context, 'Compost ${s.name}?', 'You\'ll get $coins coins.', 'Compost')) return;
-                    await ref.read(economyServiceProvider).compostSeed(seed.id);
-                    Haptics.light();
-                    if (context.mounted) _toast(context, '+$coins coins 🪙');
-                  },
-                  child: Text('♻️ +$coins'),
-                ),
-              );
-            },
+    final fruit = inventory.entries.where((e) => config.species.containsKey(e.key) && e.value > 0).toList();
+
+    if (fruit.isEmpty && seeds.isEmpty) {
+      return const SliverToBoxAdapter(
+        child: Padding(
+          padding: EdgeInsets.all(28),
+          child: Text(
+            'Nothing to sell yet. Harvest a ripe plant and bring the fruit here 🧺',
+            textAlign: TextAlign.center,
           ),
-      ],
-    );
+        ),
+      );
+    }
+
+    return _grid([
+      for (final e in fruit)
+        Builder(
+          builder: (context) {
+            final s = config.speciesById(e.key);
+            final each = s.fruit.sellPrice;
+            Future<void> sell(int qty) async {
+              final coins = await ref.read(economyServiceProvider).sellFruit(e.key, qty);
+              _celebrate(ref, BenLineType.sell, Sfx.coin);
+              if (context.mounted) _toast(context, 'Sold for $coins coins 🪙');
+            }
+
+            return _ShopCard(
+              picture: Text(s.fruit.emoji, style: const TextStyle(fontSize: 56)),
+              name: s.fruit.name,
+              pill: '🪙 $each each',
+              tint: const Color(0xFFFFE2B8),
+              badge: '×${e.value}',
+              onTap: () => _showItemSheet(
+                context,
+                picture: Text(s.fruit.emoji, style: const TextStyle(fontSize: 80)),
+                tint: const Color(0xFFFFE2B8),
+                title: '${s.fruit.name} ×${e.value}',
+                line: 'From your ${s.name}. Worth $each coins each.',
+                action: 'Sell all for 🪙 ${each * e.value}',
+                onAction: () => sell(e.value),
+                secondary: e.value > 1 ? 'Sell just one' : null,
+                onSecondary: e.value > 1 ? () => sell(1) : null,
+              ),
+            );
+          },
+        ),
+      for (final seed in seeds)
+        Builder(
+          builder: (context) {
+            final s = config.speciesById(seed.speciesId);
+            final coins = config.compostCoins[seed.rarity] ?? 0;
+            return _ShopCard(
+              picture: plantArtProvider.seed(s, size: 70),
+              name: s.name,
+              pill: '♻️ +$coins',
+              tint: rarityColor(s.rarity),
+              onTap: () => _showItemSheet(
+                context,
+                picture: plantArtProvider.seed(s, size: 110),
+                tint: rarityColor(s.rarity),
+                title: s.name,
+                line: 'A spare ${s.rarity.label.toLowerCase()} seed. Compost it for a few coins, or keep it to plant.',
+                action: 'Compost for 🪙 $coins',
+                onAction: () async {
+                  await ref.read(economyServiceProvider).compostSeed(seed.id);
+                  _celebrate(ref, BenLineType.compost, Sfx.coin);
+                  if (context.mounted) _toast(context, 'Composted. +$coins coins 🪙');
+                },
+              ),
+            );
+          },
+        ),
+    ]);
   }
 }
 
-class _RecipesTab extends ConsumerWidget {
-  const _RecipesTab();
+// --- Recipes ------------------------------------------------------------------
 
-  String _effect(RecipeEffect e) => switch (e.type) {
-    RecipeEffectType.coins => '+${e.amount} coins',
-    RecipeEffectType.growthBoost => 'All plants jump ${e.hours}h ahead',
-    RecipeEffectType.visitorLure => 'More visitors for ${e.hours}h',
+class _RecipesGrid extends ConsumerWidget {
+  const _RecipesGrid();
+
+  static String effectLine(RecipeEffect e) => switch (e.type) {
+    RecipeEffectType.coins => 'Gives you ${e.amount} coins.',
+    RecipeEffectType.growthBoost => 'Every plant jumps ${e.hours} hours ahead.',
+    RecipeEffectType.visitorLure => 'Visitors are extra curious for ${e.hours} hours.',
   };
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final theme = Theme.of(context);
     final config = ref.watch(gameConfigProvider);
     final inventory = ref.watch(inventoryProvider).value ?? const <String, int>{};
     final economy = ref.read(economyServiceProvider);
-    return ListView(
-      padding: _listPadding,
-      children: [
-        Text(
-          'Turn fruit into little treats for your garden.',
-          style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
-        ),
-        const SizedBox(height: 16),
-        for (final r in config.recipes.values)
-          Padding(
-            padding: const EdgeInsets.only(bottom: 12),
-            child: SoftCard(
-              child: Row(
-                children: [
-                  Text(r.emoji, style: const TextStyle(fontSize: 40)),
-                  const SizedBox(width: 14),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(r.name, style: theme.textTheme.titleMedium),
-                        Text(_effect(r.effect), style: theme.textTheme.bodyMedium),
-                        const SizedBox(height: 4),
-                        Text(
-                          [
-                            for (final e in r.ingredients.entries)
-                              '${config.speciesById(e.key).fruit.emoji} ${inventory[e.key] ?? 0}/${e.value}',
-                          ].join('   '),
-                          style: theme.textTheme.bodySmall,
-                        ),
-                      ],
-                    ),
-                  ),
-                  FilledButton.tonal(
-                    onPressed: economy.canCook(r, inventory)
-                        ? () async {
-                            try {
-                              final outcome = await economy.cook(r.id);
-                              Haptics.medium();
-                              ref.read(soundServiceProvider).play(Sfx.complete);
-                              if (context.mounted) _toast(context, outcome.message);
-                            } on GardenException catch (e) {
-                              if (context.mounted) _toast(context, e.message);
-                            }
-                          }
-                        : null,
-                    child: const Text('Make'),
-                  ),
-                ],
+    return _grid([
+      for (final r in config.recipes.values)
+        Builder(
+          builder: (context) {
+            final can = economy.canCook(r, inventory);
+            final needs = [for (final e in r.ingredients.entries) '${config.speciesById(e.key).fruit.emoji}${e.value}']
+                .join(' ');
+            return _ShopCard(
+              picture: Text(r.emoji, style: const TextStyle(fontSize: 56)),
+              name: r.name,
+              pill: needs,
+              tint: const Color(0xFFF8D3DA),
+              faded: !can,
+              onTap: () => _showItemSheet(
+                context,
+                picture: Text(r.emoji, style: const TextStyle(fontSize: 80)),
+                tint: const Color(0xFFF8D3DA),
+                title: r.name,
+                line: effectLine(r.effect),
+                extra: Text(
+                  [
+                    for (final e in r.ingredients.entries)
+                      '${config.speciesById(e.key).fruit.emoji} ${inventory[e.key] ?? 0}/${e.value}',
+                  ].join('    '),
+                  style: const TextStyle(fontSize: 16),
+                ),
+                action: can ? 'Make it' : 'A little more fruit needed',
+                onAction: can
+                    ? () async {
+                        try {
+                          final outcome = await economy.cook(r.id);
+                          _celebrate(ref, BenLineType.buy, Sfx.complete);
+                          if (context.mounted) _toast(context, outcome.message);
+                        } on GardenException catch (e) {
+                          if (context.mounted) _toast(context, e.message);
+                        }
+                      }
+                    : null,
               ),
-            ),
-          ),
-      ],
-    );
+            );
+          },
+        ),
+    ]);
   }
 }
 
-class _CosmeticsTab extends ConsumerWidget {
-  const _CosmeticsTab();
+// --- Decorations --------------------------------------------------------------
 
-  Future<void> _place(BuildContext context, WidgetRef ref, CosmeticConfig c) => showModalBottomSheet<void>(
-    useRootNavigator: true,
+class _DecorGrid extends ConsumerWidget {
+  const _DecorGrid();
+
+  static const _tints = {
+    'path': Color(0xFFE9E1D3),
+    'fence': Color(0xFFF2DFC6),
+    'pond': Color(0xFFCFE6F7),
+    'bench': Color(0xFFF6E2C8),
+    'lantern': Color(0xFFFFE9B8),
+    'background': Color(0xFFDDD3F4),
+  };
+
+  Future<void> _place(BuildContext context, CosmeticConfig c) => showModalBottomSheet<void>(
     context: context,
+    useRootNavigator: true,
     builder: (_) => Consumer(
       builder: (context, ref, _) {
         final config = ref.watch(gameConfigProvider);
         final plots = ref.watch(plotsProvider).value ?? const {};
         final placed = ref.watch(placedCosmeticsProvider).value ?? const {};
-        return ListView(
-          shrinkWrap: true,
-          padding: const EdgeInsets.fromLTRB(20, 0, 20, 28),
-          children: [
-            Text('Place ${c.name}', style: Theme.of(context).textTheme.titleLarge),
-            const SizedBox(height: 8),
-            for (final env in config.environments.where((e) => plots.containsKey(e.id)))
-              SwitchListTile(
-                title: Text('${env.emoji} ${env.name}'),
-                value: placed[env.id]?[c.kind] == c.id,
-                onChanged: (on) => ref.read(economyServiceProvider).placeCosmetic(env.id, c.kind, on ? c.id : null),
-              ),
-          ],
+        return SafeArea(
+          child: ListView(
+            shrinkWrap: true,
+            padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+            children: [
+              Text('Place ${c.name}', style: Theme.of(context).textTheme.titleLarge),
+              const SizedBox(height: 8),
+              for (final env in config.environments.where((e) => plots.containsKey(e.id)))
+                SwitchListTile(
+                  title: Text('${env.emoji} ${env.name}'),
+                  value: placed[env.id]?[c.kind] == c.id,
+                  onChanged: (on) => ref.read(economyServiceProvider).placeCosmetic(env.id, c.kind, on ? c.id : null),
+                ),
+            ],
+          ),
         );
       },
     ),
@@ -320,109 +612,47 @@ class _CosmeticsTab extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final theme = Theme.of(context);
     final config = ref.watch(gameConfigProvider);
     final owned = ref.watch(ownedCosmeticsProvider).value ?? const <String>{};
     final coins = ref.watch(coinsProvider).value ?? 0;
-    return GridView.count(
-      padding: _listPadding,
-      crossAxisCount: 2,
-      mainAxisSpacing: 12,
-      crossAxisSpacing: 12,
-      childAspectRatio: 0.92,
-      children: [
-        for (final c in config.cosmetics.values)
-          SoftCard(
-            padding: const EdgeInsets.all(14),
-            child: Column(
-              children: [
-                Text(c.emoji, style: const TextStyle(fontSize: 44)),
-                const SizedBox(height: 6),
-                Text(
-                  c.name,
-                  style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w800),
-                  textAlign: TextAlign.center,
-                ),
-                Text(c.kind[0].toUpperCase() + c.kind.substring(1), style: theme.textTheme.bodySmall),
-                const Spacer(),
-                if (owned.contains(c.id))
-                  OutlinedButton(onPressed: () => _place(context, ref, c), child: const Text('Place'))
-                else
-                  FilledButton(
-                    onPressed: coins >= c.price
-                        ? () async {
-                            await ref.read(economyServiceProvider).buyCosmetic(c.id);
-                            Haptics.medium();
-                            ref.read(soundServiceProvider).play(Sfx.coin);
-                            if (context.mounted) await _place(context, ref, c);
-                          }
-                        : null,
-                    child: Text('🪙 ${c.price}'),
-                  ),
-              ],
-            ),
-          ),
-      ],
-    );
-  }
-}
-
-class _MysteryTab extends ConsumerWidget {
-  const _MysteryTab();
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final theme = Theme.of(context);
-    final config = ref.watch(gameConfigProvider);
-    final coins = ref.watch(coinsProvider).value ?? 0;
-    return ListView(
-      padding: _listPadding,
-      children: [
-        Text(
-          'A little surprise seed. Finishing quests is still the best way to get seeds, '
-          'especially rare ones.',
-          style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
-        ),
-        const SizedBox(height: 16),
-        for (final p in config.mysteryPacks.values)
-          SoftCard(
-            child: Row(
-              children: [
-                Text(p.emoji, style: const TextStyle(fontSize: 44)),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(p.name, style: theme.textTheme.titleMedium),
-                      Text(
-                        '${p.seeds} seed · ${((p.odds[Rarity.rare] ?? 0) * 100).round()}% chance of rare',
-                        style: theme.textTheme.bodySmall,
-                      ),
-                    ],
-                  ),
-                ),
-                FilledButton(
-                  onPressed: coins >= p.price
+    return _grid([
+      for (final c in config.cosmetics.values)
+        Builder(
+          builder: (context) {
+            final tint = _tints[c.kind] ?? const Color(0xFFE6D5F7);
+            final has = owned.contains(c.id);
+            final affordable = coins >= c.price;
+            return _ShopCard(
+              picture: Text(c.emoji, style: const TextStyle(fontSize: 56)),
+              name: c.name,
+              pill: has ? 'Owned ✓' : '🪙 ${c.price}',
+              tint: tint,
+              faded: !has && !affordable,
+              onTap: () {
+                if (has) {
+                  _place(context, c);
+                  return;
+                }
+                if (!affordable) ref.read(benProvider.notifier).react(BenLineType.noCoins);
+                _showItemSheet(
+                  context,
+                  picture: Text(c.emoji, style: const TextStyle(fontSize: 80)),
+                  tint: tint,
+                  title: c.name,
+                  line: 'A cosy ${c.kind == 'background' ? 'sky' : c.kind} for any of your plots.',
+                  action: affordable ? 'Buy for 🪙 ${c.price}' : '🪙 ${c.price - coins} more to go',
+                  onAction: affordable
                       ? () async {
-                          try {
-                            final seeds = await ref.read(economyServiceProvider).buyMysteryPack(p.id);
-                            Haptics.medium();
-                            ref.read(soundServiceProvider).play(Sfx.seed);
-                            for (final s in seeds) {
-                              if (context.mounted) await showSeedReveal(context, s, title: 'A mystery seed!');
-                            }
-                          } on GardenException catch (e) {
-                            if (context.mounted) _toast(context, e.message);
-                          }
+                          await ref.read(economyServiceProvider).buyCosmetic(c.id);
+                          _celebrate(ref, BenLineType.buy, Sfx.coin);
+                          if (context.mounted) await _place(context, c);
                         }
                       : null,
-                  child: Text('🪙 ${p.price}'),
-                ),
-              ],
-            ),
-          ),
-      ],
-    );
+                );
+              },
+            );
+          },
+        ),
+    ]);
   }
 }

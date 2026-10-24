@@ -97,9 +97,11 @@ final reminderSchedulerProvider = Provider<ReminderScheduler>((ref) => LocalNoti
 /// reminder settings change.
 final reminderSyncProvider = FutureProvider<void>((ref) async {
   final settings = ref.watch(settingsProvider);
-  final quests = await ref.read(questRepositoryProvider).watchQuests(includeArchived: false).first;
+  final repo = ref.read(questRepositoryProvider);
+  final scheduler = ref.read(reminderSchedulerProvider);
   try {
-    await ref.read(reminderSchedulerProvider).replaceAll(planReminders(settings, quests));
+    final quests = await repo.watchQuests(includeArchived: false).first;
+    await scheduler.replaceAll(planReminders(settings, quests));
   } catch (e) {
     // Reminders are a nice-to-have; never break the app over them.
     debugPrint('Could not schedule reminders: $e');

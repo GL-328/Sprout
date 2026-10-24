@@ -113,7 +113,10 @@ class _FlyerState extends State<_Flyer> with SingleTickerProviderStateMixin {
 /// Keys for the counters on the Home screen, so things can fly to them.
 class CounterTargets {
   static final coins = GlobalKey(debugLabel: 'coins');
-  static final basket = GlobalKey(debugLabel: 'basket');
-  static final seedBag = GlobalKey(debugLabel: 'seedBag');
+
+  /// The Home Bag button holds both seeds and fruit.
+  static final bag = GlobalKey(debugLabel: 'bag');
+  static GlobalKey get basket => bag;
+  static GlobalKey get seedBag => bag;
   static final shopCoins = GlobalKey(debugLabel: 'shopCoins');
 }

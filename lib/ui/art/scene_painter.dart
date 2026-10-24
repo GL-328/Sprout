@@ -108,15 +108,15 @@ class GardenScenePainter extends CustomPainter {
   void _sunOrMoon(Canvas canvas, Size size) {
     if (weather == Weather.softRain && !isNight) return;
     final t = isNight ? ((hour + 4) % 24) / 10 : (hour - 6) / 14;
-    final x = size.width * (0.12 + 0.76 * t.clamp(0.0, 1.0));
-    final y = size.height * (0.30 - 0.18 * math.sin(math.pi * t.clamp(0.0, 1.0)));
+    final x = size.width * (0.58 + 0.32 * t.clamp(0.0, 1.0));
+    final y = size.height * (0.26 - 0.08 * math.sin(math.pi * t.clamp(0.0, 1.0)));
     final color = _mute(isNight ? const Color(0xFFF7F1D6) : const Color(0xFFFFE08A));
-    canvas.drawCircle(Offset(x, y), size.width * 0.07, Paint()..color = color.withValues(alpha: 0.25));
-    canvas.drawCircle(Offset(x, y), size.width * 0.05, Paint()..color = color);
+    canvas.drawCircle(Offset(x, y), size.width * 0.055, Paint()..color = color.withValues(alpha: 0.18));
+    canvas.drawCircle(Offset(x, y), size.width * 0.034, Paint()..color = color);
     if (isNight && !silhouette) {
       final star = Paint()..color = Colors.white.withValues(alpha: 0.8);
       final rnd = math.Random(7);
-      for (var i = 0; i < 26; i++) {
+      for (var i = 0; i < 10; i++) {
         final twinkle = 0.6 + 0.4 * math.sin(phase * 2 * math.pi + i);
         canvas.drawCircle(
           Offset(rnd.nextDouble() * size.width, rnd.nextDouble() * size.height * 0.45),
@@ -151,7 +151,7 @@ class GardenScenePainter extends CustomPainter {
     final cloud = Paint()
       ..color = _mute(grey ? const Color(0xFFE4E6EE) : Colors.white).withValues(alpha: isNight ? 0.35 : 0.9);
     for (var i = 0; i < count; i++) {
-      final x = ((i * 0.31 + 0.1 + phase * 0.05 * (i + 1)) % 1.2 - 0.1) * size.width;
+      final x = ((i * 0.31 + 0.42 + phase * 0.05 * (i + 1)) % 1.2 - 0.1) * size.width;
       _cloud(canvas, Offset(x, size.height * (0.10 + (i % 3) * 0.07)), size.width * (0.10 + (i % 2) * 0.03), cloud);
     }
     if (weather == Weather.rainbow && !isNight && !silhouette) {
@@ -186,9 +186,9 @@ class GardenScenePainter extends CustomPainter {
         ..strokeWidth = 1.6
         ..strokeCap = StrokeCap.round;
       final rnd = math.Random(3);
-      for (var i = 0; i < 40; i++) {
+      for (var i = 0; i < 14; i++) {
         final x = rnd.nextDouble() * size.width;
-        final y = ((rnd.nextDouble() + phase * 3) % 1) * size.height * 0.75;
+        final y = ((rnd.nextDouble() + phase * 2) % 1) * size.height * 0.75;
         canvas.drawLine(Offset(x, y), Offset(x - 2, y + 9), drop);
       }
     }
@@ -335,7 +335,7 @@ class GardenScenePainter extends CustomPainter {
       'alpine' => [Colors.white, const Color(0xFFC9B6F2)],
       _ => [Colors.white, const Color(0xFFFFE08A), const Color(0xFFF8C4CF)],
     };
-    for (var i = 0; i < 22; i++) {
+    for (var i = 0; i < 12; i++) {
       final x = rnd.nextDouble() * w;
       final y = h * (0.76 + rnd.nextDouble() * 0.2);
       final c = dots[i % dots.length];
@@ -349,18 +349,18 @@ class GardenScenePainter extends CustomPainter {
     switch (season) {
       case Season.winter when envId != 'tropical' && envId != 'desert':
         final flake = Paint()..color = Colors.white.withValues(alpha: 0.85);
-        for (var i = 0; i < 30; i++) {
+        for (var i = 0; i < 8; i++) {
           final x = (rnd.nextDouble() * size.width + math.sin(phase * 2 * math.pi + i) * 6);
-          final y = ((rnd.nextDouble() + phase) % 1) * size.height;
+          final y = ((rnd.nextDouble() + phase * 0.5) % 1) * size.height;
           canvas.drawCircle(Offset(x, y), 1.5 + rnd.nextDouble() * 1.5, flake);
         }
       case Season.autumn when envId != 'desert':
-        for (var i = 0; i < 10; i++) {
+        for (var i = 0; i < 5; i++) {
           final x = (rnd.nextDouble() * size.width + math.sin(phase * 2 * math.pi + i) * 14);
-          final y = ((rnd.nextDouble() + phase * 0.6) % 1) * size.height * 0.9;
+          final y = ((rnd.nextDouble() + phase * 0.4) % 1) * size.height * 0.9;
           canvas.save();
           canvas.translate(x, y);
-          canvas.rotate(phase * 6 + i);
+          canvas.rotate(phase * 3 + i);
           canvas.drawOval(
             const Rect.fromLTWH(-4, -2, 8, 4),
             Paint()..color = [const Color(0xFFE59A4B), const Color(0xFFD9653B), const Color(0xFFE8C15A)][i % 3],
@@ -368,9 +368,9 @@ class GardenScenePainter extends CustomPainter {
           canvas.restore();
         }
       case Season.spring:
-        for (var i = 0; i < 8; i++) {
+        for (var i = 0; i < 5; i++) {
           final x = (rnd.nextDouble() * size.width + math.sin(phase * 2 * math.pi + i) * 10);
-          final y = ((rnd.nextDouble() + phase * 0.4) % 1) * size.height * 0.8;
+          final y = ((rnd.nextDouble() + phase * 0.3) % 1) * size.height * 0.8;
           canvas.drawOval(
             Rect.fromCenter(center: Offset(x, y), width: 5, height: 3.5),
             Paint()..color = const Color(0xFFFAD0DC).withValues(alpha: 0.9),
