@@ -197,8 +197,12 @@ class _Slot extends StatelessWidget {
     final p = plant;
     return LayoutBuilder(
       builder: (context, box) {
-        const labelH = 30.0;
-        final bubbleH = centred ? 44.0 : 0.0;
+        // On short screens (landscape) the bubble, then the label, step aside so
+        // the plant always fits.
+        final showBubble = centred && box.maxHeight >= 170;
+        final showLabel = box.maxHeight >= 110;
+        final labelH = showLabel ? 30.0 : 0.0;
+        final bubbleH = showBubble ? 44.0 : 0.0;
         final artH = math.max(60.0, box.maxHeight - labelH - bubbleH - 8);
         final artW = math.min(box.maxWidth * 0.92, artH / 1.25);
 
@@ -206,7 +210,7 @@ class _Slot extends StatelessWidget {
           return Column(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
-              if (centred) const _Bubble("I'd love a seed here 🌱"),
+              if (showBubble) const _Bubble("I'd love a seed here 🌱"),
               const SizedBox(height: 12),
               Flexible(
                 child: FittedBox(
@@ -223,8 +227,8 @@ class _Slot extends StatelessWidget {
                   ),
                 ),
               ),
-              const SizedBox(height: 10),
-              const _Label('Plant a seed'),
+              if (showLabel) const SizedBox(height: 10),
+              if (showLabel) const _Label('Plant a seed'),
             ],
           );
         }
@@ -234,7 +238,7 @@ class _Slot extends StatelessWidget {
         return Column(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
-            if (centred) _Bubble(bubbleLine(species, status)),
+            if (showBubble) _Bubble(bubbleLine(species, status)),
             Flexible(
               child: FittedBox(
                 fit: BoxFit.scaleDown,
@@ -273,7 +277,7 @@ class _Slot extends StatelessWidget {
                 ),
               ),
             ),
-            _Label(statusLine(species, status)),
+            if (showLabel) _Label(statusLine(species, status)),
           ],
         );
       },

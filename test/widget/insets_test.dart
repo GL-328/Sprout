@@ -143,6 +143,8 @@ void main() {
         await settle(tester);
         await tester.tap(find.text('Today').last);
         await settle(tester);
+        await tester.ensureVisible(find.text('Quest number 1'));
+        await settle(tester);
         await tester.longPress(find.text('Quest number 1'));
         await settle(tester);
         await tester.tap(find.text('Edit'));
