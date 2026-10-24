@@ -40,6 +40,28 @@ Future<AppDatabase> seeded(WidgetTester tester) async {
 }
 
 void main() {
+  testWidgets('a new seed in the garden and in its sheet', (tester) async {
+    await loadAppFonts();
+    setPhoneScreen(tester);
+    final db = memoryDb();
+    addTearDown(db.close);
+    await tester.runAsync(() async {
+      final seeds = SeedRepository(db, const Clock());
+      await seeds.ensurePlot('meadow');
+      final garden = GardenService(db, testConfig, const Clock(), seeds, CountersRepository(db));
+      final s = await seeds.add('giant_sunflower', Rarity.common, SeedSource.quests);
+      await garden.plantSeed(s.id, 'meadow', 0);
+    });
+    await tester.pumpWidget(
+      shot(testApp(db, settings: const AppSettings(name: 'Sam', onboardingDone: true, reducedMotion: true))),
+    );
+    await tester.pumpAndSettle();
+    await savePng(tester, 'home_seed');
+    await tester.tap(find.bySemanticsLabel(RegExp('Giant sunflower')).first);
+    await tester.pumpAndSettle();
+    await savePng(tester, 'plant_sheet_seed');
+  });
+
   for (final scale in [1.0, 1.3]) {
     final tag = '${(scale * 100).round()}';
 
