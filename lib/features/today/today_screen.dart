@@ -11,15 +11,14 @@ import '../../ui/theme/category_style.dart';
 import '../../ui/widgets/motion.dart';
 import '../../ui/widgets/seed_meter_ring.dart';
 import '../../ui/widgets/soft_card.dart';
+import '../home/garden_providers.dart';
+import '../mood/mood_check_in_card.dart';
 import '../quests/add_quest_sheet.dart';
 import '../quests/my_quests_screen.dart';
 import '../quests/quest_editor_screen.dart';
 import 'quest_card.dart';
 import 'seed_reveal.dart';
 import 'today_providers.dart';
-
-/// Slot for the daily mood check-in card. Filled in by the mood feature.
-Widget Function(BuildContext context)? moodCheckInCardBuilder;
 
 class TodayScreen extends ConsumerStatefulWidget {
   const TodayScreen({super.key});
@@ -135,7 +134,10 @@ class _TodayScreenState extends ConsumerState<TodayScreen> {
                     ],
                   ),
                   const SizedBox(height: 16),
-                  if (moodCheckInCardBuilder != null) ...[moodCheckInCardBuilder!(context), const SizedBox(height: 12)],
+                  const MoodCheckInCard(),
+                  const SizedBox(height: 12),
+                  const _StreakAndRest(),
+                  const SizedBox(height: 12),
                   const SeedMeterCard(),
                   const SizedBox(height: 20),
                   if (v.todo.isEmpty && v.later.isEmpty)
@@ -322,6 +324,41 @@ class _SkippedSection extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+/// The gentle streak and the rest day switch.
+class _StreakAndRest extends ConsumerWidget {
+  const _StreakAndRest();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final streak = ref.watch(streakProvider);
+    final day = ref.watch(todayKeyProvider);
+    final resting = (ref.watch(restDaysProvider).value ?? const {}).contains(day);
+    final text = resting
+        ? 'Rest day. Your garden keeps growing and nothing is missed 🌙'
+        : streak == 0
+        ? 'Every small thing you do here counts 🌿'
+        : streak == 1
+        ? '1 day of caring for yourself 🌿'
+        : '$streak days of caring for yourself 🌿';
+    return Row(
+      children: [
+        Expanded(
+          child: Text(text, style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w700)),
+        ),
+        const SizedBox(width: 8),
+        FilterChip(
+          label: const Text('Rest day'),
+          avatar: const Text('🌙'),
+          selected: resting,
+          showCheckmark: false,
+          onSelected: (on) => ref.read(wellbeingRepositoryProvider).setRestDay(day, on),
+        ),
+      ],
     );
   }
 }

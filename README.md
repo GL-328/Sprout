@@ -133,3 +133,17 @@ test/         domain, data and widget tests
   (butterflies, bees, birds, frogs at the pond, fireflies in the forest, and
   more) appear when a plot is thriving or you're on a streak. Tap one to
   share its favourite fruit for a small thank-you gift.
+- **Stage 5: mood, journal, reminders and data.** A daily check-in on Today
+  (5 faces plus an optional note) that changes the garden's weather: soft rain
+  on hard days, sunshine and a rainbow on great ones. A gentle streak counts
+  "days of caring for yourself", and a **Rest day** switch keeps it going.
+  The Journal has a mood calendar, quest history by day, the plant collection
+  (with keepsakes of plants you moved on from), discovered visitors, and
+  achievements (quests, seeds, fruit, coins and more). A support card holds
+  the not-medical-advice note and your own **helpful contacts** list. Gentle
+  reminders use local notifications and are off by default: a daily check-in
+  nudge at the time you choose, plus optional per-quest reminders (daily or on
+  chosen weekdays), with no guilt-trip wording. Settings can export
+  everything to a JSON file, import it again, and delete all data (two
+  confirmations, the second asking you to type DELETE). Bottom sheets now open
+  above the navigation bar.

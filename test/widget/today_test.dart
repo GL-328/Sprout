@@ -27,6 +27,8 @@ void main() {
     expect(find.text('Drink water'), findsOneWidget);
     expect(find.textContaining('Finish 3 quests'), findsOneWidget);
 
+    await tester.ensureVisible(find.bySemanticsLabel('Complete Drink water'));
+    await tester.pumpAndSettle();
     await tester.tap(find.bySemanticsLabel('Complete Drink water'));
     await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 100)));
     await tester.pumpAndSettle();

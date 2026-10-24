@@ -7,6 +7,7 @@ import '../../core/providers.dart';
 import '../home/garden_providers.dart';
 
 Future<void> showVisitorSheet(BuildContext context, VisitorConfig visitor) => showModalBottomSheet<void>(
+  useRootNavigator: true,
   context: context,
   useSafeArea: true,
   builder: (_) => _VisitorSheet(visitor: visitor),

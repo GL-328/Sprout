@@ -10,6 +10,8 @@ import 'package:sprout/data/repositories/counters_repository.dart';
 import 'package:sprout/data/repositories/quest_repository.dart';
 import 'package:sprout/data/repositories/seed_repository.dart';
 import 'package:sprout/data/repositories/settings_repository.dart';
+import 'package:sprout/data/repositories/wellbeing_repository.dart';
+import 'package:sprout/data/services/backup_service.dart';
 import 'package:sprout/data/services/economy_service.dart';
 import 'package:sprout/data/services/garden_service.dart';
 import 'package:sprout/data/services/progress_service.dart';
@@ -26,6 +28,8 @@ class TestEnv {
     progress = ProgressService(db, config, clock, seeds, counters, SeedRoller(config, Random(seed)));
     garden = GardenService(db, config, clock, seeds, counters);
     settings = SettingsRepository(db);
+    backup = BackupService(db, clock);
+    wellbeing = WellbeingRepository(db, clock);
     economy = EconomyService(db, config, clock, seeds, counters, garden, settings, SeedRoller(config, Random(seed)));
   }
 
@@ -40,6 +44,8 @@ class TestEnv {
   late final GardenService garden;
   late final SettingsRepository settings;
   late final EconomyService economy;
+  late final BackupService backup;
+  late final WellbeingRepository wellbeing;
 
   Future<void> close() => db.close();
 }
