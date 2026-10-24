@@ -21,6 +21,8 @@ import '../../ui/widgets/motion.dart';
 import '../shop/visitor_sheet.dart';
 import '../today/today_providers.dart';
 import 'bag_sheet.dart';
+import '../friends/friends_controller.dart';
+import '../friends/friends_screen.dart';
 import 'garden_providers.dart';
 import 'plant_carousel.dart';
 import 'plant_sheet.dart';
@@ -195,6 +197,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with SingleTickerProvid
       ),
       visitorSeed(envId, now),
     );
+    // A friend visited today: a butterfly always comes by too.
+    final butterfly = config.visitors['butterfly'];
+    if (butterfly != null &&
+        (ref.watch(visitsTodayProvider).value ?? const []).isNotEmpty &&
+        !visitors.any((v) => v.id == butterfly.id)) {
+      visitors.insert(0, butterfly);
+    }
     final fresh = visitors.map((v) => v.id).where((id) => !_recorded.contains(id)).toList();
     if (fresh.isNotEmpty) {
       _recorded.addAll(fresh);
@@ -405,6 +414,23 @@ class _Header extends ConsumerWidget {
               ),
             ),
             const Spacer(),
+            if (ref.watch(friendsProvider.select((s) => s.on))) ...[
+              Badge(
+                isLabelVisible: (ref.watch(incomingRequestsProvider).value ?? const []).isNotEmpty,
+                smallSize: 10,
+                backgroundColor: const Color(0xFFF59E7A),
+                child: _Frosted(
+                  label: 'Friends',
+                  circle: true,
+                  onTap: () => pushPage(context, const FriendsScreen()),
+                  child: const Padding(
+                    padding: EdgeInsets.all(9),
+                    child: Icon(Icons.people_alt_rounded, size: 24, color: ink),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+            ],
             Badge(
               isLabelVisible: inBag > 0,
               label: Text('$inBag'),
