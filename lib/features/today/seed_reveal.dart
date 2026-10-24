@@ -8,6 +8,7 @@ import '../../domain/models/seed.dart';
 import '../../ui/art/plant_art_provider.dart';
 import '../../ui/theme/category_style.dart';
 import '../../ui/widgets/motion.dart';
+import '../../ui/art/icon_art.dart';
 
 /// The "You earned a seed!" moment.
 Future<void> showSeedReveal(BuildContext context, Seed seed, {String title = 'You earned a seed!'}) =>
@@ -113,7 +114,8 @@ class _SeedRevealState extends ConsumerState<_SeedReveal> with SingleTickerProvi
                               label: Text(species.rarity.label),
                               backgroundColor: rarityColor(species.rarity).withValues(alpha: 0.3),
                             ),
-                            if (family != null) Chip(label: Text('${family.emoji} ${family.name}')),
+                            if (family != null)
+                              Chip(avatar: ArtIcon('family:${family.id}', size: 20), label: Text(family.name)),
                           ],
                         ),
                         const SizedBox(height: 8),

@@ -32,7 +32,12 @@ Future<void> loadAppFonts() async {
 
 /// Sets the test screen to a phone of [size] with a [systemBar] at the bottom
 /// and [textScale] font size.
-void setPhoneScreen(WidgetTester tester, {Size size = const Size(360, 640), double systemBar = 24, double textScale = 1}) {
+void setPhoneScreen(
+  WidgetTester tester, {
+  Size size = const Size(360, 640),
+  double systemBar = 24,
+  double textScale = 1,
+}) {
   tester.view.devicePixelRatio = 2;
   tester.view.physicalSize = size * 2;
   tester.view.viewPadding = FakeViewPadding(top: 24 * 2, bottom: systemBar * 2);
@@ -56,7 +61,7 @@ Widget themed(Widget child, {Brightness brightness = Brightness.light}) => shot(
     debugShowCheckedModeBanner: false,
     theme: AppTheme.build(brightness, AccentChoice.values.first),
     home: Builder(
-      builder: (context) => ColoredBox(color: Theme.of(context).colorScheme.surface, child: child),
+      builder: (context) => Material(color: Theme.of(context).colorScheme.surface, child: child),
     ),
   ),
 );

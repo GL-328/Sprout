@@ -34,7 +34,11 @@ class MyQuestsScreen extends ConsumerWidget {
               height: 40,
               decoration: BoxDecoration(color: categoryColor(q.category), borderRadius: BorderRadius.circular(14)),
               alignment: Alignment.center,
-              child: Text(q.category.emoji, style: const TextStyle(fontSize: 20)),
+              child: Icon(
+                categoryIcon(q.category),
+                size: 22,
+                color: Color.lerp(categoryColor(q.category), Colors.black, 0.55),
+              ),
             ),
             const SizedBox(width: 12),
             Expanded(

@@ -7,6 +7,7 @@ import '../../ui/widgets/soft_card.dart';
 import '../home/garden_providers.dart';
 import '../../ui/layout/insets.dart';
 import 'moods.dart';
+import '../../ui/art/icon_art.dart';
 
 /// The daily check-in: one small card. Changes the sky in the garden.
 class MoodCheckInCard extends ConsumerWidget {
@@ -31,7 +32,7 @@ class MoodCheckInCard extends ConsumerWidget {
         onTap: () => showMoodSheet(context, ref),
         child: Row(
           children: [
-            Text(option.emoji, style: const TextStyle(fontSize: 30)),
+            ArtIcon(option.icon, size: 38),
             const SizedBox(width: 12),
             Expanded(child: Text(moodReply(entry.value), style: theme.textTheme.bodyMedium)),
             const Icon(Icons.edit_outlined, size: 20),
@@ -62,7 +63,7 @@ class MoodCheckInCard extends ConsumerWidget {
                     margin: const EdgeInsets.only(left: 4),
                     alignment: Alignment.center,
                     decoration: BoxDecoration(color: o.color, shape: BoxShape.circle),
-                    child: Text(o.emoji, style: const TextStyle(fontSize: 19)),
+                    child: ArtIcon(o.icon, size: 26),
                   ),
                 ),
               ),
@@ -115,7 +116,7 @@ Future<void> showMoodSheet(BuildContext context, WidgetRef ref, {int? initial}) 
                             width: 3,
                           ),
                         ),
-                        child: Text(o.emoji, style: TextStyle(fontSize: value == o.value ? 32 : 26)),
+                        child: ArtIcon(o.icon, size: value == o.value ? 42 : 34),
                       ),
                     ),
                 ],

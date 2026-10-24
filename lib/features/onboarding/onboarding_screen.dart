@@ -8,6 +8,7 @@ import '../../core/providers.dart';
 import '../../domain/models/enums.dart';
 import '../../ui/theme/category_style.dart';
 import '../../ui/widgets/motion.dart';
+import '../../ui/art/icon_art.dart';
 
 /// Keys of small bits of onboarding state kept in the settings table.
 abstract final class OnboardingKeys {
@@ -105,7 +106,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                 onPageChanged: (i) => setState(() => _page = i),
                 children: [
                   _OnboardingPage(
-                    emoji: '🌱',
+                    icon: 'sprout',
                     title: 'Welcome to Sprout',
                     body:
                         'A little garden that grows when you take care of yourself. '
@@ -113,7 +114,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                     action: FilledButton(onPressed: _next, child: const Text("Let's begin")),
                   ),
                   _OnboardingPage(
-                    emoji: '👋',
+                    icon: 'heart',
                     title: 'What should we call you?',
                     body: 'Just a first name or a nickname. It stays on this phone.',
                     content: TextField(
@@ -127,7 +128,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                     action: FilledButton(onPressed: _next, child: const Text('Next')),
                   ),
                   _OnboardingPage(
-                    emoji: '🧭',
+                    icon: 'compass',
                     title: 'What would you like to care for?',
                     body: "Pick a few areas. We'll suggest some gentle starter quests. You can change these any time.",
                     content: GridView.count(
@@ -150,7 +151,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                     action: FilledButton(onPressed: _next, child: const Text('Next')),
                   ),
                   _OnboardingPage(
-                    emoji: '🔔',
+                    icon: 'bell',
                     title: 'Gentle reminders?',
                     body: 'A soft nudge once a day to check in. Never nagging, and easy to turn off in Settings.',
                     content: Column(
@@ -180,7 +181,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                     action: FilledButton(onPressed: _next, child: const Text('Next')),
                   ),
                   _OnboardingPage(
-                    emoji: '🌻',
+                    icon: 'seed',
                     title: 'Your very first seed',
                     body:
                         'Here is a Giant sunflower seed, just for you. '
@@ -199,14 +200,14 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
 
 class _OnboardingPage extends StatelessWidget {
   const _OnboardingPage({
-    required this.emoji,
+    required this.icon,
     required this.title,
     required this.body,
     required this.action,
     this.content,
   });
 
-  final String emoji;
+  final String icon;
   final String title;
   final String body;
   final Widget? content;
@@ -231,7 +232,7 @@ class _OnboardingPage extends StatelessWidget {
                   color: theme.colorScheme.primary.withValues(alpha: 0.14),
                   shape: BoxShape.circle,
                 ),
-                child: Text(emoji, style: const TextStyle(fontSize: 64)),
+                child: ArtIcon(icon, size: 80),
               ),
               const SizedBox(height: 32),
               Text(title, style: theme.textTheme.headlineSmall, textAlign: TextAlign.center),

@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import '../../config/game_config.dart';
 import '../../domain/models/enums.dart';
 import 'plant_art_provider.dart';
+import 'icon_art.dart';
 
 /// Basic shapes the painter knows how to draw.
 enum PlantForm {
@@ -69,7 +70,7 @@ const plantLooks = <String, PlantLook>{
 };
 
 /// Plants drawn with [CustomPainter]. The default art.
-class PaintedPlantArt extends EmojiPlantArt {
+class PaintedPlantArt extends SimplePlantArt {
   @override
   Widget plant(SpeciesConfig species, GrowthStage stage, {required double size, double? height, double sway = 0}) {
     final tall = height ?? size;
@@ -92,7 +93,7 @@ class PaintedPlantArt extends EmojiPlantArt {
                 top: tall * dy - size * 0.07,
                 child: Transform.rotate(
                   angle: sway * 0.05,
-                  child: Text(species.fruit.emoji, style: TextStyle(fontSize: size * 0.12)),
+                  child: ArtIcon('fruit:${species.id}', size: size * 0.14),
                 ),
               ),
         ],

@@ -7,6 +7,7 @@ import '../../core/providers.dart';
 import '../../core/sound_service.dart';
 import '../home/garden_providers.dart';
 import '../../ui/layout/insets.dart';
+import '../../ui/art/icon_art.dart';
 
 Future<void> showVisitorSheet(BuildContext context, VisitorConfig visitor) =>
     showSproutSheet<void>(context, builder: (_) => _VisitorSheet(visitor: visitor));
@@ -28,12 +29,12 @@ class _VisitorSheet extends ConsumerWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(visitor.emoji, style: const TextStyle(fontSize: 64)),
+          ArtIcon('visitor:${visitor.id}', size: 84),
           const SizedBox(height: 8),
           Text('A ${visitor.name.toLowerCase()} came to visit!', style: theme.textTheme.titleLarge),
           const SizedBox(height: 6),
-          Text(
-            'It loves ${favourite.fruit.emoji} ${favourite.fruit.name.toLowerCase()}. '
+          IconText(
+            'It loves {fruit:${favourite.id}} ${favourite.fruit.name.toLowerCase()}. '
             'It\'s now in your Journal.',
             textAlign: TextAlign.center,
             style: theme.textTheme.bodyMedium,
@@ -48,7 +49,9 @@ class _VisitorSheet extends ConsumerWidget {
                     if (context.mounted) {
                       Navigator.pop(context);
                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('The ${visitor.name.toLowerCase()} left you $coins coins as thanks 🪙')),
+                        SnackBar(
+                          content: IconText('The ${visitor.name.toLowerCase()} left you {coin} $coins as thanks'),
+                        ),
                       );
                     }
                   }

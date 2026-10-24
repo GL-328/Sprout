@@ -1,13 +1,15 @@
 enum Season {
-  spring('Spring', '🌸'),
-  summer('Summer', '☀️'),
-  autumn('Autumn', '🍂'),
-  winter('Winter', '❄️');
+  spring('Spring'),
+  summer('Summer'),
+  autumn('Autumn'),
+  winter('Winter');
 
-  const Season(this.label, this.emoji);
+  const Season(this.label);
 
   final String label;
-  final String emoji;
+
+  /// The season's icon id (see icon_art.dart).
+  String get icon => 'season:$name';
 }
 
 /// A plot's season, starting at spring the day it was unlocked and moving on

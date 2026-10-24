@@ -2,6 +2,8 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import '../art/icon_art.dart';
+
 /// The Seed Meter: a ring split into segments that fill as quests are done.
 class SeedMeterRing extends StatelessWidget {
   const SeedMeterRing({super.key, required this.filled, required this.total, this.size = 64, this.animate = true});
@@ -30,9 +32,7 @@ class SeedMeterRing extends StatelessWidget {
           ),
           child: SizedBox.square(
             dimension: size,
-            child: Center(
-              child: Text('🌱', style: TextStyle(fontSize: size * 0.36)),
-            ),
+            child: Center(child: ArtIcon('seed', size: size * 0.44)),
           ),
         ),
       ),

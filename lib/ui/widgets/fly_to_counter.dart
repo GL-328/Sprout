@@ -2,13 +2,15 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
-/// Little emoji (coins, fruit, seeds) that arc from [from] to the widget
+import '../art/icon_art.dart';
+
+/// Little icons (coins, fruit, seeds) that arc from [from] to the widget
 /// holding [target], then disappear. Does nothing when [reduceMotion].
 void flyToCounter(
   BuildContext context, {
   required Offset from,
   required GlobalKey target,
-  required String emoji,
+  required String icon,
   int count = 5,
   bool reduceMotion = false,
 }) {
@@ -23,7 +25,7 @@ void flyToCounter(
       builder: (_) => _Flyer(
         from: from,
         to: to,
-        emoji: emoji,
+        icon: icon,
         delay: Duration(milliseconds: 70 * i),
         spread: (i - count / 2) * 14.0,
         onDone: () => entry.remove(),
@@ -37,7 +39,7 @@ class _Flyer extends StatefulWidget {
   const _Flyer({
     required this.from,
     required this.to,
-    required this.emoji,
+    required this.icon,
     required this.delay,
     required this.spread,
     required this.onDone,
@@ -45,7 +47,7 @@ class _Flyer extends StatefulWidget {
 
   final Offset from;
   final Offset to;
-  final String emoji;
+  final String icon;
   final Duration delay;
   final double spread;
   final VoidCallback onDone;
@@ -93,10 +95,7 @@ class _FlyerState extends State<_Flyer> with SingleTickerProviderStateMixin {
                 top: p.dy - 14,
                 child: Opacity(
                   opacity: _c.value == 0 ? 0 : (1 - t * 0.3),
-                  child: Transform.scale(
-                    scale: 1.2 - 0.5 * t,
-                    child: Text(widget.emoji, style: const TextStyle(fontSize: 26, decoration: TextDecoration.none)),
-                  ),
+                  child: Transform.scale(scale: 1.2 - 0.5 * t, child: ArtIcon(widget.icon, size: 28)),
                 ),
               ),
             ],

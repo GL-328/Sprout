@@ -12,6 +12,7 @@ import '../../ui/theme/category_style.dart';
 import '../today/today_providers.dart';
 import 'garden_providers.dart';
 import '../../ui/layout/insets.dart';
+import '../../ui/art/icon_art.dart';
 
 /// "This one would love a Forest plot", or null if it fits an unlocked plot.
 String? seedHint(GameConfig config, SpeciesConfig species, Set<String> unlocked) {
@@ -70,7 +71,7 @@ class _ChooseSeed extends ConsumerWidget {
             padding: const EdgeInsets.symmetric(vertical: 24),
             child: Column(
               children: [
-                const Text('🌱', style: TextStyle(fontSize: 44)),
+                const ArtIcon('seed', size: 56),
                 const SizedBox(height: 8),
                 Text(
                   seeds.isEmpty
@@ -134,7 +135,7 @@ class _SeedTile extends ConsumerWidget {
                         style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
                       ),
                       if (hint != null)
-                        Text('$hint 💛', style: theme.textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w700)),
+                        Text(hint, style: theme.textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w700)),
                     ],
                   ),
                 ),
@@ -181,7 +182,7 @@ class SeedBagList extends ConsumerWidget {
       await ref.read(economyServiceProvider).compostSeed(seed.id);
       Haptics.light();
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Composted. +$coins coins 🪙')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: IconText('Composted. +{coin} $coins')));
       }
     }
 
@@ -203,7 +204,7 @@ class SeedBagList extends ConsumerWidget {
         if (seeds.isEmpty)
           const Padding(
             padding: EdgeInsets.all(24),
-            child: Center(child: Text('Your bag is empty for now. Every 3 quests earns a seed 🌱')),
+            child: Center(child: Text('Your bag is empty for now. Every 3 quests earns a seed.')),
           ),
         for (final s in seeds)
           _SeedTile(

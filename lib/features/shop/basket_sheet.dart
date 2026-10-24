@@ -8,6 +8,7 @@ import '../../ui/widgets/fly_to_counter.dart';
 import '../../ui/widgets/motion.dart';
 import '../home/garden_providers.dart';
 import '../../ui/layout/insets.dart';
+import '../../ui/art/icon_art.dart';
 
 Future<void> showBasketSheet(BuildContext context) =>
     showSproutSheet<void>(context, heightFactor: 0.7, builder: (_) => const FruitBasket());
@@ -37,13 +38,13 @@ class FruitBasket extends ConsumerWidget {
         context,
         from: from,
         target: CounterTargets.coins,
-        emoji: '🪙',
+        icon: 'coin',
         count: qty.clamp(3, 8),
         reduceMotion: reduceMotion(context, ref),
       );
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
-        ..showSnackBar(SnackBar(content: Text('Sold for $coins coins 🪙')));
+        ..showSnackBar(SnackBar(content: IconText('Sold for {coin} $coins')));
     }
 
     final list = <Widget>[
@@ -59,7 +60,7 @@ class FruitBasket extends ConsumerWidget {
       if (items.isEmpty)
         const Padding(
           padding: EdgeInsets.all(24),
-          child: Center(child: Text('Nothing picked yet. Tap a plant with fruit to harvest it 🧺')),
+          child: Center(child: Text('Nothing picked yet. Tap a plant with fruit to harvest it.')),
         ),
       for (final e in items)
         Builder(
@@ -77,7 +78,7 @@ class FruitBasket extends ConsumerWidget {
                 borderRadius: BorderRadius.circular(20),
                 child: ListTile(
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                  leading: Text(s.fruit.emoji, style: const TextStyle(fontSize: 30)),
+                  leading: ArtIcon('fruit:${s.id}', size: 38),
                   title: Text('${s.fruit.name} ×${e.value}', style: theme.textTheme.titleMedium),
                   subtitle: Text('${s.fruit.sellPrice} coins each'),
                   trailing: Row(
@@ -105,7 +106,7 @@ class FruitBasket extends ConsumerWidget {
               ref.read(soundServiceProvider).play(Sfx.coin);
               if (context.mounted) {
                 ScaffoldMessenger.of(context)
-                    .showSnackBar(SnackBar(content: Text('Sold everything for $total coins 🪙')));
+                    .showSnackBar(SnackBar(content: IconText('Sold everything for {coin} $total')));
               }
             },
             child: Text('Sell everything for $total coins'),

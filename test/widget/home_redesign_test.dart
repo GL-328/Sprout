@@ -39,7 +39,7 @@ void main() {
     await settle(tester);
 
     expect(find.textContaining('1 of 3'), findsWidgets, reason: 'the Seed Meter in the panel moved on');
-    expect(find.text('All done for today 🌷'), findsOneWidget);
+    expect(find.text('All done for today'), findsOneWidget);
     expect(find.text('Undo'), findsOneWidget);
   });
 
@@ -93,8 +93,8 @@ void main() {
     await settle(tester);
     await tester.tap(find.bySemanticsLabel(RegExp('^Forest')));
     await settle(tester);
-    expect(find.text('Unlock for 🪙 150'), findsOneWidget);
-    await tester.tap(find.text('Unlock for 🪙 150'));
+    expect(find.textContaining('Unlock for'), findsOneWidget);
+    await tester.tap(find.textContaining('Unlock for'));
     await settle(tester);
     await tester.pump(const Duration(seconds: 2));
     await settle(tester);

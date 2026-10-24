@@ -6,6 +6,7 @@ import '../../data/repositories/wellbeing_repository.dart';
 import '../../ui/widgets/soft_card.dart';
 import '../settings/about_screen.dart';
 import '../../ui/layout/insets.dart';
+import '../../ui/art/icon_art.dart';
 
 final _contactsProvider = StreamProvider<List<HelpContact>>(
   (ref) => ref.watch(wellbeingRepositoryProvider).watchContacts(),
@@ -98,7 +99,7 @@ class ContactsScreen extends ConsumerWidget {
                 padding: const EdgeInsets.symmetric(vertical: 4),
                 onTap: () => _edit(context, ref, c),
                 child: ListTile(
-                  leading: const Text('💛', style: TextStyle(fontSize: 24)),
+                  leading: const ArtIcon('heart', size: 30),
                   title: Text(c.name, style: theme.textTheme.titleMedium),
                   subtitle: Text([c.detail, c.note].where((s) => s.isNotEmpty).join('\n')),
                   isThreeLine: c.detail.isNotEmpty && c.note.isNotEmpty,

@@ -9,6 +9,7 @@ import '../../ui/theme/category_style.dart';
 import '../today/today_providers.dart';
 import 'quest_editor_screen.dart';
 import '../../ui/layout/insets.dart';
+import '../../ui/art/icon_art.dart';
 
 Future<void> showAddQuestSheet(BuildContext context) =>
     showSproutSheet<void>(context, heightFactor: 0.9, builder: (_) => const _AddQuestSheet());
@@ -57,7 +58,13 @@ class _Library extends ConsumerWidget {
         for (final c in QuestCategory.values) ...[
           Padding(
             padding: const EdgeInsets.fromLTRB(8, 16, 8, 8),
-            child: Text('${c.emoji}  ${c.label}', style: theme.textTheme.titleMedium),
+            child: Row(
+              children: [
+                CategoryBadge(c, size: 28),
+                const SizedBox(width: 10),
+                Text(c.label, style: theme.textTheme.titleMedium),
+              ],
+            ),
           ),
           for (final p in premadeQuests.where((p) => p.category == c))
             Padding(
@@ -100,7 +107,7 @@ class _CustomTab extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Text('✏️', style: TextStyle(fontSize: 56)),
+          const ArtIcon('pencil', size: 64),
           const SizedBox(height: 16),
           Text('Make a quest that fits your life', style: theme.textTheme.titleLarge, textAlign: TextAlign.center),
           const SizedBox(height: 8),

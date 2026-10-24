@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../config/game_config.dart';
 import '../../domain/models/enums.dart';
 import 'painted_plant_art.dart';
+import 'icon_art.dart';
 
 /// Everything the game draws for plants and seeds goes through this
 /// interface, keyed by species and growth stage. Swap the implementation
@@ -23,22 +24,19 @@ abstract class PlantArtProvider {
 /// The art used by the app.
 PlantArtProvider plantArtProvider = PaintedPlantArt();
 
-/// Simple placeholder art using emoji.
-class EmojiPlantArt implements PlantArtProvider {
+/// Simple placeholder art built from the flat icons.
+class SimplePlantArt implements PlantArtProvider {
   @override
   Widget plant(SpeciesConfig species, GrowthStage stage, {required double size, double? height, double sway = 0}) {
-    final emoji = switch (stage) {
-      GrowthStage.seed => '🟤',
-      GrowthStage.sprout => '🌱',
-      GrowthStage.young => '🪴',
-      _ => species.fruit.emoji,
+    final icon = switch (stage) {
+      GrowthStage.seed => 'seed',
+      GrowthStage.sprout || GrowthStage.young => 'sprout',
+      _ => 'fruit:${species.id}',
     };
     return SizedBox(
       width: size,
       height: height ?? size,
-      child: Center(
-        child: Text(emoji, style: TextStyle(fontSize: size * 0.6)),
-      ),
+      child: Center(child: ArtIcon(icon, size: size * 0.6)),
     );
   }
 
@@ -46,8 +44,7 @@ class EmojiPlantArt implements PlantArtProvider {
   Widget seed(SpeciesConfig species, {double size = 56}) => SeedPacket(species: species, size: size);
 
   @override
-  Widget fruit(SpeciesConfig species, {double size = 28}) =>
-      Text(species.fruit.emoji, style: TextStyle(fontSize: size));
+  Widget fruit(SpeciesConfig species, {double size = 28}) => ArtIcon('fruit:${species.id}', size: size);
 }
 
 /// A rounded seed packet with the plant's fruit on the front.
@@ -80,7 +77,7 @@ class SeedPacket extends StatelessWidget {
         ],
       ),
       alignment: Alignment.center,
-      child: Text(species.fruit.emoji, style: TextStyle(fontSize: size * 0.42)),
+      child: ArtIcon('fruit:${species.id}', size: size * 0.5),
     );
   }
 }
