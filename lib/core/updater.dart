@@ -14,7 +14,7 @@ import '../domain/logic/updates.dart';
 /// Where updates come from. Change these to follow a fork or the stable channel
 /// (`latest`, built from main).
 const updateRepository = 'GL-328/Sprout';
-const updateReleaseTag = 'dev-latest';
+const updateReleaseTag = 'latest';
 
 String _assetUrl(String name) => 'https://github.com/$updateRepository/releases/download/$updateReleaseTag/$name';
 

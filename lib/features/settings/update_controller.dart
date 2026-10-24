@@ -34,7 +34,14 @@ enum UpdatePhase {
 }
 
 class UpdateState {
-  const UpdateState({this.phase = UpdatePhase.idle, this.currentBuild, this.info, this.progress = 0, this.error});
+  const UpdateState({
+    this.phase = UpdatePhase.idle,
+    this.currentBuild,
+    this.info,
+    this.progress = 0,
+    this.error,
+    this.detail,
+  });
 
   final UpdatePhase phase;
   final int? currentBuild;
@@ -46,6 +53,9 @@ class UpdateState {
   final double progress;
   final UpdateError? error;
 
+  /// Android's own words about an error, when it gave any.
+  final String? detail;
+
   bool get busy => switch (phase) {
     UpdatePhase.checking ||
     UpdatePhase.downloading ||
@@ -55,14 +65,21 @@ class UpdateState {
     _ => false,
   };
 
-  UpdateState to(UpdatePhase phase, {UpdateInfo? info, double? progress, UpdateError? error, int? currentBuild}) =>
-      UpdateState(
-        phase: phase,
-        currentBuild: currentBuild ?? this.currentBuild,
-        info: info ?? this.info,
-        progress: progress ?? (phase == UpdatePhase.downloading ? this.progress : 0),
-        error: error,
-      );
+  UpdateState to(
+    UpdatePhase phase, {
+    UpdateInfo? info,
+    double? progress,
+    UpdateError? error,
+    String? detail,
+    int? currentBuild,
+  }) => UpdateState(
+    phase: phase,
+    currentBuild: currentBuild ?? this.currentBuild,
+    info: info ?? this.info,
+    progress: progress ?? (phase == UpdatePhase.downloading ? this.progress : 0),
+    error: error,
+    detail: detail == null || detail.trim().isEmpty ? null : detail.trim(),
+  );
 }
 
 final updateControllerProvider = NotifierProvider<UpdateController, UpdateState>(UpdateController.new);
@@ -73,6 +90,9 @@ class UpdateController extends Notifier<UpdateState> {
   Timer? _stall;
   File? _apk;
   bool _leftApp = false;
+
+  /// Whether this update already fell back to Android's own installer screen.
+  bool _fellBack = false;
 
   /// How long to wait for Android after the confirm screen before offering
   /// the fallback.
@@ -142,12 +162,13 @@ class UpdateController extends Notifier<UpdateState> {
     if (file == null) return;
     await ref.read(settingsRepositoryProvider).writeValue(pendingUpdateBuildKey, '${info.versionCode}');
     _leftApp = false;
+    _fellBack = false;
     state = state.to(UpdatePhase.waitingForYou);
     try {
       await _updater.install(file);
     } on UpdateFailure catch (e) {
       await _clearPending();
-      state = state.to(UpdatePhase.error, error: e.error);
+      state = state.to(UpdatePhase.error, error: e.error, detail: e.detail);
     }
   }
 
@@ -163,7 +184,7 @@ class UpdateController extends Notifier<UpdateState> {
       }
       await _updater.openSystemInstaller(file);
     } on UpdateFailure catch (e) {
-      state = state.to(UpdatePhase.error, error: e.error);
+      state = state.to(UpdatePhase.error, error: e.error, detail: e.detail);
     }
   }
 
@@ -204,7 +225,7 @@ class UpdateController extends Notifier<UpdateState> {
       case LaunchCheck.notInstalled:
         await _clearPending();
         final error = (last == null ? null : installError(last.status, last.message)) ?? UpdateError.other;
-        state = state.to(UpdatePhase.error, error: error, currentBuild: current);
+        state = state.to(UpdatePhase.error, error: error, detail: last?.message, currentBuild: current);
         _say("The update to build $expected didn't finish. ${updateErrorText(error)}");
     }
   }
@@ -247,9 +268,25 @@ class UpdateController extends Notifier<UpdateState> {
     final error = installError(e.status, e.message);
     if (error == null) {
       state = state.to(UpdatePhase.done);
+    } else if (fallsBackToSystemInstaller(error) && !_fellBack && _apk != null) {
+      // Some phones (Samsung among them) throw the install away after
+      // "Install". Android's own installer screen takes the same verified file.
+      _fellBack = true;
+      _leftApp = false;
+      state = state.to(UpdatePhase.waitingForYou);
+      _openFallback(_apk!);
     } else {
       _clearPending();
-      state = state.to(UpdatePhase.error, error: error);
+      state = state.to(UpdatePhase.error, error: error, detail: e.message);
+    }
+  }
+
+  Future<void> _openFallback(File apk) async {
+    try {
+      await _updater.openSystemInstaller(apk);
+    } on UpdateFailure catch (e) {
+      await _clearPending();
+      state = state.to(UpdatePhase.error, error: e.error, detail: e.detail);
     }
   }
 
@@ -265,6 +302,13 @@ class UpdateController extends Notifier<UpdateState> {
     );
   }
 }
+
+/// Whether a failed install is worth one more go through Android's own
+/// installer screen. A signature or storage problem fails there too.
+bool fallsBackToSystemInstaller(UpdateError error) => switch (error) {
+  UpdateError.cancelled || UpdateError.blocked || UpdateError.other => true,
+  _ => false,
+};
 
 /// A calm explanation of [error], with what to do next.
 String updateErrorText(UpdateError error) => switch (error) {

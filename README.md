@@ -30,10 +30,13 @@ signed in to GitHub.
    none of your data anywhere.
 
 **Updating from inside the app.** Once a day, Sprout checks the
-**Sprout (dev preview)** release. If there's a newer build, it downloads it
+**Sprout (latest)** release. If there's a newer build, it downloads it
 quietly and then asks whether to install it. Android asks you to confirm every
 install, so you'll see an **Update this app?** screen: tap **Update**. Sprout
-closes while it updates, and your garden is kept. Open it again and you'll see
+closes while it updates, and your garden is kept. If a phone (some Samsungs)
+throws the update away after you tap Install, Sprout opens Android's own
+installer screen with the same file once, and the card shows Android's reason
+if it still doesn't finish. Open Sprout again and you'll see
 "Sprout is updated to build N".
 
 You can also update by hand under **Settings → Updates → Check for updates now**.
@@ -53,8 +56,8 @@ hands the same verified file to Android's own installer screen.
   size and its SHA-256 checksum. The app compares its own build number with
   `version.json`, downloads `sprout.apk`, and refuses the file unless the size
   and checksum both match.
-- `main` publishes **Sprout (latest)** (tag `latest`). Other branches publish
-  **Sprout (dev preview)** (tag `dev-latest`), which the app follows. Each new
+- `main` publishes **Sprout (latest)** (tag `latest`), which the app follows.
+  Other branches publish **Sprout (dev preview)** (tag `dev-latest`). Each new
   build replaces the previous one.
 - Every release is signed with the same key, from the secrets below. A build
   without them is still uploaded as a workflow artifact, but never published
@@ -233,9 +236,10 @@ test/         domain, data and widget tests
     `flutter test test/screenshots --run-skipped --update-goldens` renders
     the main screens to PNGs for a visual check.
 - **Automatic updates.** Once a day, and on demand from Settings → Updates,
-  Sprout checks the dev preview release's `version.json`. If there's a newer
+  Sprout checks the latest release's `version.json`. If there's a newer
   build, it downloads `sprout.apk`, checks its SHA-256, and installs it through
-  Android's package installer (silently on Android 12+ once allowed). This
+  Android's package installer, falling back to Android's installer screen once
+  if the first try is thrown away. This
   adds the internet permission, used only for this check, and it can be
   switched off.
 - **Redesign: calmer, more like Finch.**

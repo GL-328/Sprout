@@ -142,18 +142,40 @@ void main() {
     await controller().update();
     updater.eventSink.add(const InstallEvent(InstallStatus.aborted));
     await pumpEventQueue();
+    expect(updater.systemInstalls, hasLength(1), reason: "first abort: Android's own installer gets a go");
+    expect(state().phase, UpdatePhase.waitingForYou);
+    expect(await repo().readValue(pendingUpdateBuildKey), '14');
+    updater.eventSink.add(const InstallEvent(InstallStatus.aborted, 'User rejected permissions'));
+    await pumpEventQueue();
+    expect(updater.systemInstalls, hasLength(1), reason: 'only once');
     expect(state().error, UpdateError.cancelled);
+    expect(state().detail, 'User rejected permissions');
     expect(await repo().readValue(pendingUpdateBuildKey), '');
 
     await controller().update();
     updater.eventSink.add(const InstallEvent(InstallStatus.failure, 'INSTALL_FAILED_UPDATE_INCOMPATIBLE'));
     await pumpEventQueue();
     expect(state().error, UpdateError.signedDifferently);
+    expect(state().detail, 'INSTALL_FAILED_UPDATE_INCOMPATIBLE');
+    expect(updater.systemInstalls, hasLength(1), reason: 'a signature problem fails there too');
 
     await controller().update();
     updater.eventSink.add(const InstallEvent(InstallStatus.success));
     await pumpEventQueue();
     expect(state().phase, UpdatePhase.done);
+  });
+
+  test('each new update gets its own fallback', () async {
+    await controller().check(manual: true);
+    await controller().update();
+    updater.eventSink.add(const InstallEvent(InstallStatus.aborted));
+    await pumpEventQueue();
+    updater.eventSink.add(const InstallEvent(InstallStatus.aborted));
+    await pumpEventQueue();
+    await controller().update();
+    updater.eventSink.add(const InstallEvent(InstallStatus.aborted));
+    await pumpEventQueue();
+    expect(updater.systemInstalls, hasLength(2));
   });
 
   test('coming back from the confirm screen shows installing, never before', () async {

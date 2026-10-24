@@ -18,7 +18,10 @@ class UpdateStatusReceiver : BroadcastReceiver() {
                 @Suppress("DEPRECATION")
                 intent.getParcelableExtra(Intent.EXTRA_INTENT)
             }
-            if (confirm != null) UpdateEvents.showConfirm(context, confirm)
+            val sessionId = intent.getIntExtra(PackageInstaller.EXTRA_SESSION_ID, -1)
+            if (confirm != null) UpdateEvents.showConfirm(context, sessionId, confirm)
+        } else {
+            UpdateEvents.finished(context)
         }
         UpdateEvents.emit(context, status, message)
     }
