@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:sprout/data/premade/premade_quests.dart';
 import 'package:sprout/data/repositories/counters_repository.dart';
 import 'package:sprout/domain/models/enums.dart';
 import 'package:sprout/domain/models/quest.dart';
@@ -92,10 +93,11 @@ void main() {
     expect(history.single.questId, isNull);
   });
 
-  test('starter quests come from focus areas', () async {
-    await env.quests.addStarterQuests({QuestCategory.sleep});
-    await env.quests.addStarterQuests({QuestCategory.sleep});
+  test('picking the same premade quest twice never duplicates it', () async {
+    final p = premadeByKey('sleep_wind_down')!;
+    await env.quests.addPremade(p);
+    await env.quests.addPremade(p);
     final all = await env.quests.watchQuests().first;
-    expect(all.where((q) => q.category == QuestCategory.sleep).length, 2, reason: 'no duplicates');
+    expect(all.where((q) => q.category == QuestCategory.sleep).length, 1);
   });
 }

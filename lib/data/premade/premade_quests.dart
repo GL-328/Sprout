@@ -174,19 +174,9 @@ const premadeQuests = <PremadeQuest>[
   PremadeQuest('work_inbox', 'Clear a few messages', 'Reply to or archive a handful.', QuestCategory.studyWork, _m),
 ];
 
-/// Quests suggested when the user picks a focus area in onboarding.
-const starterKeysByCategory = <QuestCategory, List<String>>{
-  QuestCategory.sleep: ['sleep_wind_down', 'sleep_screens_off'],
-  QuestCategory.movement: ['move_outside', 'move_stretch'],
-  QuestCategory.mind: ['mind_breathe', 'mind_gratitude'],
-  QuestCategory.social: ['social_text'],
-  QuestCategory.home: ['home_tidy', 'home_window'],
-  QuestCategory.foodWater: ['food_water', 'food_fruit'],
-  QuestCategory.studyWork: ['work_one_task', 'work_break'],
-};
-
-/// Used when no focus areas were picked.
-const defaultStarterKeys = ['food_water', 'move_outside', 'mind_breathe', 'social_text'];
+/// Quests shown with a gentle "Suggested" badge in the onboarding picker.
+/// Only a hint: nothing is ever selected or added for the user.
+const suggestedQuestKeys = {'food_water', 'move_outside', 'mind_breathe', 'social_text', 'sleep_wind_down'};
 
 PremadeQuest? premadeByKey(String key) {
   for (final q in premadeQuests) {

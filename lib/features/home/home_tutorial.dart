@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/providers.dart';
+import '../today/today_providers.dart';
 import '../../ui/art/icon_art.dart';
 
 /// Settings key set once the first-run tips have been seen.
@@ -10,6 +11,9 @@ const tutorialDoneKey = 'tutorial_done';
 final tutorialDoneProvider = FutureProvider<bool>(
   (ref) async => await ref.watch(settingsRepositoryProvider).readValue(tutorialDoneKey) == 'true',
 );
+
+/// Shown first when there are no quests yet.
+const _firstQuestTip = ('plus', 'Start by tapping "Add a quest" below. Every 3 quests you finish earns a seed.');
 
 const _tips = [
   ('seed', 'Finish quests to fill your Seed Meter. Every 3 earns a seed.'),
@@ -38,7 +42,14 @@ class _HomeTutorialState extends ConsumerState<HomeTutorial> {
     final done = ref.watch(tutorialDoneProvider).value ?? true;
     if (done) return const SizedBox.shrink();
     final theme = Theme.of(context);
-    final (emoji, text) = _tips[_step];
+    final view = ref.watch(todayViewProvider).value;
+    final noQuests = view != null && view.todo.isEmpty && view.later.isEmpty && view.done.isEmpty;
+    final tips = [
+      // With no quests yet, the first tip points to where to add one.
+      if (noQuests) _firstQuestTip else _tips.first,
+      ..._tips.skip(1),
+    ];
+    final (emoji, text) = tips[_step];
     final last = _step == _tips.length - 1;
     return Material(
       color: const Color(0xFF3B3346).withValues(alpha: 0.92),
