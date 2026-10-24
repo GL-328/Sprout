@@ -57,13 +57,15 @@ class _HomeTutorialState extends ConsumerState<HomeTutorial> {
                 ),
               ],
             ),
-            Row(
+            Wrap(
+              alignment: WrapAlignment.end,
+              crossAxisAlignment: WrapCrossAlignment.center,
               children: [
                 Text(
                   '${_step + 1} of ${_tips.length}',
                   style: theme.textTheme.labelSmall?.copyWith(color: Colors.white70),
                 ),
-                const Spacer(),
+                const SizedBox(width: 8),
                 if (!last)
                   TextButton(
                     onPressed: _finish,
