@@ -24,7 +24,7 @@ Future<AppDatabase> seeded(WidgetTester tester) async {
     await seeds.ensurePlot('meadow');
     final garden = GardenService(db, testConfig, clock, seeds, counters);
     final s = await seeds.add('berry_bush', Rarity.common, SeedSource.quests);
-    await garden.plantSeed(s.id, 'meadow', 0);
+    await garden.plantSeed(s.id, 'meadow', 1);
     await seeds.add('apple_tree', Rarity.common, SeedSource.quests);
     await counters.add('coins', 120);
     final quests = QuestRepository(db, const Clock());
@@ -50,7 +50,7 @@ void main() {
       await seeds.ensurePlot('meadow');
       final garden = GardenService(db, testConfig, const Clock(), seeds, CountersRepository(db));
       final s = await seeds.add('giant_sunflower', Rarity.common, SeedSource.quests);
-      await garden.plantSeed(s.id, 'meadow', 0);
+      await garden.plantSeed(s.id, 'meadow', 1);
     });
     await tester.pumpWidget(
       shot(testApp(db, settings: const AppSettings(name: 'Sam', onboardingDone: true, reducedMotion: true))),
@@ -60,6 +60,30 @@ void main() {
     await tester.tap(find.bySemanticsLabel(RegExp('Giant sunflower')).first);
     await tester.pumpAndSettle();
     await savePng(tester, 'plant_sheet_seed');
+  });
+
+  testWidgets('home with every kind of decoration', (tester) async {
+    await loadAppFonts();
+    setPhoneScreen(tester);
+    final db = await seeded(tester);
+    await tester.runAsync(() async {
+      for (final (kind, id) in [
+        ('fence', 'picket_fence'),
+        ('lantern', 'paper_lantern'),
+        ('pond', 'lily_pond'),
+        ('bench', 'wooden_bench'),
+        ('path', 'stone_path'),
+      ]) {
+        await db
+            .into(db.plotCosmetics)
+            .insertOnConflictUpdate(PlotCosmeticsCompanion.insert(envId: 'meadow', kind: kind, cosmeticId: id));
+      }
+    });
+    await tester.pumpWidget(
+      shot(testApp(db, settings: const AppSettings(name: 'Sam', onboardingDone: true, reducedMotion: true))),
+    );
+    await tester.pumpAndSettle();
+    await savePng(tester, 'home_decor');
   });
 
   for (final scale in [1.0, 1.3]) {

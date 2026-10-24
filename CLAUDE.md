@@ -4,7 +4,7 @@ A Finch-like self-care app: finish quests, earn seeds, grow a garden. Flutter, A
 The owner is GL-328 (repo GL-328/Sprout, renamed from GL328). Read this first in every session.
 
 ## Toolchain and checks
-- Flutter 3.47.7, `dart format -l 120`, `flutter analyze` must be clean, `flutter test` must pass (203 tests).
+- Flutter 3.47.7, `dart format -l 120`, `flutter analyze` must be clean, `flutter test` must pass (207 tests).
 - Riverpod 3 (unlistened providers pause: don't await `.future` from a Notifier, read repositories directly), drift
   (in-memory DB in tests), game rules in `assets/config/game_config.yaml`.
 - Visual checks: `test/visual/*` render PNGs to `build/visual/` (`loadAppFonts`, `setPhoneScreen`, `shot`,
@@ -22,7 +22,7 @@ The owner is GL-328 (repo GL-328/Sprout, renamed from GL328). Read this first in
 - In-app updater: `lib/core/updater.dart` (follows `latest`), `lib/features/settings/update_controller.dart`, and
   Kotlin in `android/app/src/main/kotlin/app/sprout/sprout/` (PackageInstaller session, one confirm per session,
   falls back once to Android's installer screen, shows Android's reason on the card).
-- Owner's phone is a Samsung. Build 24 fixed "Update was cancelled" there; not yet confirmed on the device.
+- Owner's phone is a Samsung. Build 24 fixed "Update was cancelled" there; confirmed working on the device.
 - Commits are authored as `GL-328 <331449904+GL-328@users.noreply.github.com>` (the owner's GitHub private
   email blocks pushes that expose their real address).
 

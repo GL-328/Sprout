@@ -51,4 +51,34 @@ void main() {
     await tester.pump();
     await savePng(tester, 'scenery');
   });
+
+  // The same scenery at a phone's proportions, where things must stay on their hills.
+  testWidgets('scenery at phone size', (tester) async {
+    await loadAppFonts();
+    const size = Size(206, 360);
+    setPhoneScreen(tester, size: const Size((206 + 8) * 4, (360 + 24) * 2), systemBar: 0);
+    await tester.pumpWidget(
+      themed(
+        Wrap(
+          children: [
+            for (final env in envs)
+              Padding(
+                padding: const EdgeInsets.all(4),
+                child: Column(
+                  children: [
+                    CustomPaint(
+                      size: size,
+                      painter: GardenScenePainter(hour: 13, envId: env),
+                    ),
+                    Text(env, style: const TextStyle(fontSize: 10)),
+                  ],
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+    await tester.pump();
+    await savePng(tester, 'scenery_phone');
+  });
 }

@@ -52,6 +52,52 @@ class GardenScenePainter extends CustomPainter {
   /// Night-tinted and muted, for anything on the ground or the horizon.
   Color _land(Color c) => _mute(isNight ? Color.lerp(c, const Color(0xFF1E2E40), 0.45)! : c);
 
+  // Hill tops as fractions of the scene: a start point, then (control, end)
+  // pairs of quadratic segments. Scenery and decorations stand on these.
+  static const _farHill = [(0.0, 0.54), (0.22, 0.46), (0.45, 0.52), (0.72, 0.58), (1.0, 0.49)];
+  static const _dune = [(0.0, 0.57), (0.3, 0.47), (0.55, 0.57), (0.8, 0.5), (1.0, 0.55)];
+  static const _midHill = [(0.0, 0.62), (0.3, 0.52), (0.6, 0.61), (0.85, 0.66), (1.0, 0.57)];
+  static const _front = [(0.0, 0.72), (0.5, 0.64), (1.0, 0.74)];
+
+  static Path _curvePath(List<(double, double)> pts, Size size) {
+    final path = Path()..moveTo(pts[0].$1 * size.width, pts[0].$2 * size.height);
+    for (var i = 1; i + 1 < pts.length; i += 2) {
+      path.quadraticBezierTo(
+        pts[i].$1 * size.width,
+        pts[i].$2 * size.height,
+        pts[i + 1].$1 * size.width,
+        pts[i + 1].$2 * size.height,
+      );
+    }
+    return path;
+  }
+
+  /// The y of a hill's top at [x] (in pixels).
+  static double _curveY(List<(double, double)> pts, Size size, double x) {
+    final fx = (x / size.width).clamp(0.0, 1.0);
+    for (var i = 1; i + 1 < pts.length; i += 2) {
+      final (x0, y0) = pts[i - 1];
+      final (cx, cy) = pts[i];
+      final (x1, y1) = pts[i + 1];
+      if (fx > x1 && i + 2 < pts.length) continue;
+      double at(double a, double b, double c, double t) => (1 - t) * (1 - t) * a + 2 * t * (1 - t) * b + t * t * c;
+      var lo = 0.0, hi = 1.0;
+      for (var k = 0; k < 24; k++) {
+        final mid = (lo + hi) / 2;
+        if (at(x0, cx, x1, mid) < fx) {
+          lo = mid;
+        } else {
+          hi = mid;
+        }
+      }
+      return at(y0, cy, y1, (lo + hi) / 2) * size.height;
+    }
+    return pts.last.$2 * size.height;
+  }
+
+  /// The top of the front ground at [x], for things placed on it.
+  static double groundTop(Size size, double x) => _curveY(_front, size, x);
+
   Paint _fill(Color c) => Paint()
     ..color = c
     ..isAntiAlias = true;
@@ -290,15 +336,7 @@ class GardenScenePainter extends CustomPainter {
       canvas.drawRect(Rect.fromLTRB(0, h * 0.5, w, h * 0.508), _fill(_land(const Color(0xFFD3F0F7))));
       return;
     }
-    _hill(
-      canvas,
-      size,
-      Path()
-        ..moveTo(0, h * 0.54)
-        ..quadraticBezierTo(w * 0.22, h * 0.46, w * 0.45, h * 0.52)
-        ..quadraticBezierTo(w * 0.72, h * 0.58, w, h * 0.49),
-      _grassFar,
-    );
+    _hill(canvas, size, _curvePath(_farHill, size), _grassFar);
   }
 
   void _backdrop(Canvas canvas, Size size) {
@@ -352,32 +390,29 @@ class GardenScenePainter extends CustomPainter {
           for (var i = 0; i < count; i++) {
             final x = w * ((i + (row == 0 ? 0.5 : 0)) / (count - 1));
             final peak = h * (top + (i % 3) * 0.03);
-            _pine(canvas, x, peak, h * 0.62, w * 0.075, _land(colour));
+            // Rooted just inside the far hill.
+            final foot = _curveY(_farHill, size, x) + h * (0.02 + row * 0.02);
+            _pine(canvas, x, peak, foot, w * 0.075, _land(colour));
           }
         }
       case 'desert':
-        _hill(
-          canvas,
-          size,
-          Path()
-            ..moveTo(0, h * 0.57)
-            ..quadraticBezierTo(w * 0.3, h * 0.47, w * 0.55, h * 0.57)
-            ..quadraticBezierTo(w * 0.8, h * 0.5, w, h * 0.55),
-          _land(const Color(0xFFF5DDA9)),
-        );
+        _hill(canvas, size, _curvePath(_dune, size), _land(const Color(0xFFF5DDA9)));
         for (final (x, s) in [(0.14, 1.0), (0.84, 0.8)]) {
-          _cactus(canvas, w * x, h * 0.56, h * 0.09 * s, _land(const Color(0xFF9CBF8E)));
+          final foot = _curveY(_dune, size, w * x) + h * 0.012;
+          _cactus(canvas, w * x, foot, h * 0.09 * s, _land(const Color(0xFF9CBF8E)));
         }
       case 'tropical':
         for (final (x, lean) in [(0.06, 1.0), (0.94, -1.0), (0.2, 0.6)]) {
-          _palm(canvas, w * x, h * 0.62, h * (x == 0.2 ? 0.2 : 0.28), lean, _land(const Color(0xFF4FA463)));
+          final foot = _curveY(_midHill, size, w * x) + h * 0.012;
+          _palm(canvas, w * x, foot, h * (x == 0.2 ? 0.2 : 0.28), lean, _land(const Color(0xFF4FA463)));
         }
       case 'orchard':
         for (var i = 0; i < 6; i++) {
           final x = w * (0.08 + i * 0.17);
-          final y = h * (0.52 + (i % 2) * 0.02);
           final r = w * 0.05;
-          canvas.drawRect(Rect.fromLTWH(x - r * 0.12, y, r * 0.24, r * 1.0), _fill(_land(const Color(0xFFB08560))));
+          // The canopy's centre: the trunk shows below it and ends just inside the far hill.
+          final y = _curveY(_farHill, size, x) + r * 0.2 - r * 1.6;
+          canvas.drawRect(Rect.fromLTWH(x - r * 0.12, y, r * 0.24, r * 1.6), _fill(_land(const Color(0xFFB08560))));
           canvas.drawCircle(Offset(x, y), r, _fill(_land(const Color(0xFF8FC27F))));
           canvas.drawCircle(Offset(x - r * 0.3, y - r * 0.35), r * 0.42, _fill(_land(const Color(0xFFA9D497))));
           for (final (dx, dy) in [(-0.4, 0.1), (0.35, -0.2), (0.15, 0.4)]) {
@@ -388,13 +423,15 @@ class GardenScenePainter extends CustomPainter {
         break;
       default:
         // Meadow: a few soft tree clumps on the far hills.
-        for (final (x, y, s) in [(0.12, 0.5, 1.0), (0.2, 0.51, 0.7), (0.82, 0.5, 0.9)]) {
+        for (final (x, s) in [(0.12, 1.0), (0.2, 0.7), (0.82, 0.9)]) {
           final r = w * 0.032 * s;
           final c = _land(const Color(0xFF9CCB8C));
-          canvas.drawCircle(Offset(w * x - r * 0.6, h * y), r * 0.8, _fill(c));
-          canvas.drawCircle(Offset(w * x + r * 0.6, h * y), r * 0.8, _fill(c));
-          canvas.drawCircle(Offset(w * x, h * y - r * 0.5), r, _fill(c));
-          canvas.drawCircle(Offset(w * x - r * 0.3, h * y - r * 0.8), r * 0.4, _fill(tint(c, 0.18)));
+          // Sits on the far hill, its base tucked in a little.
+          final y = _curveY(_farHill, size, w * x) - r * 0.5;
+          canvas.drawCircle(Offset(w * x - r * 0.6, y), r * 0.8, _fill(c));
+          canvas.drawCircle(Offset(w * x + r * 0.6, y), r * 0.8, _fill(c));
+          canvas.drawCircle(Offset(w * x, y - r * 0.5), r, _fill(c));
+          canvas.drawCircle(Offset(w * x - r * 0.3, y - r * 0.8), r * 0.4, _fill(tint(c, 0.18)));
         }
     }
   }
@@ -461,31 +498,12 @@ class GardenScenePainter extends CustomPainter {
     }
   }
 
-  void _midHills(Canvas canvas, Size size) {
-    final w = size.width;
-    final h = size.height;
-    _hill(
-      canvas,
-      size,
-      Path()
-        ..moveTo(0, h * 0.62)
-        ..quadraticBezierTo(w * 0.3, h * 0.52, w * 0.6, h * 0.61)
-        ..quadraticBezierTo(w * 0.85, h * 0.66, w, h * 0.57),
-      _grassMid,
-    );
-  }
+  void _midHills(Canvas canvas, Size size) => _hill(canvas, size, _curvePath(_midHill, size), _grassMid);
 
   void _ground(Canvas canvas, Size size) {
     final w = size.width;
     final h = size.height;
-    _hill(
-      canvas,
-      size,
-      Path()
-        ..moveTo(0, h * 0.72)
-        ..quadraticBezierTo(w * 0.5, h * 0.64, w, h * 0.74),
-      _grassFront,
-    );
+    _hill(canvas, size, _curvePath(_front, size), _grassFront);
     if (silhouette) return;
 
     if (envId == 'wetland') {
