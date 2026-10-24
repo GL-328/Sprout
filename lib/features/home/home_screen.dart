@@ -43,10 +43,11 @@ class HomeScreen extends ConsumerStatefulWidget {
 }
 
 class _HomeScreenState extends ConsumerState<HomeScreen> with SingleTickerProviderStateMixin {
-  final _slots = PageController(viewportFraction: PlantCarousel.viewportFraction);
+  /// The carousel opens on the middle spot, so there's a plant to either side.
+  late final _slots = PageController(viewportFraction: PlantCarousel.viewportFraction, initialPage: _slot);
   late final _ambient = AnimationController(vsync: this, duration: const Duration(seconds: 24));
   String? _envId;
-  int _slot = 0;
+  late int _slot = ref.read(gameConfigProvider).startingEnvironment.slots ~/ 2;
 
   /// Measured heights of the header and the quests panel, so the garden
   /// always fits between them, at any text size. Estimates until measured.
@@ -143,11 +144,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with SingleTickerProvid
   Future<void> _pickPlot(String current) async {
     final picked = await showPlotPicker(context, current: current);
     if (picked != null && picked != current && mounted) {
+      final middle = ref.read(gameConfigProvider).environment(picked).slots ~/ 2;
       setState(() {
         _envId = picked;
-        _slot = 0;
+        _slot = middle;
       });
-      if (_slots.hasClients) _slots.jumpToPage(0);
+      if (_slots.hasClients) _slots.jumpToPage(middle);
     }
   }
 
@@ -295,7 +297,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with SingleTickerProvid
                       ),
                     ),
                   ),
-                  ..._cosmetics(config, placed, w, sceneHeight),
+                  ..._cosmetics(config, placed, Size(w, sceneHeight), gardenBottom),
                   for (final (i, v) in visitors.indexed) _visitor(v, i, phase, w, headerBottom, gardenBottom),
                   // The header normally sits on top. On very short screens the
                   // plant overlaps it, and then the plant comes first so it stays tappable.
@@ -330,25 +332,31 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with SingleTickerProvid
     );
   }
 
-  List<Widget> _cosmetics(GameConfig config, Map<String, String> placed, double w, double h) {
-    Widget at(String kind, double x, double y, double size) {
+  /// Placed decorations, standing on the ground and always above the quests
+  /// panel. [depth] is how far in front of the ground's edge each one stands.
+  List<Widget> _cosmetics(GameConfig config, Map<String, String> placed, Size scene, double gardenBottom) {
+    Widget at(String kind, double x, double depth, double size) {
       final c = config.cosmetics[placed[kind]];
       if (c == null) return const SizedBox.shrink();
+      final ground = GardenScenePainter.groundTop(scene, scene.width * x);
+      final bottom = math.min(ground + depth, gardenBottom - 2);
       return Positioned(
-        left: w * x - size / 2,
-        top: h * y - size / 2,
-        child: IgnorePointer(child: ArtIcon('cosmetic:${c.id}', size: size * 1.2)),
+        left: scene.width * x - size / 2,
+        top: bottom - size,
+        child: IgnorePointer(
+          child: ArtIcon('cosmetic:${c.id}', key: ValueKey('decor-$kind-$x'), size: size),
+        ),
       );
     }
 
     return [
-      at('fence', 0.05, 0.74, 30),
-      at('fence', 0.95, 0.74, 30),
-      at('lantern', 0.06, 0.64, 26),
-      at('lantern', 0.94, 0.64, 26),
-      at('pond', 0.88, 0.86, 34),
-      at('bench', 0.12, 0.86, 32),
-      at('path', 0.5, 0.92, 28),
+      at('lantern', 0.15, 6, 36),
+      at('lantern', 0.85, 6, 36),
+      at('fence', 0.06, 14, 40),
+      at('fence', 0.94, 14, 40),
+      at('bench', 0.2, 34, 40),
+      at('pond', 0.8, 40, 44),
+      at('path', 0.3, 64, 36),
     ];
   }
 
