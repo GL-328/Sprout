@@ -29,13 +29,43 @@ signed in to GitHub.
    from the Play Store. Tap **More details → Install anyway**. Sprout sends
    none of your data anywhere.
 
-**Updates install themselves.** Once a day, Sprout checks the
-**Sprout (dev preview)** release and installs any newer build, and your garden
-is kept. The first time, Android asks you to allow Sprout to install apps.
-After that, Android 12 and newer update quietly, while older versions show a
-one-tap **Update** prompt. You can turn this off, or check by hand, under
-**Settings → Updates**. It only works once the signing key below is set up,
-because Android refuses an update signed with a different key.
+**Updating from inside the app.** Once a day, Sprout checks the
+**Sprout (dev preview)** release. If there's a newer build, it downloads it
+quietly and then asks whether to install it. Android asks you to confirm every
+install, so you'll see an **Update this app?** screen: tap **Update**. Sprout
+closes while it updates, and your garden is kept. Open it again and you'll see
+"Sprout is updated to build N".
+
+You can also update by hand under **Settings → Updates → Check for updates now**.
+The card there shows each step: checking, downloading, verifying, waiting for
+you, installing, and done. If something goes wrong it says what happened (for
+example "Install permission is off" or "Download failed, try again") and what
+to do next. If the normal way doesn't work, **Open in Android's installer**
+hands the same verified file to Android's own installer screen.
+
+### Releases and build numbers
+
+- Every push to `main` or a `claude/**` branch runs **Build APK**. The build
+  number (Android `versionCode`) is the GitHub Actions run number, so it goes
+  up by at least one with every build.
+- The build checks that the number inside the APK equals the run number, and
+  writes `version.json` next to the APK with that same number, the APK's
+  size and its SHA-256 checksum. The app compares its own build number with
+  `version.json`, downloads `sprout.apk`, and refuses the file unless the size
+  and checksum both match.
+- `main` publishes **Sprout (latest)** (tag `latest`). Other branches publish
+  **Sprout (dev preview)** (tag `dev-latest`), which the app follows. Each new
+  build replaces the previous one.
+- Every release is signed with the same key, from the secrets below. A build
+  without them is still uploaded as a workflow artifact, but never published
+  as a release, because it couldn't update an installed copy.
+- Settings → Updates shows the installed build, e.g. "Version 0.1.0 (build 15)".
+
+**Testing an update end to end:** install build N by hand from the Releases
+page. Push any commit and wait for the green **Build APK** run that publishes
+build N+1. In the app, tap **Settings → Updates → Check for updates now**, then
+**Update**, then **Update** on Android's screen. Reopen Sprout: it should say
+"Sprout is updated to build N+1", and Settings should show build N+1.
 
 ### One-time setup: the signing key
 
@@ -50,8 +80,12 @@ once in **Settings → Secrets and variables → Actions → New repository secr
 | `SPROUT_KEY_ALIAS` | `sprout` |
 | `SPROUT_KEY_PASSWORD` | the same password |
 
-Without the secrets the build still works, but it uses a temporary key. You'd
-then have to uninstall before each update, which deletes your garden.
+Without the secrets the build still works, but it uses a temporary key and
+isn't published as a release.
+
+Keep a backup of the keystore and password somewhere safe outside GitHub (a
+password manager works well). Secrets can't be read back once saved, and a
+lost key means every phone has to uninstall once to switch to a new one.
 
 ## Tweaking the game
 

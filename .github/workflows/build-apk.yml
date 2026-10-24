@@ -61,9 +61,11 @@ jobs:
           KEY_PASSWORD: ${{ secrets.SPROUT_KEY_PASSWORD }}
         run: |
           if [ -z "$KEYSTORE_BASE64" ]; then
-            echo "::warning::No signing secrets found. Building with a temporary debug key; this APK cannot update one signed with a different key."
+            echo "::warning::No signing secrets found. Building with a temporary debug key; this APK cannot update one signed with a different key, so it will not be published as a release."
+            echo "SIGNED=false" >> "$GITHUB_ENV"
             exit 0
           fi
+          echo "SIGNED=true" >> "$GITHUB_ENV"
           echo "$KEYSTORE_BASE64" | base64 --decode > android/app/upload.jks
           {
             echo "storeFile=upload.jks"
@@ -78,6 +80,17 @@ jobs:
       - name: Rename APK
         run: cp build/app/outputs/flutter-apk/app-release.apk sprout.apk
 
+      - name: Check build number and signing key
+        run: |
+          BUILD_TOOLS=$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -1)
+          CODE=$("$BUILD_TOOLS/aapt2" dump badging sprout.apk | sed -n "s/.*versionCode='\([0-9]*\)'.*/\1/p" | head -1)
+          echo "APK versionCode: $CODE (run number ${GITHUB_RUN_NUMBER})"
+          if [ "$CODE" != "${GITHUB_RUN_NUMBER}" ]; then
+            echo "::error::The APK's build number ($CODE) doesn't match the run number. The updater would compare the wrong numbers."
+            exit 1
+          fi
+          "$BUILD_TOOLS/apksigner" verify --print-certs sprout.apk | grep -i "SHA-256" | head -1
+
       - name: Upload workflow artifact
         uses: actions/upload-artifact@v4
         with:
@@ -91,11 +104,13 @@ jobs:
             --argjson code "${GITHUB_RUN_NUMBER}" \
             --arg name "$VERSION_NAME" \
             --arg sha "$(sha256sum sprout.apk | cut -d' ' -f1)" \
+            --argjson size "$(stat -c %s sprout.apk)" \
             --arg notes "$(git log -1 --format=%s)" \
-            '{versionCode: $code, versionName: $name, sha256: $sha, notes: $notes}' > version.json
+            '{versionCode: $code, versionName: $name, sha256: $sha, size: $size, notes: $notes}' > version.json
           cat version.json
 
       - name: Publish rolling release
+        if: env.SIGNED == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
