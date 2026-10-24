@@ -8,6 +8,7 @@ import 'features/home/home_screen.dart';
 import 'features/journal/journal_screen.dart';
 import 'features/onboarding/onboarding_screen.dart';
 import 'features/settings/settings_screen.dart';
+import 'features/settings/update_check.dart';
 import 'features/shell/app_shell.dart';
 import 'features/shop/shop_screen.dart';
 import 'features/today/today_screen.dart';
@@ -55,11 +56,32 @@ final routerProvider = Provider<GoRouter>((ref) {
   return router;
 });
 
-class SproutApp extends ConsumerWidget {
+class SproutApp extends ConsumerStatefulWidget {
   const SproutApp({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<SproutApp> createState() => _SproutAppState();
+}
+
+class _SproutAppState extends ConsumerState<SproutApp> {
+  late final AppLifecycleListener _lifecycle;
+
+  @override
+  void initState() {
+    super.initState();
+    // Look for updates after the first frame and whenever the app comes back.
+    _lifecycle = AppLifecycleListener(onResume: () => runUpdateCheck(ref));
+    WidgetsBinding.instance.addPostFrameCallback((_) => runUpdateCheck(ref));
+  }
+
+  @override
+  void dispose() {
+    _lifecycle.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     // Keeps reminders in sync with settings and quests.
     ref.listen(reminderSyncProvider, (_, _) {});
     final theme = ref.watch(settingsProvider.select((s) => s.theme));
@@ -67,6 +89,7 @@ class SproutApp extends ConsumerWidget {
     return MaterialApp.router(
       title: 'Sprout',
       debugShowCheckedModeBanner: false,
+      scaffoldMessengerKey: rootMessengerKey,
       theme: AppTheme.build(Brightness.light, accent),
       darkTheme: AppTheme.build(Brightness.dark, accent),
       themeMode: switch (theme) {

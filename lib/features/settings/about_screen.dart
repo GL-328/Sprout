@@ -30,7 +30,8 @@ class AboutScreen extends StatelessWidget {
                 const SizedBox(height: 8),
                 Text(
                   'Take care of yourself, and a little garden grows with you. '
-                  'Everything stays on this phone: no accounts, no tracking, no internet needed.',
+                  'Everything stays on this phone: no accounts, no tracking. The only time Sprout goes online '
+                  'is a daily check for a new version, which you can turn off in Settings → Updates.',
                   style: theme.textTheme.bodyLarge?.copyWith(height: 1.4),
                 ),
               ],

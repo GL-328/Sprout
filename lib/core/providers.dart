@@ -18,6 +18,7 @@ import '../domain/models/app_settings.dart';
 import 'clock.dart';
 import 'notifications_service.dart';
 import 'sound_service.dart';
+import 'updater.dart';
 
 /// Overridden in `main.dart` once the config has been loaded.
 final gameConfigProvider = Provider<GameConfig>((ref) => throw UnimplementedError('gameConfigProvider not set'));
@@ -142,3 +143,9 @@ final soundServiceProvider = Provider<SoundService>((ref) {
   ref.listen(settingsProvider.select((s) => s.soundOn), (_, on) => service.setEnabled(on));
   return service;
 });
+
+/// Self-updates from GitHub Releases. A no-op in tests.
+final updaterProvider = Provider<Updater>((ref) => GitHubReleaseUpdater());
+
+/// Settings key for when updates were last checked (ISO time).
+const lastUpdateCheckKey = 'last_update_check';
