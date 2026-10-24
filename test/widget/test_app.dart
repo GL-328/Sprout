@@ -13,7 +13,7 @@ import 'package:sprout/domain/models/app_settings.dart';
 final testConfig = GameConfig.parse(File('assets/config/game_config.yaml').readAsStringSync());
 
 /// The real app wired to an in-memory database.
-Widget testApp(AppDatabase db, {AppSettings settings = const AppSettings()}) => ProviderScope(
+Widget testApp(AppDatabase db, {AppSettings settings = const AppSettings(reducedMotion: true)}) => ProviderScope(
   overrides: [
     gameConfigProvider.overrideWithValue(testConfig),
     databaseProvider.overrideWithValue(db),

@@ -6,6 +6,8 @@ import '../data/repositories/counters_repository.dart';
 import '../data/repositories/quest_repository.dart';
 import '../data/repositories/seed_repository.dart';
 import '../data/repositories/settings_repository.dart';
+import '../data/repositories/wellbeing_repository.dart';
+import '../data/services/economy_service.dart';
 import '../data/services/garden_service.dart';
 import '../data/services/progress_service.dart';
 import '../domain/logic/seed_roller.dart';
@@ -89,4 +91,21 @@ final gardenServiceProvider = Provider<GardenService>(
     ref.watch(seedRepositoryProvider),
     ref.watch(countersRepositoryProvider),
   ),
+);
+
+final economyServiceProvider = Provider<EconomyService>(
+  (ref) => EconomyService(
+    ref.watch(databaseProvider),
+    ref.watch(gameConfigProvider),
+    ref.watch(clockProvider),
+    ref.watch(seedRepositoryProvider),
+    ref.watch(countersRepositoryProvider),
+    ref.watch(gardenServiceProvider),
+    ref.watch(settingsRepositoryProvider),
+    ref.watch(seedRollerProvider),
+  ),
+);
+
+final wellbeingRepositoryProvider = Provider<WellbeingRepository>(
+  (ref) => WellbeingRepository(ref.watch(databaseProvider), ref.watch(clockProvider)),
 );

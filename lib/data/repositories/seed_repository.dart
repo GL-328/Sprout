@@ -63,6 +63,10 @@ class SeedRepository {
   Stream<Set<String>> watchUnlockedEnvironments() =>
       _db.select(_db.plots).watch().map((rows) => {for (final r in rows) r.envId});
 
+  /// Unlocked plots and when each was unlocked.
+  Stream<Map<String, DateTime>> watchPlots() =>
+      _db.select(_db.plots).watch().map((rows) => {for (final r in rows) r.envId: r.unlockedAt});
+
   Future<void> ensurePlot(String envId) => _db
       .into(_db.plots)
       .insert(

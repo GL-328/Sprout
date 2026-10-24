@@ -104,3 +104,17 @@ test/         domain, data and widget tests
   day fill the meter; anything beyond that still counts as done. Undo rolls
   the meter back, and takes the seed back too if that quest had just earned
   one. Onboarding now adds starter quests for your focus areas.
+- **Stage 3: the garden.** The Home screen shows your plot as a drawn scene:
+  the sky follows the time of day, ambient details suit the environment, and
+  plants sway gently. The top bar has coins, a fruit basket, the Seed Meter
+  and the Seed Bag. Tap an empty spot to choose a seed from your bag (seeds
+  that don't fit show a gentle "This one would love a Forest plot" hint).
+  Plants grow in real time through seed, sprout, young, mature and fruiting,
+  even while the app is closed. Common plants take a few hours, rare ones a
+  day or more. Mature plants are permanent and fruit again and again.
+  Harvests wait for you (up to 3) and nothing ever wilts. Tap a ready plant
+  to harvest it, and the fruit flies into your basket. Tap a growing plant
+  to see its stage and time left, or to move it on into a keepsake (asks
+  first). The first seed from onboarding is planted in the Meadow. All plant
+  art is drawn with CustomPainter behind an art provider keyed by species
+  and growth stage, so real illustrations can be swapped in later.
