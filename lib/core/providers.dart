@@ -147,7 +147,7 @@ final soundServiceProvider = Provider<SoundService>((ref) {
 });
 
 /// Self-updates from GitHub Releases. A no-op in tests.
-final updaterProvider = Provider<Updater>((ref) => GitHubReleaseUpdater());
+final updaterProvider = Provider<Updater>((ref) => platformUpdater());
 
 /// Settings key for when updates were last checked (ISO time).
 const lastUpdateCheckKey = 'last_update_check';

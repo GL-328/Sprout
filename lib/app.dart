@@ -8,7 +8,7 @@ import 'features/home/home_screen.dart';
 import 'features/journal/journal_screen.dart';
 import 'features/onboarding/onboarding_screen.dart';
 import 'features/settings/settings_screen.dart';
-import 'features/settings/update_check.dart';
+import 'features/settings/update_controller.dart';
 import 'features/shell/app_shell.dart';
 import 'features/shop/shop_screen.dart';
 import 'features/today/today_screen.dart';
@@ -70,8 +70,19 @@ class _SproutAppState extends ConsumerState<SproutApp> {
   void initState() {
     super.initState();
     // Look for updates after the first frame and whenever the app comes back.
-    _lifecycle = AppLifecycleListener(onResume: () => runUpdateCheck(ref));
-    WidgetsBinding.instance.addPostFrameCallback((_) => runUpdateCheck(ref));
+    final updates = ref.read(updateControllerProvider.notifier);
+    _lifecycle = AppLifecycleListener(
+      onHide: updates.onLeave,
+      onPause: updates.onLeave,
+      onResume: () async {
+        await updates.onReturn();
+        await updates.check();
+      },
+    );
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await updates.afterLaunch();
+      await updates.check();
+    });
   }
 
   @override
