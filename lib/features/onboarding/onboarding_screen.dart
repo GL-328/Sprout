@@ -53,10 +53,11 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       _finish(plantStarter: false);
       return;
     }
-    _pages.nextPage(
-      duration: motionDuration(context, ref, const Duration(milliseconds: 380)),
-      curve: Curves.easeOutCubic,
-    );
+    if (reduceMotion(context, ref)) {
+      _pages.jumpToPage(_page + 1);
+    } else {
+      _pages.nextPage(duration: const Duration(milliseconds: 380), curve: Curves.easeOutCubic);
+    }
   }
 
   Future<void> _finish({required bool plantStarter}) async {

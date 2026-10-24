@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:sprout/core/clock.dart';
+import 'package:sprout/data/repositories/seed_repository.dart';
 import 'package:sprout/data/repositories/settings_repository.dart';
 import 'package:sprout/domain/models/app_settings.dart';
 
@@ -32,6 +34,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.textContaining('Robin'), findsOneWidget);
+    expect(find.bySemanticsLabel(RegExp('Giant sunflower')), findsOneWidget, reason: 'first seed is planted');
     expect(find.text('Today'), findsOneWidget, reason: 'bottom navigation is visible');
 
     final saved = await tester.runAsync(() => SettingsRepository(db).load());
@@ -55,7 +58,8 @@ void main() {
   testWidgets('returning users go straight to the garden and can switch tabs', (tester) async {
     final db = memoryDb();
     addTearDown(db.close);
-    await tester.pumpWidget(testApp(db, settings: const AppSettings(onboardingDone: true)));
+    await tester.runAsync(() => SeedRepository(db, const Clock()).ensurePlot('meadow'));
+    await tester.pumpWidget(testApp(db, settings: const AppSettings(onboardingDone: true, reducedMotion: true)));
     await tester.pumpAndSettle();
 
     expect(find.text('Welcome to Sprout'), findsNothing);
@@ -63,6 +67,7 @@ void main() {
       await tester.tap(find.text(tab).last);
       await tester.pumpAndSettle();
     }
-    expect(find.textContaining('Meadow'), findsOneWidget);
+    expect(find.textContaining('🌼 Meadow'), findsOneWidget);
+    expect(find.bySemanticsLabel('Empty spot. Plant a seed'), findsNWidgets(3));
   });
 }

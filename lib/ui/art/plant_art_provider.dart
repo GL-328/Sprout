@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../config/game_config.dart';
 import '../../domain/models/enums.dart';
+import 'painted_plant_art.dart';
 
 /// Everything the game draws for plants and seeds goes through this
 /// interface, keyed by species and growth stage. Swap the implementation
@@ -19,8 +20,8 @@ abstract class PlantArtProvider {
   Widget fruit(SpeciesConfig species, {double size = 28});
 }
 
-/// The art used by the app. Replaced in later stages by the painted art.
-PlantArtProvider plantArtProvider = EmojiPlantArt();
+/// The art used by the app.
+PlantArtProvider plantArtProvider = PaintedPlantArt();
 
 /// Simple placeholder art using emoji.
 class EmojiPlantArt implements PlantArtProvider {
