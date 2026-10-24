@@ -175,3 +175,30 @@ test/         domain, data and widget tests
   Android's package installer (silently on Android 12+ once allowed). This
   adds the internet permission, used only for this check, and it can be
   switched off.
+- **Redesign: calmer, more like Finch.**
+  - **Home:** just coins and one Bag button (seeds and fruit tabs) at the top,
+    and a short greeting with a tappable plot name for switching plots. One
+    large plant at a time sits centred, with its neighbours peeking in from
+    the sides, arrows, swipes and three small dots. The plant "talks" in a
+    little bubble. Empty spots pulse "Plant a seed", and ripe plants glow
+    "Tap to harvest". Below sits a draggable **Today's quests** panel with the
+    Seed Meter as a slim bar and today's quests. Tap a circle to complete one,
+    with undo and the seed reveal as before. A smaller sun or moon, far fewer
+    particles, and three skippable first-run tips.
+  - **Today:** the date, one slim Seed Meter card, a small mood check-in that
+    disappears once done, and spacious quest rows (check circle, title, tiny
+    category icon, faint size dots). Edit, skip, later and delete moved into
+    a long-press or "⋯" menu. "Done today" is collapsed. The "+" button
+    offers make a quest, browse ideas, or **All quests**.
+  - **Shop:** Ben the shopkeeper stands at his striped market stall. He
+    blinks, his hair sways, and he has a fun fact of the day. Tap him for a
+    greeting, tip or kind word, and he reacts warmly when you buy, sell or
+    compost. His lines live in one file, `assets/content/ben_lines.json`,
+    generated from `tool/ben_lines_source.py`. Below him, four big tiles
+    (Plots, Sell, Recipes, Decor) lead to a two-column grid of soft cards,
+    each opening a sheet with one clear button. Items you can't afford yet
+    are gently faded.
+  - **Also:** one consistent rounded icon set for quest categories, used on
+    quest rows and in a new tile-style interest picker in onboarding.
+    Better screen-reader labels and tap actions.
+  - Game rules, config values and saved data are unchanged.

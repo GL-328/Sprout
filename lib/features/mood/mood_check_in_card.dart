@@ -7,77 +7,66 @@ import '../../ui/widgets/soft_card.dart';
 import '../home/garden_providers.dart';
 import 'moods.dart';
 
-/// The daily check-in at the top of Today. Changes the sky in the garden.
+/// The daily check-in: one small card. Changes the sky in the garden.
 class MoodCheckInCard extends ConsumerWidget {
-  const MoodCheckInCard({super.key});
+  const MoodCheckInCard({super.key, this.hideWhenDone = false});
+
+  /// Disappear once today's mood is saved (used on Today).
+  final bool hideWhenDone;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
-    final mood = ref.watch(todayMoodProvider).value;
+    final mood = ref.watch(todayMoodProvider);
+    if (mood.isLoading) return const SizedBox.shrink();
+    final entry = mood.value;
 
-    if (mood != null) {
-      final option = moodOption(mood.value);
+    if (entry != null) {
+      if (hideWhenDone) return const SizedBox.shrink();
+      final option = moodOption(entry.value);
       return SoftCard(
         color: option.color.withValues(alpha: 0.5),
         padding: const EdgeInsets.fromLTRB(16, 12, 8, 12),
         onTap: () => showMoodSheet(context, ref),
         child: Row(
           children: [
-            Text(option.emoji, style: const TextStyle(fontSize: 34)),
+            Text(option.emoji, style: const TextStyle(fontSize: 30)),
             const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('Checked in: ${option.label}', style: theme.textTheme.titleMedium),
-                  Text(moodReply(mood.value), style: theme.textTheme.bodySmall),
-                ],
-              ),
-            ),
+            Expanded(child: Text(moodReply(entry.value), style: theme.textTheme.bodyMedium)),
             const Icon(Icons.edit_outlined, size: 20),
           ],
         ),
       );
     }
 
-    return SoftCard(
-      padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text('Daily check-in', style: theme.textTheme.titleMedium),
-          Text('How are you feeling right now?', style: theme.textTheme.bodySmall),
-          const SizedBox(height: 10),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              for (final o in moodOptions)
-                Semantics(
-                  button: true,
-                  label: 'Feeling ${o.label}',
-                  excludeSemantics: true,
-                  child: InkResponse(
-                    onTap: () => showMoodSheet(context, ref, initial: o.value),
-                    radius: 30,
-                    child: Column(
-                      children: [
-                        Container(
-                          width: 48,
-                          height: 48,
-                          alignment: Alignment.center,
-                          decoration: BoxDecoration(color: o.color, shape: BoxShape.circle),
-                          child: Text(o.emoji, style: const TextStyle(fontSize: 26)),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(o.label, style: theme.textTheme.labelSmall),
-                      ],
-                    ),
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 4),
+      child: SoftCard(
+        padding: const EdgeInsets.fromLTRB(16, 10, 10, 10),
+        child: Row(
+          children: [
+            Expanded(child: Text('How are you feeling?', style: theme.textTheme.titleSmall)),
+            for (final o in moodOptions)
+              Semantics(
+                button: true,
+                label: 'Feeling ${o.label}',
+                excludeSemantics: true,
+                onTap: () => showMoodSheet(context, ref, initial: o.value),
+                child: InkResponse(
+                  onTap: () => showMoodSheet(context, ref, initial: o.value),
+                  radius: 22,
+                  child: Container(
+                    width: 34,
+                    height: 34,
+                    margin: const EdgeInsets.only(left: 4),
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(color: o.color, shape: BoxShape.circle),
+                    child: Text(o.emoji, style: const TextStyle(fontSize: 19)),
                   ),
                 ),
-            ],
-          ),
-        ],
+              ),
+          ],
+        ),
       ),
     );
   }

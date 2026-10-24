@@ -35,12 +35,15 @@ void main() {
 
   testWidgets('every Shop tab opens', (tester) async {
     await open(tester, 'Shop');
-    expect(find.text('✅ Unlocked'), findsOneWidget, reason: 'the Meadow is unlocked');
-    for (final tab in ['Sell & compost', 'Recipes', 'Decorations', 'Mystery seeds']) {
-      await tester.tap(find.text(tab));
+    expect(find.text('Yours ✓'), findsOneWidget, reason: 'the Meadow is unlocked');
+    expect(find.bySemanticsLabel(RegExp('Ben the shopkeeper')), findsOneWidget);
+    for (final tab in ['Sell', 'Recipes', 'Decor', 'Plots']) {
+      await tester.tap(find.bySemanticsLabel(RegExp('^$tab')));
       await tester.pumpAndSettle();
     }
-    expect(find.text('Mystery seed'), findsOneWidget);
+    await tester.tap(find.bySemanticsLabel(RegExp('Ben the shopkeeper')));
+    await tester.pump(const Duration(seconds: 2));
+    await tester.pumpAndSettle();
     expect(tester.takeException(), isNull);
   });
 
@@ -64,7 +67,7 @@ void main() {
     }
     await tester.pumpAndSettle();
 
-    expect(find.text('Checked in: Good'), findsOneWidget);
+    expect(find.text('How are you feeling?'), findsNothing, reason: 'the card steps aside once done');
     final saved = await tester.runAsync(() => WellbeingRepository(db, const Clock()).watchMoods().first);
     expect(saved!.values.single.value, 4);
   });

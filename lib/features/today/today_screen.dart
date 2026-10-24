@@ -4,9 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../core/greeting.dart';
-import '../../core/haptics.dart';
 import '../../core/providers.dart';
-import '../../core/sound_service.dart';
 import '../../domain/models/quest.dart';
 import '../../ui/theme/category_style.dart';
 import '../../ui/widgets/gentle_motion.dart';
@@ -18,8 +16,7 @@ import '../mood/mood_check_in_card.dart';
 import '../quests/add_quest_sheet.dart';
 import '../quests/my_quests_screen.dart';
 import '../quests/quest_editor_screen.dart';
-import 'quest_card.dart';
-import 'seed_reveal.dart';
+import 'quest_actions.dart';
 import 'today_providers.dart';
 
 class TodayScreen extends ConsumerStatefulWidget {
@@ -38,66 +35,26 @@ class _TodayScreenState extends ConsumerState<TodayScreen> {
     super.dispose();
   }
 
-  Future<void> _complete(Quest quest) async {
-    Haptics.medium();
-    ref.read(soundServiceProvider).play(Sfx.complete);
-    final service = ref.read(progressServiceProvider);
-    final result = await service.complete(quest);
-    if (!mounted) return;
-    if (!reduceMotion(context, ref)) _confetti.play();
-
-    final messenger = ScaffoldMessenger.of(context)..hideCurrentSnackBar();
-    final undoSeconds = ref.read(gameConfigProvider).undoSeconds;
-    messenger.showSnackBar(
-      SnackBar(
-        duration: Duration(seconds: undoSeconds),
-        content: Text(result.counted ? 'Nice, "${quest.title}" done 🌱' : '"${quest.title}" done. Well done you 💛'),
-        action: SnackBarAction(
-          label: 'Undo',
-          onPressed: () async {
-            await service.undo(result.completionId);
-            Haptics.light();
-          },
-        ),
-      ),
-    );
-
-    final seed = result.seed;
-    if (seed != null) {
-      await Future<void>.delayed(const Duration(milliseconds: 500));
-      if (mounted) {
-        ref.read(soundServiceProvider).play(Sfx.seed);
-        await showSeedReveal(context, seed);
-      }
-    }
-  }
-
-  void _edit(Quest quest) =>
-      Navigator.of(context).push(MaterialPageRoute(builder: (_) => QuestEditorScreen(quest: quest)));
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final view = ref.watch(todayViewProvider);
     final now = ref.watch(nowProvider).value ?? DateTime.now();
     final name = ref.watch(settingsProvider.select((s) => s.name));
+    final calm = reduceMotion(context, ref);
     final repo = ref.read(questRepositoryProvider);
     final day = ref.watch(todayKeyProvider);
-    final calm = reduceMotion(context, ref);
 
-    Widget card(Quest q, {bool later = false}) => Padding(
+    Widget row(Quest q, {bool later = false}) => Padding(
       key: ValueKey(q.id),
       padding: const EdgeInsets.only(bottom: 12),
       child: FadeSlideIn(
         enabled: !calm,
-        child: QuestCard(
+        child: QuestRow(
           quest: q,
-          isLater: later,
           reduceMotion: calm,
-          onComplete: () => _complete(q),
-          onSkip: () => repo.setDayMark(q.id, day, DayMarkKind.skip),
-          onLater: () => repo.setDayMark(q.id, day, DayMarkKind.later),
-          onEdit: () => _edit(q),
+          onComplete: () => completeQuestFlow(context, ref, q, onCelebrate: calm ? null : _confetti.play),
+          onMenu: () => showQuestMenu(context, ref, q, isLater: later),
         ),
       ),
     );
@@ -107,7 +64,7 @@ class _TodayScreenState extends ConsumerState<TodayScreen> {
         padding: const EdgeInsets.only(bottom: 84),
         child: FloatingActionButton(
           tooltip: 'Add a quest',
-          onPressed: () => showAddQuestSheet(context),
+          onPressed: () => showAddChooser(context),
           child: const Icon(Icons.add),
         ),
       ),
@@ -119,7 +76,7 @@ class _TodayScreenState extends ConsumerState<TodayScreen> {
               loading: () => const Center(child: CircularProgressIndicator()),
               error: (e, _) => Center(child: Text('Something went a little wrong: $e')),
               data: (v) => ListView(
-                padding: const EdgeInsets.fromLTRB(20, 12, 20, 180),
+                padding: const EdgeInsets.fromLTRB(20, 16, 20, 180),
                 children: [
                   Row(
                     children: [
@@ -127,35 +84,28 @@ class _TodayScreenState extends ConsumerState<TodayScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(greetingFor(now, name), style: theme.textTheme.headlineSmall),
+                            Text(DateFormat('EEEE d MMMM').format(now), style: theme.textTheme.titleLarge),
                             Text(
-                              DateFormat('EEEE d MMMM').format(now),
-                              style: theme.textTheme.titleSmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                              greetingFor(now, name),
+                              style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
                             ),
                           ],
                         ),
                       ),
-                      IconButton.filledTonal(
-                        tooltip: 'My quests',
-                        icon: const Icon(Icons.list_alt_rounded),
-                        onPressed: () =>
-                            Navigator.of(context).push(MaterialPageRoute(builder: (_) => const MyQuestsScreen())),
-                      ),
+                      const _TodayMenu(),
                     ],
                   ),
                   const SizedBox(height: 16),
-                  const MoodCheckInCard(),
-                  const SizedBox(height: 12),
-                  const _StreakAndRest(),
-                  const SizedBox(height: 12),
                   const SeedMeterCard(),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 12),
+                  const MoodCheckInCard(hideWhenDone: true),
+                  const SizedBox(height: 8),
                   if (v.todo.isEmpty && v.later.isEmpty)
-                    _AllClear(hasDone: v.done.isNotEmpty, onAdd: () => showAddQuestSheet(context)),
-                  ...v.todo.map(card),
+                    _AllClear(hasDone: v.done.isNotEmpty, onAdd: () => showAddChooser(context)),
+                  ...v.todo.map(row),
                   if (v.later.isNotEmpty) ...[
                     const _SectionLabel('For later'),
-                    ...v.later.map((q) => card(q, later: true)),
+                    ...v.later.map((q) => row(q, later: true)),
                   ],
                   if (v.done.isNotEmpty) _DoneSection(done: v.done),
                   if (v.skipped.isNotEmpty)
@@ -169,8 +119,8 @@ class _TodayScreenState extends ConsumerState<TodayScreen> {
             child: ConfettiWidget(
               confettiController: _confetti,
               blastDirectionality: BlastDirectionality.explosive,
-              numberOfParticles: 18,
-              maxBlastForce: 18,
+              numberOfParticles: 14,
+              maxBlastForce: 16,
               minBlastForce: 6,
               gravity: 0.25,
               colors: const [
@@ -188,7 +138,70 @@ class _TodayScreenState extends ConsumerState<TodayScreen> {
   }
 }
 
-/// The Seed Meter with its encouraging message.
+/// The "+" chooser: make a quest, browse ideas, or manage all quests.
+Future<void> showAddChooser(BuildContext context) => showModalBottomSheet<void>(
+  context: context,
+  useRootNavigator: true,
+  builder: (sheet) => SafeArea(
+    child: Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        ListTile(
+          leading: const Icon(Icons.edit_rounded),
+          title: const Text('Make my own quest'),
+          onTap: () {
+            Navigator.pop(sheet);
+            Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const QuestEditorScreen()));
+          },
+        ),
+        ListTile(
+          leading: const Icon(Icons.auto_awesome_rounded),
+          title: const Text('Browse quest ideas'),
+          onTap: () {
+            Navigator.pop(sheet);
+            showAddQuestSheet(context);
+          },
+        ),
+        ListTile(
+          leading: const Icon(Icons.list_alt_rounded),
+          title: const Text('All quests'),
+          subtitle: const Text('Choose what shows today, edit or archive'),
+          onTap: () {
+            Navigator.pop(sheet);
+            Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const MyQuestsScreen()));
+          },
+        ),
+        const SizedBox(height: 8),
+      ],
+    ),
+  ),
+);
+
+/// A quiet "⋯" in the header: rest day and all quests.
+class _TodayMenu extends ConsumerWidget {
+  const _TodayMenu();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final day = ref.watch(todayKeyProvider);
+    final resting = (ref.watch(restDaysProvider).value ?? const {}).contains(day);
+    return PopupMenuButton<String>(
+      tooltip: 'More',
+      icon: const Icon(Icons.more_horiz),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+      onSelected: (v) {
+        if (v == 'rest') ref.read(wellbeingRepositoryProvider).setRestDay(day, !resting);
+        if (v == 'all') Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const MyQuestsScreen()));
+      },
+      itemBuilder: (_) => [
+        PopupMenuItem(value: 'rest', child: Text(resting ? 'End rest day' : 'Take a rest day 🌙')),
+        const PopupMenuItem(value: 'all', child: Text('All quests')),
+      ],
+    );
+  }
+}
+
+/// The Seed Meter in one slim card, with the gentle streak underneath.
 class SeedMeterCard extends ConsumerWidget {
   const SeedMeterCard({super.key});
 
@@ -200,20 +213,28 @@ class SeedMeterCard extends ConsumerWidget {
     final filled = meter?.filled ?? 0;
     final total = meter?.questsPerSeed ?? rules.questsPerSeed;
     final message = rules.message(filled: filled, countedToday: meter?.countedToday ?? 0);
+    final streak = ref.watch(streakProvider);
+    final day = ref.watch(todayKeyProvider);
+    final resting = (ref.watch(restDaysProvider).value ?? const {}).contains(day);
+    final sub = resting
+        ? 'Rest day. Your garden keeps growing 🌙'
+        : streak > 1
+        ? '$streak days of caring for yourself 🌿'
+        : null;
     return SoftCard(
-      color: const Color(0xFF7FC48B).withValues(alpha: 0.16),
-      padding: const EdgeInsets.all(16),
+      color: const Color(0xFF7FC48B).withValues(alpha: 0.14),
+      padding: const EdgeInsets.fromLTRB(14, 12, 16, 12),
       child: Row(
         children: [
-          SeedMeterRing(filled: filled, total: total, size: 64, animate: !reduceMotion(context, ref)),
-          const SizedBox(width: 16),
+          SeedMeterRing(filled: filled, total: total, size: 44, animate: !reduceMotion(context, ref)),
+          const SizedBox(width: 14),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Seed Meter', style: theme.textTheme.titleMedium),
-                const SizedBox(height: 2),
-                Text(message, style: theme.textTheme.bodyMedium),
+                Text(message, style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700)),
+                if (sub != null)
+                  Text(sub, style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
               ],
             ),
           ),
@@ -232,20 +253,20 @@ class _AllClear extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return SoftCard(
-      padding: const EdgeInsets.all(24),
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 28),
       child: Column(
         children: [
-          Text(hasDone ? '🌷' : '🌤️', style: const TextStyle(fontSize: 44)),
+          Text(hasDone ? '🌷' : '🌤️', style: const TextStyle(fontSize: 40)),
           const SizedBox(height: 8),
           Text(
-            hasDone ? "That's everything for today. Take it easy." : 'Nothing planned yet. Want to add a small quest?',
+            hasDone ? 'All done for today. Take it easy.' : 'Nothing planned yet.',
             style: theme.textTheme.titleMedium,
             textAlign: TextAlign.center,
           ),
           if (!hasDone) ...[
             const SizedBox(height: 12),
-            OutlinedButton(onPressed: onAdd, child: const Text('Add a quest')),
+            FilledButton.tonalIcon(onPressed: onAdd, icon: const Icon(Icons.add), label: const Text('Add a quest')),
           ],
         ],
       ),
@@ -261,7 +282,10 @@ class _SectionLabel extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Padding(
     padding: const EdgeInsets.fromLTRB(4, 12, 4, 10),
-    child: Text(text, style: Theme.of(context).textTheme.titleMedium),
+    child: Text(
+      text,
+      style: Theme.of(context).textTheme.titleSmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+    ),
   );
 }
 
@@ -274,30 +298,23 @@ class _DoneSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Padding(
-      padding: const EdgeInsets.only(top: 8),
-      child: SoftCard(
-        padding: EdgeInsets.zero,
-        child: Theme(
-          data: theme.copyWith(dividerColor: Colors.transparent),
-          child: ExpansionTile(
-            shape: const RoundedRectangleBorder(),
-            title: Text('Done today (${done.length})', style: theme.textTheme.titleMedium),
-            leading: const Text('✅', style: TextStyle(fontSize: 22)),
-            children: [
-              for (final c in done.reversed)
-                ListTile(
-                  dense: true,
-                  leading: CircleAvatar(
-                    radius: 16,
-                    backgroundColor: categoryColor(c.category),
-                    child: Text(c.category.emoji, style: const TextStyle(fontSize: 14)),
-                  ),
-                  title: Text(c.title, style: const TextStyle(decoration: TextDecoration.lineThrough)),
-                  subtitle: c.counted ? null : const Text('Done for you (the meter was full for today)'),
-                  trailing: Text(DateFormat.jm().format(c.completedAt)),
-                ),
-            ],
-          ),
+      padding: const EdgeInsets.only(top: 12),
+      child: Theme(
+        data: theme.copyWith(dividerColor: Colors.transparent),
+        child: ExpansionTile(
+          shape: const RoundedRectangleBorder(),
+          tilePadding: const EdgeInsets.symmetric(horizontal: 4),
+          title: Text('Done today (${done.length})', style: theme.textTheme.titleSmall),
+          children: [
+            for (final c in done.reversed)
+              ListTile(
+                dense: true,
+                leading: CategoryBadge(c.category, size: 28),
+                title: Text(c.title, style: const TextStyle(decoration: TextDecoration.lineThrough)),
+                subtitle: c.counted ? null : const Text('Done for you (the meter was full for today)'),
+                trailing: Text(DateFormat.jm().format(c.completedAt)),
+              ),
+          ],
         ),
       ),
     );
@@ -313,62 +330,21 @@ class _SkippedSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Padding(
-      padding: const EdgeInsets.only(top: 12),
-      child: SoftCard(
-        padding: EdgeInsets.zero,
-        child: Theme(
-          data: theme.copyWith(dividerColor: Colors.transparent),
-          child: ExpansionTile(
-            shape: const RoundedRectangleBorder(),
-            title: Text('Resting today (${skipped.length})', style: theme.textTheme.titleMedium),
-            leading: const Text('🌙', style: TextStyle(fontSize: 22)),
-            children: [
-              for (final q in skipped)
-                ListTile(
-                  dense: true,
-                  title: Text(q.title),
-                  trailing: TextButton(onPressed: () => onRestore(q), child: const Text('Bring back')),
-                ),
-            ],
-          ),
-        ),
+    return Theme(
+      data: theme.copyWith(dividerColor: Colors.transparent),
+      child: ExpansionTile(
+        shape: const RoundedRectangleBorder(),
+        tilePadding: const EdgeInsets.symmetric(horizontal: 4),
+        title: Text('Resting today (${skipped.length})', style: theme.textTheme.titleSmall),
+        children: [
+          for (final q in skipped)
+            ListTile(
+              dense: true,
+              title: Text(q.title),
+              trailing: TextButton(onPressed: () => onRestore(q), child: const Text('Bring back')),
+            ),
+        ],
       ),
-    );
-  }
-}
-
-/// The gentle streak and the rest day switch.
-class _StreakAndRest extends ConsumerWidget {
-  const _StreakAndRest();
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final theme = Theme.of(context);
-    final streak = ref.watch(streakProvider);
-    final day = ref.watch(todayKeyProvider);
-    final resting = (ref.watch(restDaysProvider).value ?? const {}).contains(day);
-    final text = resting
-        ? 'Rest day. Your garden keeps growing and nothing is missed 🌙'
-        : streak == 0
-        ? 'Every small thing you do here counts 🌿'
-        : streak == 1
-        ? '1 day of caring for yourself 🌿'
-        : '$streak days of caring for yourself 🌿';
-    return Row(
-      children: [
-        Expanded(
-          child: Text(text, style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w700)),
-        ),
-        const SizedBox(width: 8),
-        FilterChip(
-          label: const Text('Rest day'),
-          avatar: const Text('🌙'),
-          selected: resting,
-          showCheckmark: false,
-          onSelected: (on) => ref.read(wellbeingRepositoryProvider).setRestDay(day, on),
-        ),
-      ],
     );
   }
 }

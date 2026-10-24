@@ -40,7 +40,7 @@ class FruitBasket extends ConsumerWidget {
       flyToCounter(
         context,
         from: from,
-        target: embedded ? CounterTargets.shopCoins : CounterTargets.coins,
+        target: CounterTargets.coins,
         emoji: '🪙',
         count: qty.clamp(3, 8),
         reduceMotion: reduceMotion(context, ref),

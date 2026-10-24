@@ -6,6 +6,7 @@ import '../../app.dart';
 import '../../core/haptics.dart';
 import '../../core/providers.dart';
 import '../../domain/models/enums.dart';
+import '../../ui/theme/category_style.dart';
 import '../../ui/widgets/motion.dart';
 
 /// Keys of small bits of onboarding state kept in the settings table.
@@ -129,16 +130,20 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                     emoji: '🧭',
                     title: 'What would you like to care for?',
                     body: "Pick a few areas. We'll suggest some gentle starter quests. You can change these any time.",
-                    content: Wrap(
-                      spacing: 10,
-                      runSpacing: 10,
-                      alignment: WrapAlignment.center,
+                    content: GridView.count(
+                      crossAxisCount: 2,
+                      shrinkWrap: true,
+                      padding: EdgeInsets.zero,
+                      physics: const NeverScrollableScrollPhysics(),
+                      mainAxisSpacing: 10,
+                      crossAxisSpacing: 10,
+                      childAspectRatio: 2.6,
                       children: [
                         for (final c in QuestCategory.values)
-                          FilterChip(
-                            label: Text('${c.emoji}  ${c.label}'),
+                          _InterestTile(
+                            category: c,
                             selected: _focus.contains(c),
-                            onSelected: (on) => setState(() => on ? _focus.add(c) : _focus.remove(c)),
+                            onTap: () => setState(() => _focus.contains(c) ? _focus.remove(c) : _focus.add(c)),
                           ),
                       ],
                     ),
@@ -270,6 +275,57 @@ class _Dots extends StatelessWidget {
             ),
           ),
       ],
+    );
+  }
+}
+
+/// A large tappable interest tile with the category icon and a check.
+class _InterestTile extends StatelessWidget {
+  const _InterestTile({required this.category, required this.selected, required this.onTap});
+
+  final QuestCategory category;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final tint = categoryColor(category);
+    return Semantics(
+      button: true,
+      selected: selected,
+      label: category.label,
+      excludeSemantics: true,
+      onTap: onTap,
+      child: Material(
+        color: selected ? tint : tint.withValues(alpha: 0.3),
+        borderRadius: BorderRadius.circular(20),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(20),
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            child: Row(
+              children: [
+                CategoryBadge(category, size: 30),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    category.label,
+                    maxLines: 2,
+                    style: theme.textTheme.labelLarge?.copyWith(color: const Color(0xFF3B3346)),
+                  ),
+                ),
+                AnimatedOpacity(
+                  opacity: selected ? 1 : 0,
+                  duration: const Duration(milliseconds: 150),
+                  child: const Icon(Icons.check_circle_rounded, size: 20, color: Color(0xFF3B3346)),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

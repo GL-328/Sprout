@@ -35,54 +35,56 @@ Future<void> loadFonts() async {
 }
 
 void main() {
-  testWidgets('screens', (tester) async {
-    await loadFonts();
-    tester.view.physicalSize = const Size(1080, 2340);
-    tester.view.devicePixelRatio = 2.75;
-    addTearDown(tester.view.reset);
+  for (final (label, size, ratio) in [('large', const Size(1080, 2340), 2.75), ('small', const Size(720, 1280), 2.0)]) {
+    testWidgets('screens $label', (tester) async {
+      await loadFonts();
+      tester.view.physicalSize = size;
+      tester.view.devicePixelRatio = ratio;
+      addTearDown(tester.view.reset);
 
-    final db = memoryDb();
-    addTearDown(db.close);
-    await tester.runAsync(() async {
-      final clock = FakeClock(DateTime.now().subtract(const Duration(days: 2)));
-      final seeds = SeedRepository(db, clock);
-      final counters = CountersRepository(db);
-      final garden = GardenService(db, testConfig, clock, seeds, counters);
-      await seeds.ensurePlot('meadow');
-      for (final (i, id) in ['apple_tree', 'giant_sunflower', 'lavender_hedge'].indexed) {
-        final s = await seeds.add(id, Rarity.common, SeedSource.quests);
-        await garden.plantSeed(s.id, 'meadow', i);
-      }
-      await seeds.add('oak', Rarity.uncommon, SeedSource.quests);
-      await counters.add(CounterKeys.coins, 120);
-      final quests = QuestRepository(db, const Clock());
-      await quests.create(
-        title: 'Drink a glass of water',
-        category: QuestCategory.foodWater,
-        difficulty: Difficulty.small,
-      );
-      await quests.create(
-        title: 'Step outside for 5 minutes',
-        category: QuestCategory.movement,
-        difficulty: Difficulty.small,
-      );
-      await quests.create(
-        title: 'Text someone you like',
-        category: QuestCategory.social,
-        difficulty: Difficulty.medium,
-      );
-    });
+      final db = memoryDb();
+      addTearDown(db.close);
+      await tester.runAsync(() async {
+        final clock = FakeClock(DateTime.now().subtract(const Duration(days: 2)));
+        final seeds = SeedRepository(db, clock);
+        final counters = CountersRepository(db);
+        final garden = GardenService(db, testConfig, clock, seeds, counters);
+        await seeds.ensurePlot('meadow');
+        for (final (i, id) in ['apple_tree', 'giant_sunflower', 'lavender_hedge'].indexed) {
+          final s = await seeds.add(id, Rarity.common, SeedSource.quests);
+          await garden.plantSeed(s.id, 'meadow', i);
+        }
+        await seeds.add('oak', Rarity.uncommon, SeedSource.quests);
+        await counters.add(CounterKeys.coins, 120);
+        final quests = QuestRepository(db, const Clock());
+        await quests.create(
+          title: 'Drink a glass of water',
+          category: QuestCategory.foodWater,
+          difficulty: Difficulty.small,
+        );
+        await quests.create(
+          title: 'Step outside for 5 minutes',
+          category: QuestCategory.movement,
+          difficulty: Difficulty.small,
+        );
+        await quests.create(
+          title: 'Text someone you like',
+          category: QuestCategory.social,
+          difficulty: Difficulty.medium,
+        );
+      });
 
-    await tester.pumpWidget(
-      testApp(db, settings: const AppSettings(onboardingDone: true, reducedMotion: true, name: 'Robin')),
-    );
-    await tester.pumpAndSettle();
-    await expectLater(find.byType(MaterialApp), matchesGoldenFile('out/home.png'));
-
-    for (final tab in ['Today', 'Shop', 'Journal']) {
-      await tester.tap(find.text(tab).last);
+      await tester.pumpWidget(
+        testApp(db, settings: const AppSettings(onboardingDone: true, reducedMotion: true, name: 'Robin')),
+      );
       await tester.pumpAndSettle();
-      await expectLater(find.byType(MaterialApp), matchesGoldenFile('out/${tab.toLowerCase()}.png'));
-    }
-  });
+      await expectLater(find.byType(MaterialApp), matchesGoldenFile('out/${label}_home.png'));
+
+      for (final tab in ['Today', 'Shop', 'Journal']) {
+        await tester.tap(find.text(tab).last);
+        await tester.pumpAndSettle();
+        await expectLater(find.byType(MaterialApp), matchesGoldenFile('out/${label}_${tab.toLowerCase()}.png'));
+      }
+    });
+  }
 }

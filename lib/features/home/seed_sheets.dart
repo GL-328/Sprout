@@ -156,11 +156,12 @@ Future<void> showSeedBagSheet(BuildContext context) => showModalBottomSheet<void
   context: context,
   isScrollControlled: true,
   useSafeArea: true,
-  builder: (_) => const FractionallySizedBox(heightFactor: 0.8, child: _SeedBag()),
+  builder: (_) => const FractionallySizedBox(heightFactor: 0.8, child: SeedBagList()),
 );
 
-class _SeedBag extends ConsumerWidget {
-  const _SeedBag();
+/// The seeds in the bag, with compost buttons.
+class SeedBagList extends ConsumerWidget {
+  const SeedBagList({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

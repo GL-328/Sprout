@@ -24,12 +24,18 @@ void main() {
 
     await tester.tap(find.textContaining('Sleep'));
     await tester.pump();
+    await tester.ensureVisible(find.text('Next'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Next'));
     await tester.pumpAndSettle();
 
+    await tester.ensureVisible(find.text('Next'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Next'));
     await tester.pumpAndSettle();
 
+    await tester.ensureVisible(find.text('Plant it'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Plant it'));
     await tester.pumpAndSettle();
 
@@ -68,6 +74,7 @@ void main() {
       await tester.pumpAndSettle();
     }
     expect(find.textContaining('🌼 Meadow'), findsOneWidget);
-    expect(find.bySemanticsLabel('Empty spot. Plant a seed'), findsNWidgets(3));
+    expect(find.bySemanticsLabel(RegExp('Empty spot')), findsWidgets);
+    expect(find.text("Today's quests"), findsOneWidget);
   });
 }
