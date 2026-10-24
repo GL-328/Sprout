@@ -55,39 +55,50 @@ class _HomeTutorialState extends ConsumerState<HomeTutorial> {
       color: const Color(0xFF3B3346).withValues(alpha: 0.92),
       borderRadius: BorderRadius.circular(22),
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 12, 8, 8),
+        padding: const EdgeInsets.fromLTRB(14, 10, 6, 2),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                ArtIcon(emoji, size: 26),
-                const SizedBox(width: 10),
+                ArtIcon(emoji, size: 22),
+                const SizedBox(width: 8),
                 Expanded(
-                  child: Text(text, style: theme.textTheme.bodyMedium?.copyWith(color: Colors.white, height: 1.35)),
+                  child: Text(text, style: theme.textTheme.bodySmall?.copyWith(color: Colors.white, height: 1.3)),
                 ),
               ],
             ),
-            Wrap(
-              alignment: WrapAlignment.end,
-              crossAxisAlignment: WrapCrossAlignment.center,
-              children: [
-                Text(
-                  '${_step + 1} of ${_tips.length}',
-                  style: theme.textTheme.labelSmall?.copyWith(color: Colors.white70),
-                ),
-                const SizedBox(width: 8),
-                if (!last)
-                  TextButton(
-                    onPressed: _finish,
-                    child: const Text('Skip', style: TextStyle(color: Colors.white70)),
+            Theme(
+              data: theme.copyWith(
+                textButtonTheme: TextButtonThemeData(
+                  style: TextButton.styleFrom(
+                    visualDensity: VisualDensity.compact,
+                    minimumSize: const Size(48, 36),
+                    padding: const EdgeInsets.symmetric(horizontal: 10),
                   ),
-                TextButton(
-                  onPressed: last ? _finish : () => setState(() => _step++),
-                  child: Text(last ? 'Got it' : 'Next', style: const TextStyle(color: Colors.white)),
                 ),
-              ],
+              ),
+              child: Wrap(
+                alignment: WrapAlignment.end,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                children: [
+                  Text(
+                    '${_step + 1} of ${_tips.length}',
+                    style: theme.textTheme.labelSmall?.copyWith(color: Colors.white70),
+                  ),
+                  const SizedBox(width: 8),
+                  if (!last)
+                    TextButton(
+                      onPressed: _finish,
+                      child: const Text('Skip', style: TextStyle(color: Colors.white70)),
+                    ),
+                  TextButton(
+                    onPressed: last ? _finish : () => setState(() => _step++),
+                    child: Text(last ? 'Got it' : 'Next', style: const TextStyle(color: Colors.white)),
+                  ),
+                ],
+              ),
             ),
           ],
         ),

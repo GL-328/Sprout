@@ -28,9 +28,9 @@ import 'plot_picker.dart';
 import 'quests_panel.dart';
 import 'seed_sheets.dart';
 import '../../ui/art/icon_art.dart';
-
-/// Height of the floating navigation bar, including its margin.
-const _navBarSpace = 92.0;
+import '../../ui/layout/insets.dart';
+import '../../ui/widgets/measure_size.dart';
+import 'home_tutorial.dart';
 
 /// The garden: one plot, one plant at a time, with today's quests below.
 class HomeScreen extends ConsumerStatefulWidget {
@@ -45,7 +45,46 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with SingleTickerProvid
   late final _ambient = AnimationController(vsync: this, duration: const Duration(seconds: 24));
   String? _envId;
   int _slot = 0;
-  double? _panelExtent;
+
+  /// Measured heights of the header and the quests panel, so the garden
+  /// always fits between them, at any text size. Estimates until measured.
+  double _headerH = 104;
+  double _panelH = 260;
+
+  /// Quest rows in the panel: two, or fewer when the screen is too short
+  /// for the garden to keep [_minGarden] of room.
+  int _rows = QuestsPanel.defaultShown;
+  double _rowH = 64;
+  double _screenH = 0;
+  double _headerBottom = 0;
+  static const _minGarden = 120.0;
+
+  /// Whether the first-run tips fit above the panel (see [_panelMeasured]
+  /// for what gives way first when space is short).
+  bool _tipsFit = true;
+
+  void _panelMeasured(Size s) {
+    if (!mounted || s.height == _panelH) return;
+    setState(() {
+      final previous = _panelH;
+      _panelH = s.height;
+      final garden = _screenH - _panelH - 8 - _headerBottom;
+      final tipsShowing = _tipsFit && !(ref.read(tutorialDoneProvider).value ?? true);
+      // When space is short: first drop to one quest row, then set the
+      // first-run tips aside, then drop the last row.
+      if (garden < _minGarden && _rows > 1) {
+        _rows--;
+      } else if (garden < _minGarden && tipsShowing) {
+        _tipsFit = false;
+      } else if (garden < _minGarden && _rows > 0) {
+        _rows--;
+      } else if (garden > _minGarden + _rowH * 1.2 && _rows < QuestsPanel.defaultShown) {
+        _rows++;
+      }
+      if (previous > _panelH && previous - _panelH > 30) _rowH = previous - _panelH;
+    });
+  }
+
   final Set<String> _recorded = {};
   bool _foreground = true;
   late final _lifecycle = AppLifecycleListener(
@@ -168,18 +207,18 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with SingleTickerProvid
           final h = box.maxHeight;
           final w = box.maxWidth;
           final safeTop = MediaQuery.paddingOf(context).top;
-          final bottomInset = _navBarSpace + MediaQuery.paddingOf(context).bottom;
-          // The panel's sizes, as fractions of the screen. Collapsed shows the
-          // meter and about three quests, but never more than 42% of the screen.
-          final minExtent = ((bottomInset + 58) / h).clamp(0.08, 0.3);
-          final initialExtent = ((bottomInset + 250) / h).clamp(minExtent, 0.42);
-          const maxExtent = 0.78;
-          final extent = (_panelExtent ?? initialExtent).clamp(minExtent, maxExtent);
-          // Above about half the screen the panel is for reading quests, and
-          // the garden simply waits behind it.
-          final panelTop = h * (1 - math.min(extent, 0.5));
-          final headerBottom = safeTop + 104;
-          final gardenBottom = panelTop - 12;
+          // The panel ends behind the floating nav bar; its content stays above
+          // the nav bar and the system bar.
+          final bottomInset = AppInsets.covered(context);
+          final panelTop = h - _panelH;
+          final headerBottom = safeTop + 8 + _headerH + 6;
+          // Never let the garden leave the screen, even when the panel is tall.
+          final gardenBottom = math.max(panelTop - 8, safeTop + 88);
+          _screenH = h;
+          _headerBottom = headerBottom;
+          // Always leave the plant some room, even on very short screens.
+          final gardenTop = math.min(headerBottom, gardenBottom - 72);
+          // The ground sits just under the plants; the panel covers the rest.
           final sceneHeight = math.max(gardenBottom / 0.86, panelTop + 40);
 
           return AnimatedBuilder(
@@ -188,7 +227,48 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with SingleTickerProvid
               final phase = calm ? 0.0 : _ambient.value;
               final sway = calm ? 0.0 : math.sin(phase * 2 * math.pi * 6);
               final pulse = calm ? 0.5 : 0.5 + 0.5 * math.sin(phase * 2 * math.pi * 10);
+              final carousel = Positioned(
+                left: 0,
+                right: 0,
+                top: gardenTop,
+                height: gardenBottom - gardenTop,
+                child: PlantCarousel(
+                  controller: _slots,
+                  config: config,
+                  env: env,
+                  plants: plants,
+                  statuses: statuses,
+                  page: _slot,
+                  sway: sway,
+                  pulse: pulse,
+                  reduceMotion: calm,
+                  onPageChanged: (i) {
+                    Haptics.selection();
+                    setState(() => _slot = i);
+                  },
+                  onTapEmpty: (i) => showChooseSeedSheet(context, envId: envId, slot: i),
+                  onTapPlant: _tapPlant,
+                ),
+              );
+              final header = Positioned(
+                left: 16,
+                right: 16,
+                top: safeTop + 8,
+                child: MeasureSize(
+                  onChange: (s) {
+                    if (mounted && s.height != _headerH) setState(() => _headerH = s.height);
+                  },
+                  child: _Header(
+                    greeting: greetingFor(now, name),
+                    plotLabel: '{plot:${env.id}} ${env.name}',
+                    color: onScene,
+                    onPlotTap: () => _pickPlot(envId),
+                  ),
+                ),
+              );
               return Stack(
+                // Fill the screen: every layer is positioned against it.
+                fit: StackFit.expand,
                 children: [
                   Positioned(
                     left: 0,
@@ -208,52 +288,28 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with SingleTickerProvid
                   ),
                   ..._cosmetics(config, placed, w, sceneHeight),
                   for (final (i, v) in visitors.indexed) _visitor(v, i, phase, w, headerBottom, gardenBottom),
+                  // The header normally sits on top. On very short screens the
+                  // plant overlaps it, and then the plant comes first so it stays tappable.
+                  if (gardenTop >= headerBottom) ...[carousel, header] else ...[header, carousel],
+                  // The quests panel, with first-run tips just above it. Both
+                  // are measured, so the garden always fits above them and
+                  // nothing covers the plant.
                   Positioned(
                     left: 0,
                     right: 0,
-                    top: headerBottom,
-                    height: math.max(0, gardenBottom - headerBottom),
-                    child: PlantCarousel(
-                      controller: _slots,
-                      config: config,
-                      env: env,
-                      plants: plants,
-                      statuses: statuses,
-                      page: _slot,
-                      sway: sway,
-                      pulse: pulse,
-                      reduceMotion: calm,
-                      onPageChanged: (i) {
-                        Haptics.selection();
-                        setState(() => _slot = i);
-                      },
-                      onTapEmpty: (i) => showChooseSeedSheet(context, envId: envId, slot: i),
-                      onTapPlant: _tapPlant,
-                    ),
-                  ),
-                  Positioned(
-                    left: 16,
-                    right: 16,
-                    top: safeTop + 8,
-                    child: _Header(
-                      greeting: greetingFor(now, name),
-                      plotLabel: '{plot:${env.id}} ${env.name}',
-                      color: onScene,
-                      onPlotTap: () => _pickPlot(envId),
-                    ),
-                  ),
-                  NotificationListener<DraggableScrollableNotification>(
-                    onNotification: (n) {
-                      setState(() => _panelExtent = n.extent);
-                      return false;
-                    },
-                    child: DraggableScrollableSheet(
-                      initialChildSize: initialExtent,
-                      minChildSize: minExtent,
-                      maxChildSize: maxExtent,
-                      snap: true,
-                      snapSizes: [initialExtent],
-                      builder: (context, scroll) => QuestsPanel(scrollController: scroll, bottomInset: bottomInset),
+                    bottom: 0,
+                    child: MeasureSize(
+                      onChange: _panelMeasured,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          // First-run tips, on screens tall enough to have room for them.
+                          if (h >= 480 && _tipsFit)
+                            const Padding(padding: EdgeInsets.fromLTRB(16, 0, 16, 8), child: HomeTutorial()),
+                          QuestsPanel(bottomInset: bottomInset, shown: _rows),
+                        ],
+                      ),
                     ),
                   ),
                 ],

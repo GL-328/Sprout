@@ -48,6 +48,10 @@ Future<void> onboard(WidgetTester tester, {List<String> pick = const []}) async 
 
 void main() {
   testWidgets('a new install starts with no quests when none are picked', (tester) async {
+    // A typical phone, so the first-run tips have room above the panel.
+    tester.view.devicePixelRatio = 2;
+    tester.view.physicalSize = const Size(412, 915) * 2;
+    addTearDown(tester.view.reset);
     final db = memoryDb();
     addTearDown(db.close);
     await tester.pumpWidget(testApp(db));
