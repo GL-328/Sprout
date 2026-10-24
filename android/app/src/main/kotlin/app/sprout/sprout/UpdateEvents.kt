@@ -24,8 +24,9 @@ object UpdateEvents : EventChannel.StreamHandler {
     private val main = Handler(Looper.getMainLooper())
     private var sink: EventChannel.EventSink? = null
 
-    @Volatile
-    private var pendingConfirm: Intent? = null
+    // Only touched on the main thread.
+    private var pendingConfirm: Pair<Int, Intent>? = null
+    private var showingFor: Int? = null
 
     override fun onListen(arguments: Any?, events: EventChannel.EventSink?) {
         sink = events
@@ -61,21 +62,43 @@ object UpdateEvents : EventChannel.StreamHandler {
      * Shows Android's "Update this app?" screen. It opens straight away when
      * Sprout is on screen; otherwise a notification brings Sprout back first,
      * because Android blocks screens opened from the background.
+     *
+     * Only one confirm per session is ever on screen: a second one for the same
+     * session makes Android abort the install, so repeats are dropped until
+     * Sprout is back in front.
      */
-    fun showConfirm(context: Context, confirm: Intent) {
+    fun showConfirm(context: Context, sessionId: Int, confirm: Intent) {
         confirm.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         main.post {
+            if (showingFor == sessionId) return@post
             val activity = MainActivity.resumed
             if (activity != null) {
+                showingFor = sessionId
                 activity.startActivity(confirm)
             } else {
-                pendingConfirm = confirm
+                pendingConfirm = sessionId to confirm
                 notify(context, CONFIRM_ID, "Your Sprout update is ready", "Tap to finish updating.")
             }
         }
     }
 
-    fun takePendingConfirm(): Intent? = pendingConfirm.also { pendingConfirm = null }
+    /** Sprout is in front again: any confirm screen is gone, so open one that's still waiting. */
+    fun onSproutResumed(activity: MainActivity) {
+        showingFor = null
+        val (sessionId, confirm) = pendingConfirm ?: return
+        pendingConfirm = null
+        showingFor = sessionId
+        activity.startActivity(confirm)
+    }
+
+    /** The install finished one way or another: nothing is left to confirm. */
+    fun finished(context: Context) {
+        main.post {
+            pendingConfirm = null
+            showingFor = null
+        }
+        (context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager).cancel(CONFIRM_ID)
+    }
 
     /** A small notification that opens Sprout. */
     fun notify(context: Context, id: Int, title: String, text: String) {

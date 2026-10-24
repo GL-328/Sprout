@@ -21,12 +21,19 @@ void main() {
     const UpdateState(phase: UpdatePhase.installing, currentBuild: 14, info: info),
     const UpdateState(phase: UpdatePhase.done, currentBuild: 14, info: info),
     for (final e in UpdateError.values) UpdateState(phase: UpdatePhase.error, currentBuild: 14, info: info, error: e),
+    const UpdateState(
+      phase: UpdatePhase.error,
+      currentBuild: 14,
+      info: info,
+      error: UpdateError.cancelled,
+      detail: 'INSTALL_FAILED_ABORTED: User rejected permissions',
+    ),
   ];
 
   for (final scale in [1.0, 1.3]) {
     testWidgets('update states at ${scale}x text', (tester) async {
       await loadAppFonts();
-      setPhoneScreen(tester, size: Size(360, scale == 1 ? 1900 : 2500), textScale: scale);
+      setPhoneScreen(tester, size: Size(360, scale == 1 ? 2200 : 2700), textScale: scale);
       await tester.pumpWidget(
         ProviderScope(
           overrides: [updaterProvider.overrideWithValue(const NoopUpdater())],

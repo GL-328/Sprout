@@ -85,7 +85,10 @@ class UpdateStatusCard extends ConsumerWidget {
             TextButton(onPressed: c.update, child: const Text('Try again')),
           ],
           UpdateError.offline => [TextButton(onPressed: () => c.check(manual: true), child: const Text('Try again'))],
-          UpdateError.cancelled ||
+          UpdateError.cancelled => [
+            FilledButton(onPressed: c.update, child: const Text('Try again')),
+            TextButton(onPressed: c.openSystemInstaller, child: const Text("Open in Android's installer")),
+          ],
           UpdateError.downloadFailed ||
           UpdateError.noStorage => [FilledButton(onPressed: c.update, child: const Text('Try again'))],
           UpdateError.blocked || UpdateError.other => [
@@ -108,6 +111,13 @@ class UpdateStatusCard extends ConsumerWidget {
           children: [
             Text(title, style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700)),
             if (body != null) ...[const SizedBox(height: 2), Text(body, style: theme.textTheme.bodySmall)],
+            if (error && state.detail != null) ...[
+              const SizedBox(height: 4),
+              SelectableText(
+                'Android said: ${state.detail}',
+                style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+              ),
+            ],
             if (state.phase == UpdatePhase.downloading || state.phase == UpdatePhase.verifying) ...[
               const SizedBox(height: 10),
               ClipRRect(

@@ -62,8 +62,7 @@ class MainActivity : FlutterActivity() {
     override fun onResume() {
         super.onResume()
         resumed = this
-        // A confirm screen that arrived while Sprout was in the background.
-        UpdateEvents.takePendingConfirm()?.let { startActivity(it) }
+        UpdateEvents.onSproutResumed(this)
     }
 
     override fun onPause() {
@@ -89,11 +88,8 @@ class MainActivity : FlutterActivity() {
         val params = PackageInstaller.SessionParams(PackageInstaller.SessionParams.MODE_FULL_INSTALL)
         params.setAppPackageName(packageName)
         params.setSize(apk.length())
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            // Skips the confirm screen when Android allows it (for example when
-            // Sprout installed the current version itself).
-            params.setRequireUserAction(PackageInstaller.SessionParams.USER_ACTION_NOT_REQUIRED)
-        }
+        // No setRequireUserAction: Samsung's installer aborts the session after
+        // "Install" when it is set and a confirm is needed anyway.
         val sessionId = installer.createSession(params)
         try {
             installer.openSession(sessionId).use { session ->
