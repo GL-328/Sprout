@@ -32,7 +32,7 @@ class PaintedCharacterArt implements CharacterArtProvider {
 /// and a cream apron.
 ///
 /// His hair is one colour throughout: every hair shape uses [_hair], and the
-/// only shading is faint strand lines and two soft highlights from the same
+/// only shading is two soft highlights from the same
 /// colour family, so it reads as one continuous piece.
 class BenPainter extends CustomPainter {
   BenPainter({required this.mood, this.blink = 0, this.sway = 0, this.bob = 0});
@@ -49,9 +49,6 @@ class BenPainter extends CustomPainter {
   static const _shirt = Color(0xFF9CC8A6);
   static const _apron = Color(0xFFFFF3DF);
   static const _ink = Color(0xFF3B3346);
-
-  /// Strand lines: a whisper darker than the hair, never a second colour.
-  static final _strand = Color.lerp(_hair, const Color(0xFF8A6A3B), 0.18)!;
 
   /// Highlights: a whisper lighter.
   static final _shine = Color.lerp(_hair, Colors.white, 0.4)!;
@@ -155,8 +152,6 @@ class BenPainter extends CustomPainter {
       ..cubicTo(w * 0.66, h * 0.16, w * 0.34, h * 0.16, w * 0.31, h * 0.32)
       ..close();
     canvas.drawPath(face, Paint()..color = _skin);
-    canvas.drawCircle(p(0.305, 0.43), w * 0.035, Paint()..color = _skinShade);
-    canvas.drawCircle(p(0.695, 0.43), w * 0.035, Paint()..color = _skinShade);
 
     // 4. Front hair, the same colour as the silhouette so it joins without a
     //    seam: locks falling in front of the shoulders and a side-parted
@@ -192,35 +187,6 @@ class BenPainter extends CustomPainter {
       ..close();
     canvas.drawPath(fringe, hair);
 
-    // Faint strands that follow the hair's flow.
-    final flow = stroke(_strand.withValues(alpha: 0.55), 0.008);
-    canvas.drawPath(
-      Path()
-        ..moveTo(w * part, h * 0.15)
-        ..quadraticBezierTo(w * 0.56, h * 0.17, w * 0.66, h * 0.3),
-      flow,
-    );
-    canvas.drawPath(
-      Path()
-        ..moveTo(w * (part + 0.04), h * 0.16)
-        ..quadraticBezierTo(w * 0.52, h * 0.22, w * 0.56, h * 0.27),
-      flow,
-    );
-    for (final side in [-1.0, 1.0]) {
-      canvas.drawPath(
-        Path()
-          ..moveTo(w * (0.5 + side * 0.245), h * 0.42)
-          ..quadraticBezierTo(w * (0.5 + side * 0.25 + s), h * 0.6, w * (0.5 + side * 0.255 + s * 1.2), h * 0.76),
-        flow,
-      );
-      canvas.drawPath(
-        Path()
-          ..moveTo(w * (0.5 + side * 0.25), h * 0.48)
-          ..quadraticBezierTo(w * (0.5 + side * 0.27 + s), h * 0.68, w * (0.5 + side * 0.28 + s * 1.4), h * 0.86),
-        flow,
-      );
-    }
-
     // Two soft highlights on the crown, same colour family.
     final shine = stroke(_shine.withValues(alpha: 0.85), 0.016);
     canvas.drawArc(
@@ -237,24 +203,6 @@ class BenPainter extends CustomPainter {
       false,
       stroke(_shine.withValues(alpha: 0.6), 0.012),
     );
-
-    // Loose wisps that move with the wind.
-    final wisp = stroke(_hair, 0.008);
-    canvas.drawPath(
-      Path()
-        ..moveTo(w * 0.47, h * 0.27)
-        ..quadraticBezierTo(w * (0.45 + s * 2), h * 0.32, w * (0.47 + s * 3), h * 0.35),
-      wisp,
-    );
-    for (final side in [-1.0, 1.0]) {
-      final x = 0.5 + side * 0.25;
-      canvas.drawPath(
-        Path()
-          ..moveTo(w * (x + s * 1.3), h * 0.8)
-          ..quadraticBezierTo(w * (x + side * 0.03 + s * 2), h * 0.85, w * (x + side * 0.02 + s * 2.6), h * 0.88),
-        wisp,
-      );
-    }
 
     // 5. Face details: brows, freckles, cheeks, eyes, mouth.
     final brow = stroke(_brow, 0.021);
