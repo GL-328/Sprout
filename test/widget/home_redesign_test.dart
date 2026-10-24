@@ -87,6 +87,10 @@ void main() {
     await tester.tap(find.text('Shop').last);
     await settle(tester);
 
+    await tester.ensureVisible(find.bySemanticsLabel(RegExp('^Forest')));
+    await settle(tester);
+    await tester.drag(find.byType(CustomScrollView), const Offset(0, -150));
+    await settle(tester);
     await tester.tap(find.bySemanticsLabel(RegExp('^Forest')));
     await settle(tester);
     expect(find.text('Unlock for 🪙 150'), findsOneWidget);
