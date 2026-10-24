@@ -230,6 +230,10 @@ class GameConfig {
       for (final i in r.ingredients.keys) {
         check(species.containsKey(i), 'recipe "${r.id}" uses unknown fruit "$i"');
       }
+      check(
+        r.effect.type == RecipeEffectType.coins ? r.effect.amount > 0 : r.effect.hours > 0,
+        'recipe "${r.id}" effect needs a positive amount or hours',
+      );
     }
 
     check(species.containsKey(starterSeed), 'starter_seed "$starterSeed" is not a species');
@@ -490,7 +494,7 @@ class RecipeConfig {
 enum RecipeEffectType { coins, growthBoost, visitorLure }
 
 class RecipeEffect {
-  const RecipeEffect({required this.type, this.amount = 0, this.multiplier = 1, this.hours = 0});
+  const RecipeEffect({required this.type, this.amount = 0, this.hours = 0});
 
   factory RecipeEffect._fromYaml(Map y) {
     final type = switch (y['type']) {
@@ -502,14 +506,12 @@ class RecipeEffect {
     return RecipeEffect(
       type: type,
       amount: (y['amount'] as num?)?.toInt() ?? 0,
-      multiplier: (y['multiplier'] as num?)?.toDouble() ?? 1,
       hours: (y['hours'] as num?)?.toInt() ?? 0,
     );
   }
 
   final RecipeEffectType type;
   final int amount;
-  final double multiplier;
   final int hours;
 }
 

@@ -118,3 +118,18 @@ test/         domain, data and widget tests
   first). The first seed from onboarding is planted in the Meadow. All plant
   art is drawn with CustomPainter behind an art provider keyed by species
   and growth stage, so real illustrations can be swapped in later.
+- **Stage 4: economy.** Coins come from selling fruit (each species has its own
+  price), with coins flying to your counter. All 7 environments (Meadow,
+  Forest, Orchard, Pond, Desert, Tropical, Alpine) and their 28 plants
+  (4 native to each) are in. Swipe between plots on Home: locked ones appear
+  as silhouettes showing their price and what grows there, with an unlock
+  button. Each plot has its own look, its own 3 spots, and seasons that turn
+  slowly from the day you unlock it (spring blossom, autumn leaves, winter
+  snow). The Shop has plots, sell and compost, recipes, decorations and
+  mystery seeds. Recipes turn fruit into coins, a growth boost for every
+  plant, or a lure that brings more visitors. Decorations (paths, fences,
+  ponds, benches, lanterns, sky themes) can be placed in each plot. Mystery
+  seed packs are a deliberately worse deal than quests. Garden visitors
+  (butterflies, bees, birds, frogs at the pond, fireflies in the forest, and
+  more) appear when a plot is thriving or you're on a streak. Tap one to
+  share its favourite fruit for a small thank-you gift.

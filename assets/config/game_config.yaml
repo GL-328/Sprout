@@ -397,7 +397,7 @@ mystery_packs:
 # Recipes turn fruit into small bonuses.
 # Ingredients use species ids (the fruit of that plant).
 # Effects:
-#   growth_boost  plants in all plots grow `multiplier` times faster for `hours`
+#   growth_boost  every plant in every plot jumps `hours` ahead in growth and fruit
 #   coins         gives `amount` coins
 #   visitor_lure  doubles visitor chances for `hours`
 recipes:
@@ -415,12 +415,12 @@ recipes:
     name: Sunny granola
     emoji: "🥣"
     ingredients: { giant_sunflower: 3, hazelnut: 2 }
-    effect: { type: growth_boost, multiplier: 1.5, hours: 4 }
+    effect: { type: growth_boost, hours: 2 }
   forest_stew:
     name: Forest stew
     emoji: "🍲"
     ingredients: { mushroom_grove: 3, fern_canopy: 2 }
-    effect: { type: growth_boost, multiplier: 1.5, hours: 6 }
+    effect: { type: growth_boost, hours: 3 }
   orchard_pie:
     name: Orchard pie
     emoji: "🥧"
@@ -430,7 +430,7 @@ recipes:
     name: Hot cocoa
     emoji: "☕"
     ingredients: { cacao: 2, coconut_palm: 1 }
-    effect: { type: growth_boost, multiplier: 2.0, hours: 6 }
+    effect: { type: growth_boost, hours: 6 }
 
 # The free seed planted during onboarding.
 starter_seed: giant_sunflower
