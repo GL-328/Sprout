@@ -6,13 +6,10 @@ import '../../core/haptics.dart';
 import '../../core/providers.dart';
 import '../../core/sound_service.dart';
 import '../home/garden_providers.dart';
+import '../../ui/layout/insets.dart';
 
-Future<void> showVisitorSheet(BuildContext context, VisitorConfig visitor) => showModalBottomSheet<void>(
-  useRootNavigator: true,
-  context: context,
-  useSafeArea: true,
-  builder: (_) => _VisitorSheet(visitor: visitor),
-);
+Future<void> showVisitorSheet(BuildContext context, VisitorConfig visitor) =>
+    showSproutSheet<void>(context, builder: (_) => _VisitorSheet(visitor: visitor));
 
 class _VisitorSheet extends ConsumerWidget {
   const _VisitorSheet({required this.visitor});

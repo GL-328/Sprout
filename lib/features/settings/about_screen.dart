@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../ui/widgets/soft_card.dart';
+import '../../ui/layout/insets.dart';
 
 /// Shared wording for the wellbeing note, also shown in the Journal.
 const notMedicalAdviceNote =
@@ -18,7 +19,7 @@ class AboutScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: const Text('About Sprout')),
       body: ListView(
-        padding: const EdgeInsets.all(20),
+        padding: AppInsets.list(context, top: 20),
         children: [
           SoftCard(
             child: Column(

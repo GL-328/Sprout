@@ -5,6 +5,7 @@ import '../../core/providers.dart';
 import '../../data/repositories/wellbeing_repository.dart';
 import '../../ui/widgets/soft_card.dart';
 import '../settings/about_screen.dart';
+import '../../ui/layout/insets.dart';
 
 final _contactsProvider = StreamProvider<List<HelpContact>>(
   (ref) => ref.watch(wellbeingRepositoryProvider).watchContacts(),
@@ -22,6 +23,7 @@ class ContactsScreen extends ConsumerWidget {
     final result = await showDialog<String>(
       context: context,
       builder: (c) => AlertDialog(
+        scrollable: true,
         title: Text(contact == null ? 'Add a contact' : 'Edit contact'),
         content: SingleChildScrollView(
           child: Column(
@@ -82,7 +84,7 @@ class ContactsScreen extends ConsumerWidget {
         label: const Text('Add'),
       ),
       body: ListView(
-        padding: const EdgeInsets.fromLTRB(20, 8, 20, 100),
+        padding: AppInsets.list(context, withFab: true),
         children: [
           Text(
             'Keep the people and places that help you close at hand. These stay on this phone.',

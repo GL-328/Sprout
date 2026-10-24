@@ -8,14 +8,10 @@ import '../../domain/models/enums.dart';
 import '../../ui/theme/category_style.dart';
 import '../today/today_providers.dart';
 import 'quest_editor_screen.dart';
+import '../../ui/layout/insets.dart';
 
-Future<void> showAddQuestSheet(BuildContext context) => showModalBottomSheet<void>(
-  useRootNavigator: true,
-  context: context,
-  isScrollControlled: true,
-  useSafeArea: true,
-  builder: (context) => const FractionallySizedBox(heightFactor: 0.9, child: _AddQuestSheet()),
-);
+Future<void> showAddQuestSheet(BuildContext context) =>
+    showSproutSheet<void>(context, heightFactor: 0.9, builder: (_) => const _AddQuestSheet());
 
 class _AddQuestSheet extends StatelessWidget {
   const _AddQuestSheet();
@@ -56,7 +52,7 @@ class _Library extends ConsumerWidget {
         if (q.premadeKey != null && !q.archived) q.premadeKey!,
     };
     return ListView(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
+      padding: AppInsets.list(context, horizontal: 16, top: 12),
       children: [
         for (final c in QuestCategory.values) ...[
           Padding(

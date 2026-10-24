@@ -11,6 +11,7 @@ import '../../ui/art/plant_art_provider.dart';
 import '../../ui/theme/category_style.dart';
 import '../today/today_providers.dart';
 import 'garden_providers.dart';
+import '../../ui/layout/insets.dart';
 
 /// "This one would love a Forest plot", or null if it fits an unlocked plot.
 String? seedHint(GameConfig config, SpeciesConfig species, Set<String> unlocked) {
@@ -20,13 +21,10 @@ String? seedHint(GameConfig config, SpeciesConfig species, Set<String> unlocked)
 }
 
 Future<void> showChooseSeedSheet(BuildContext context, {required String envId, required int slot}) =>
-    showModalBottomSheet<void>(
-      useRootNavigator: true,
-      context: context,
-      isScrollControlled: true,
-      useSafeArea: true,
-      builder: (_) => FractionallySizedBox(
-        heightFactor: 0.75,
+    showSproutSheet<void>(
+      context,
+      heightFactor: 0.75,
+      builder: (_) => SizedBox.expand(
         child: _ChooseSeed(envId: envId, slot: slot),
       ),
     );
@@ -58,7 +56,7 @@ class _ChooseSeed extends ConsumerWidget {
     }
 
     return ListView(
-      padding: const EdgeInsets.fromLTRB(20, 0, 20, 32),
+      padding: AppInsets.list(context, top: 0),
       children: [
         Text('Choose a seed', style: theme.textTheme.titleLarge),
         const SizedBox(height: 4),
@@ -151,13 +149,8 @@ class _SeedTile extends ConsumerWidget {
   }
 }
 
-Future<void> showSeedBagSheet(BuildContext context) => showModalBottomSheet<void>(
-  useRootNavigator: true,
-  context: context,
-  isScrollControlled: true,
-  useSafeArea: true,
-  builder: (_) => const FractionallySizedBox(heightFactor: 0.8, child: SeedBagList()),
-);
+Future<void> showSeedBagSheet(BuildContext context) =>
+    showSproutSheet<void>(context, heightFactor: 0.8, builder: (_) => const SeedBagList());
 
 /// The seeds in the bag, with compost buttons.
 class SeedBagList extends ConsumerWidget {
@@ -175,6 +168,7 @@ class SeedBagList extends ConsumerWidget {
       final ok = await showDialog<bool>(
         context: context,
         builder: (c) => AlertDialog(
+          scrollable: true,
           title: Text('Compost ${species.name}?'),
           content: Text('It goes back into the soil and gives you $coins coins.'),
           actions: [
@@ -192,7 +186,7 @@ class SeedBagList extends ConsumerWidget {
     }
 
     return ListView(
-      padding: const EdgeInsets.fromLTRB(20, 0, 20, 32),
+      padding: AppInsets.list(context, top: 0),
       children: [
         Row(
           children: [

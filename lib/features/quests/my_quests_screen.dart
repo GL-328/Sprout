@@ -9,6 +9,7 @@ import '../../ui/widgets/soft_card.dart';
 import '../today/today_providers.dart';
 import 'add_quest_sheet.dart';
 import 'quest_editor_screen.dart';
+import '../../ui/layout/insets.dart';
 
 /// All the user's quests: choose which appear on Today, edit, archive.
 class MyQuestsScreen extends ConsumerWidget {
@@ -25,7 +26,7 @@ class MyQuestsScreen extends ConsumerWidget {
       padding: const EdgeInsets.only(bottom: 10),
       child: SoftCard(
         padding: const EdgeInsets.fromLTRB(16, 8, 8, 8),
-        onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => QuestEditorScreen(quest: q))),
+        onTap: () => pushPage(context, QuestEditorScreen(quest: q)),
         child: Row(
           children: [
             Container(
@@ -73,7 +74,7 @@ class MyQuestsScreen extends ConsumerWidget {
         child: const Icon(Icons.add),
       ),
       body: ListView(
-        padding: const EdgeInsets.fromLTRB(20, 8, 20, 100),
+        padding: AppInsets.list(context, withFab: true),
         children: [
           Text(
             'Switch a quest on to see it on Today. Tap one to edit it.',

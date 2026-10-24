@@ -12,10 +12,12 @@ import '../../domain/models/quest.dart';
 import '../../ui/art/plant_art_provider.dart';
 import '../../ui/theme/category_style.dart';
 import '../../ui/widgets/soft_card.dart';
+import '../../ui/widgets/tile_grid.dart';
 import '../home/garden_providers.dart';
 import '../mood/moods.dart';
 import '../settings/about_screen.dart';
 import 'contacts_screen.dart';
+import '../../ui/layout/insets.dart';
 
 final _moodsProvider = StreamProvider<Map<String, MoodEntry>>(
   (ref) => ref.watch(wellbeingRepositoryProvider).watchMoods(),
@@ -51,8 +53,6 @@ class JournalScreen extends StatelessWidget {
   }
 }
 
-const _pad = EdgeInsets.fromLTRB(20, 16, 20, 120);
-
 class _MoodsTab extends ConsumerStatefulWidget {
   const _MoodsTab();
 
@@ -76,7 +76,7 @@ class _MoodsTabState extends ConsumerState<_MoodsTab> {
         .toList();
 
     return ListView(
-      padding: _pad,
+      padding: AppInsets.list(context, top: 16),
       children: [
         SoftCard(
           padding: const EdgeInsets.all(16),
@@ -204,7 +204,7 @@ class _SupportCard extends StatelessWidget {
           Text(notMedicalAdviceNote, style: theme.textTheme.bodySmall?.copyWith(height: 1.4)),
           const SizedBox(height: 10),
           OutlinedButton.icon(
-            onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const ContactsScreen())),
+            onPressed: () => pushPage(context, const ContactsScreen()),
             icon: const Icon(Icons.favorite_outline),
             label: const Text('My helpful contacts'),
           ),
@@ -229,7 +229,7 @@ class _HistoryTab extends ConsumerWidget {
       (byDay[c.day] ??= []).add(c);
     }
     return ListView(
-      padding: _pad,
+      padding: AppInsets.list(context, top: 16),
       children: [
         for (final e in byDay.entries) ...[
           Padding(
@@ -274,25 +274,20 @@ class _PlantsTab extends ConsumerWidget {
     final discovered = {for (final p in plants) p.speciesId};
     final keepsakes = plants.where((p) => p.isKeepsake).toList();
     return ListView(
-      padding: _pad,
+      padding: AppInsets.list(context, top: 16),
       children: [
         Text('${discovered.length} of ${config.species.length} plants discovered', style: theme.textTheme.titleMedium),
         const SizedBox(height: 12),
-        GridView.count(
-          padding: EdgeInsets.zero,
-          crossAxisCount: 3,
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          mainAxisSpacing: 10,
-          crossAxisSpacing: 10,
-          childAspectRatio: 0.8,
+        TileGrid(
+          columns: 3,
           children: [
             for (final s in config.species.values)
               SoftCard(
                 padding: const EdgeInsets.all(8),
                 child: Column(
                   children: [
-                    Expanded(
+                    SizedBox(
+                      height: 80,
                       child: discovered.contains(s.id)
                           ? plantArtProvider.plant(s, GrowthStage.mature, size: 80)
                           : const Center(child: Text('❔', style: TextStyle(fontSize: 34))),
@@ -349,7 +344,7 @@ class _VisitorsTab extends ConsumerWidget {
     final config = ref.watch(gameConfigProvider);
     final seen = ref.watch(visitorsSeenProvider).value ?? const {};
     return ListView(
-      padding: _pad,
+      padding: AppInsets.list(context, top: 16),
       children: [
         Text('${seen.length} of ${config.visitors.length} visitors met', style: theme.textTheme.titleMedium),
         const SizedBox(height: 4),
@@ -358,13 +353,8 @@ class _VisitorsTab extends ConsumerWidget {
           style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
         ),
         const SizedBox(height: 12),
-        GridView.count(
-          padding: EdgeInsets.zero,
-          crossAxisCount: 3,
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          mainAxisSpacing: 10,
-          crossAxisSpacing: 10,
+        TileGrid(
+          columns: 3,
           children: [
             for (final v in config.visitors.values)
               SoftCard(
@@ -415,21 +405,16 @@ class _StatsTab extends ConsumerWidget {
       ('🌿', 'Current gentle streak', streak),
     ];
     return ListView(
-      padding: _pad,
+      padding: AppInsets.list(context, top: 16),
       children: [
         Text(
           'Everything you\'ve grown so far. Every number here is something you did for yourself.',
           style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
         ),
         const SizedBox(height: 12),
-        GridView.count(
-          padding: EdgeInsets.zero,
-          crossAxisCount: 2,
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          mainAxisSpacing: 12,
-          crossAxisSpacing: 12,
-          childAspectRatio: 1.25,
+        TileGrid(
+          columns: 2,
+          spacing: 12,
           children: [
             for (final (emoji, label, value) in items)
               SoftCard(
@@ -438,7 +423,7 @@ class _StatsTab extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(emoji, style: const TextStyle(fontSize: 28)),
-                    const Spacer(),
+                    const SizedBox(height: 10),
                     Text('$value', style: theme.textTheme.headlineSmall),
                     Text(label, style: theme.textTheme.bodySmall),
                   ],

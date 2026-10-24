@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'soft_card.dart';
+import '../layout/insets.dart';
 
 /// Friendly placeholder for screens that arrive in a later stage.
 class ComingSoon extends StatelessWidget {
@@ -16,7 +17,7 @@ class ComingSoon extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: Text(title)),
       body: ListView(
-        padding: const EdgeInsets.fromLTRB(20, 8, 20, 120),
+        padding: AppInsets.list(context),
         children: [
           SoftCard(
             padding: const EdgeInsets.all(28),
