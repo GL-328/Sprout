@@ -7,6 +7,7 @@ import '../../ui/theme/app_theme.dart';
 import '../../ui/widgets/soft_card.dart';
 import 'about_screen.dart';
 import 'data_section.dart';
+import 'updates_section.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -144,6 +145,7 @@ class SettingsScreen extends ConsumerWidget {
             ],
           ),
           const _Section(title: 'Your data', children: [DataSection()]),
+          const _Section(title: 'Updates', children: [UpdatesSection()]),
           _Section(
             title: 'About',
             children: [

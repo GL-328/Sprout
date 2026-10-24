@@ -17,6 +17,7 @@ class AppSettings {
     this.reducedMotion = false,
     this.remindersOn = false,
     this.checkInReminderMinutes = 9 * 60,
+    this.autoUpdate = true,
   });
 
   final String name;
@@ -33,6 +34,9 @@ class AppSettings {
   /// Time of the daily check-in reminder, in minutes after midnight.
   final int checkInReminderMinutes;
 
+  /// Check GitHub for a newer build and install it. On unless turned off.
+  final bool autoUpdate;
+
   AppSettings copyWith({
     String? name,
     bool? onboardingDone,
@@ -43,6 +47,7 @@ class AppSettings {
     bool? reducedMotion,
     bool? remindersOn,
     int? checkInReminderMinutes,
+    bool? autoUpdate,
   }) => AppSettings(
     name: name ?? this.name,
     onboardingDone: onboardingDone ?? this.onboardingDone,
@@ -53,6 +58,7 @@ class AppSettings {
     reducedMotion: reducedMotion ?? this.reducedMotion,
     remindersOn: remindersOn ?? this.remindersOn,
     checkInReminderMinutes: checkInReminderMinutes ?? this.checkInReminderMinutes,
+    autoUpdate: autoUpdate ?? this.autoUpdate,
   );
 
   Map<String, String> toEntries() => {
@@ -65,6 +71,7 @@ class AppSettings {
     'reduced_motion': '$reducedMotion',
     'reminders_on': '$remindersOn',
     'check_in_reminder_minutes': '$checkInReminderMinutes',
+    'auto_update': '$autoUpdate',
   };
 
   static AppSettings fromEntries(Map<String, String> e) {
@@ -85,6 +92,7 @@ class AppSettings {
       reducedMotion: e['reduced_motion'] == 'true',
       remindersOn: e['reminders_on'] == 'true',
       checkInReminderMinutes: int.tryParse(e['check_in_reminder_minutes'] ?? '') ?? d.checkInReminderMinutes,
+      autoUpdate: e['auto_update'] != 'false',
     );
   }
 }

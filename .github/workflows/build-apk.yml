@@ -84,6 +84,17 @@ jobs:
           name: sprout-apk
           path: sprout.apk
 
+      - name: Write version file for in-app updates
+        run: |
+          VERSION_NAME=$(grep '^version:' pubspec.yaml | sed 's/version: *//; s/+.*//')
+          jq -n \
+            --argjson code "${GITHUB_RUN_NUMBER}" \
+            --arg name "$VERSION_NAME" \
+            --arg sha "$(sha256sum sprout.apk | cut -d' ' -f1)" \
+            --arg notes "$(git log -1 --format=%s)" \
+            '{versionCode: $code, versionName: $name, sha256: $sha, notes: $notes}' > version.json
+          cat version.json
+
       - name: Publish rolling release
         env:
           GH_TOKEN: ${{ github.token }}
@@ -100,7 +111,7 @@ jobs:
           NOTES="Built from ${GITHUB_REF_NAME} at ${GITHUB_SHA::7} (run #${GITHUB_RUN_NUMBER}). Download sprout.apk below."
           gh release delete "$TAG" --cleanup-tag --yes || true
           gh api -X DELETE "repos/${GITHUB_REPOSITORY}/git/refs/tags/${TAG}" || true
-          gh release create "$TAG" sprout.apk \
+          gh release create "$TAG" sprout.apk version.json \
             --target "$GITHUB_SHA" \
             --title "$TITLE" \
             --notes "$NOTES" \

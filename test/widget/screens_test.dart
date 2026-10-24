@@ -72,7 +72,7 @@ void main() {
   testWidgets('settings has export, import and delete', (tester) async {
     await open(tester, 'Settings');
     await tester.scrollUntilVisible(find.text('Delete all data'), 200);
-    await tester.drag(find.byType(ListView).first, const Offset(0, -300));
+    await tester.ensureVisible(find.text('Delete all data'));
     await tester.pumpAndSettle();
     expect(find.text('Export my data'), findsOneWidget);
     expect(find.text('Import from a backup'), findsOneWidget);

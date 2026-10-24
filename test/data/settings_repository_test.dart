@@ -21,6 +21,7 @@ void main() {
     expect(s.onboardingDone, isFalse);
     expect(s.soundOn, isFalse, reason: 'sound is off by default');
     expect(s.remindersOn, isFalse, reason: 'reminders are opt-in');
+    expect(s.autoUpdate, isTrue, reason: 'updates are on unless turned off');
   });
 
   test('settings round-trip through the database', () async {
@@ -34,6 +35,7 @@ void main() {
       reducedMotion: true,
       remindersOn: true,
       checkInReminderMinutes: 8 * 60 + 30,
+      autoUpdate: false,
     );
     await repo.save(saved);
     final loaded = await repo.load();

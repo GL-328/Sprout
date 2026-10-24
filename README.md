@@ -2,7 +2,8 @@
 
 A gentle self-care app. Finish small quests, earn seeds, and grow a garden of
 big, permanent plants. Everything stays on your phone: no accounts, no
-tracking, no internet needed.
+tracking. The only network use is a daily check for app updates, which you
+can turn off.
 
 ## Download and install (Android)
 
@@ -25,10 +26,16 @@ signed in to GitHub.
    turn on **Allow from this source**, then go back and tap **Install**.
 3. **Play Protect** may warn that the app is from an unknown developer or hasn't
    been scanned. That's normal for an app you build yourself, because it isn't
-   from the Play Store. Tap **More details → Install anyway**. Sprout has no
-   internet permission and sends nothing anywhere.
+   from the Play Store. Tap **More details → Install anyway**. Sprout sends
+   none of your data anywhere.
 
-**Updating:** install the new APK over the old one. Your garden is kept.
+**Updates install themselves.** Once a day, Sprout checks the
+**Sprout (dev preview)** release and installs any newer build, and your garden
+is kept. The first time, Android asks you to allow Sprout to install apps.
+After that, Android 12 and newer update quietly, while older versions show a
+one-tap **Update** prompt. You can turn this off, or check by hand, under
+**Settings → Updates**. It only works once the signing key below is set up,
+because Android refuses an update signed with a different key.
 
 ### One-time setup: the signing key
 
@@ -162,3 +169,9 @@ test/         domain, data and widget tests
     backup/restore, plus widget tests for every tab.
     `flutter test test/screenshots --run-skipped --update-goldens` renders
     the main screens to PNGs for a visual check.
+- **Automatic updates.** Once a day, and on demand from Settings → Updates,
+  Sprout checks the dev preview release's `version.json`. If there's a newer
+  build, it downloads `sprout.apk`, checks its SHA-256, and installs it through
+  Android's package installer (silently on Android 12+ once allowed). This
+  adds the internet permission, used only for this check, and it can be
+  switched off.
