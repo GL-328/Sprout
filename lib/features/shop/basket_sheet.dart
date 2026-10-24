@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/haptics.dart';
 import '../../core/providers.dart';
+import '../../core/sound_service.dart';
 import '../../ui/widgets/fly_to_counter.dart';
 import '../../ui/widgets/motion.dart';
 import '../home/garden_providers.dart';
@@ -34,6 +35,7 @@ class FruitBasket extends ConsumerWidget {
     Future<void> sell(String speciesId, int qty, Offset from) async {
       final coins = await ref.read(economyServiceProvider).sellFruit(speciesId, qty);
       Haptics.medium();
+      ref.read(soundServiceProvider).play(Sfx.coin);
       if (!context.mounted) return;
       flyToCounter(
         context,
@@ -104,6 +106,7 @@ class FruitBasket extends ConsumerWidget {
                 await ref.read(economyServiceProvider).sellFruit(e.key, e.value);
               }
               Haptics.medium();
+              ref.read(soundServiceProvider).play(Sfx.coin);
               if (context.mounted) {
                 ScaffoldMessenger.of(context)
                     .showSnackBar(SnackBar(content: Text('Sold everything for $total coins 🪙')));

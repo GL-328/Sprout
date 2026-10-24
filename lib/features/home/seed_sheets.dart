@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../config/game_config.dart';
 import '../../core/haptics.dart';
 import '../../core/providers.dart';
+import '../../core/sound_service.dart';
 import '../../data/services/garden_service.dart';
 import '../../domain/models/seed.dart';
 import '../../ui/art/plant_art_provider.dart';
@@ -49,6 +50,7 @@ class _ChooseSeed extends ConsumerWidget {
       try {
         await ref.read(gardenServiceProvider).plantSeed(seed.id, envId, slot);
         Haptics.medium();
+        ref.read(soundServiceProvider).play(Sfx.plant);
         if (context.mounted) Navigator.of(context).pop();
       } on GardenException catch (e) {
         if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.message)));

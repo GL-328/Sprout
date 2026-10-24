@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../config/game_config.dart';
 import '../../core/haptics.dart';
 import '../../core/providers.dart';
+import '../../core/sound_service.dart';
 import '../../data/services/garden_service.dart';
 import '../../domain/models/enums.dart';
 import '../../domain/models/seed.dart';
@@ -148,6 +149,7 @@ class _PlotsTab extends ConsumerWidget {
                                     }
                                     await ref.read(economyServiceProvider).unlockPlot(env.id);
                                     Haptics.medium();
+                                    ref.read(soundServiceProvider).play(Sfx.coin);
                                     if (context.mounted) {
                                       _toast(context, 'The ${env.name} is yours! Swipe to it on Home 🌱');
                                     }
@@ -269,6 +271,7 @@ class _RecipesTab extends ConsumerWidget {
                             try {
                               final outcome = await economy.cook(r.id);
                               Haptics.medium();
+                              ref.read(soundServiceProvider).play(Sfx.complete);
                               if (context.mounted) _toast(context, outcome.message);
                             } on GardenException catch (e) {
                               if (context.mounted) _toast(context, e.message);
@@ -350,6 +353,7 @@ class _CosmeticsTab extends ConsumerWidget {
                         ? () async {
                             await ref.read(economyServiceProvider).buyCosmetic(c.id);
                             Haptics.medium();
+                            ref.read(soundServiceProvider).play(Sfx.coin);
                             if (context.mounted) await _place(context, ref, c);
                           }
                         : null,
@@ -404,6 +408,7 @@ class _MysteryTab extends ConsumerWidget {
                           try {
                             final seeds = await ref.read(economyServiceProvider).buyMysteryPack(p.id);
                             Haptics.medium();
+                            ref.read(soundServiceProvider).play(Sfx.seed);
                             for (final s in seeds) {
                               if (context.mounted) await showSeedReveal(context, s, title: 'A mystery seed!');
                             }

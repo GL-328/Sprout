@@ -64,7 +64,7 @@ class AppTheme {
         surfaceTintColor: Colors.transparent,
         elevation: 0,
         centerTitle: false,
-        titleTextStyle: text.titleLarge?.copyWith(fontWeight: FontWeight.w800),
+        titleTextStyle: text.headlineSmall?.copyWith(fontWeight: FontWeight.w800, color: scheme.onSurface),
       ),
       cardTheme: CardThemeData(
         color: scheme.surface,
@@ -95,7 +95,7 @@ class AppTheme {
       chipTheme: base.chipTheme.copyWith(
         shape: pill,
         side: BorderSide.none,
-        labelStyle: const TextStyle(fontFamily: fontFamily, fontWeight: FontWeight.w700),
+        labelStyle: TextStyle(fontFamily: fontFamily, fontWeight: FontWeight.w700, color: scheme.onSurface),
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,

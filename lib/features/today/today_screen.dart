@@ -6,8 +6,10 @@ import 'package:intl/intl.dart';
 import '../../core/greeting.dart';
 import '../../core/haptics.dart';
 import '../../core/providers.dart';
+import '../../core/sound_service.dart';
 import '../../domain/models/quest.dart';
 import '../../ui/theme/category_style.dart';
+import '../../ui/widgets/gentle_motion.dart';
 import '../../ui/widgets/motion.dart';
 import '../../ui/widgets/seed_meter_ring.dart';
 import '../../ui/widgets/soft_card.dart';
@@ -38,6 +40,7 @@ class _TodayScreenState extends ConsumerState<TodayScreen> {
 
   Future<void> _complete(Quest quest) async {
     Haptics.medium();
+    ref.read(soundServiceProvider).play(Sfx.complete);
     final service = ref.read(progressServiceProvider);
     final result = await service.complete(quest);
     if (!mounted) return;
@@ -62,7 +65,10 @@ class _TodayScreenState extends ConsumerState<TodayScreen> {
     final seed = result.seed;
     if (seed != null) {
       await Future<void>.delayed(const Duration(milliseconds: 500));
-      if (mounted) await showSeedReveal(context, seed);
+      if (mounted) {
+        ref.read(soundServiceProvider).play(Sfx.seed);
+        await showSeedReveal(context, seed);
+      }
     }
   }
 
@@ -80,15 +86,19 @@ class _TodayScreenState extends ConsumerState<TodayScreen> {
     final calm = reduceMotion(context, ref);
 
     Widget card(Quest q, {bool later = false}) => Padding(
+      key: ValueKey(q.id),
       padding: const EdgeInsets.only(bottom: 12),
-      child: QuestCard(
-        quest: q,
-        isLater: later,
-        reduceMotion: calm,
-        onComplete: () => _complete(q),
-        onSkip: () => repo.setDayMark(q.id, day, DayMarkKind.skip),
-        onLater: () => repo.setDayMark(q.id, day, DayMarkKind.later),
-        onEdit: () => _edit(q),
+      child: FadeSlideIn(
+        enabled: !calm,
+        child: QuestCard(
+          quest: q,
+          isLater: later,
+          reduceMotion: calm,
+          onComplete: () => _complete(q),
+          onSkip: () => repo.setDayMark(q.id, day, DayMarkKind.skip),
+          onLater: () => repo.setDayMark(q.id, day, DayMarkKind.later),
+          onEdit: () => _edit(q),
+        ),
       ),
     );
 

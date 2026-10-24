@@ -71,11 +71,12 @@ const plantLooks = <String, PlantLook>{
 /// Plants drawn with [CustomPainter]. The default art.
 class PaintedPlantArt extends EmojiPlantArt {
   @override
-  Widget plant(SpeciesConfig species, GrowthStage stage, {required double size, double sway = 0}) {
+  Widget plant(SpeciesConfig species, GrowthStage stage, {required double size, double? height, double sway = 0}) {
+    final tall = height ?? size;
     final look = plantLooks[species.id] ?? const PlantLook(PlantForm.tree, Color(0xFF7CC47F), Color(0xFFE8574F));
     return SizedBox(
       width: size,
-      height: size,
+      height: tall,
       child: Stack(
         clipBehavior: Clip.none,
         children: [
@@ -88,7 +89,7 @@ class PaintedPlantArt extends EmojiPlantArt {
             for (final (dx, dy) in _fruitSpots(look.form))
               Positioned(
                 left: size * dx - size * 0.07,
-                top: size * dy - size * 0.07,
+                top: tall * dy - size * 0.07,
                 child: Transform.rotate(
                   angle: sway * 0.05,
                   child: Text(species.fruit.emoji, style: TextStyle(fontSize: size * 0.12)),
@@ -302,25 +303,34 @@ class PlantPainter extends CustomPainter {
           canvas.drawCircle(Offset(w * (0.5 + dx) + s * 3 * (1 - dy), h * dy), w * r, p);
         }
       case PlantForm.hedge:
-        final r = RRect.fromRectAndRadius(
-          Rect.fromLTRB(w * 0.12, h * 0.55, w * 0.88, h * 0.94),
-          Radius.circular(w * 0.15),
+        // A rounded, bumpy bush with tall flower spikes, sized by width so it
+        // keeps its shape in tall boxes.
+        final bodyTop = ground.dy - w * 0.40;
+        for (var i = 0; i < 6; i++) {
+          canvas.drawCircle(Offset(w * (0.18 + i * 0.128), bodyTop + w * 0.08), w * 0.11, i.isEven ? leaf : dark);
+        }
+        canvas.drawRRect(
+          RRect.fromRectAndRadius(
+            Rect.fromLTRB(w * 0.08, bodyTop + w * 0.06, w * 0.92, ground.dy),
+            Radius.circular(w * 0.16),
+          ),
+          leaf,
         );
-        canvas.drawRRect(r, leaf);
         if (flowers) {
           final stalk = Paint()
-            ..color = look.leaf
+            ..color = dark.color
             ..strokeWidth = 2;
           for (var i = 0; i < 9; i++) {
-            final x = w * (0.18 + i * 0.08);
-            final top = h * (0.30 + (i % 3) * 0.04);
-            canvas.drawLine(Offset(x, h * 0.58), Offset(x + s * 4, top), stalk);
-            for (var j = 0; j < 5; j++) {
+            final x = w * (0.16 + i * 0.085);
+            final top = bodyTop - w * (0.42 + (i % 3) * 0.08);
+            final lean = s * 6;
+            canvas.drawLine(Offset(x, bodyTop + w * 0.1), Offset(x + lean, top), stalk);
+            for (var j = 0; j < 7; j++) {
               canvas.drawOval(
                 Rect.fromCenter(
-                  center: Offset(x + s * 4 * (1 - j / 5), top + j * h * 0.04),
-                  width: w * 0.04,
-                  height: w * 0.05,
+                  center: Offset(x + lean * (1 - j / 7), top + j * w * 0.05),
+                  width: w * 0.045,
+                  height: w * 0.055,
                 ),
                 accent,
               );

@@ -17,6 +17,7 @@ import '../domain/logic/seed_roller.dart';
 import '../domain/models/app_settings.dart';
 import 'clock.dart';
 import 'notifications_service.dart';
+import 'sound_service.dart';
 
 /// Overridden in `main.dart` once the config has been loaded.
 final gameConfigProvider = Provider<GameConfig>((ref) => throw UnimplementedError('gameConfigProvider not set'));
@@ -134,3 +135,10 @@ final wellbeingRepositoryProvider = Provider<WellbeingRepository>(
 final backupServiceProvider = Provider<BackupService>(
   (ref) => BackupService(ref.watch(databaseProvider), ref.watch(clockProvider)),
 );
+
+/// Soft sounds, following the "Sounds" setting. Silent in tests.
+final soundServiceProvider = Provider<SoundService>((ref) {
+  final service = AudioSoundService(enabled: ref.read(settingsProvider).soundOn);
+  ref.listen(settingsProvider.select((s) => s.soundOn), (_, on) => service.setEnabled(on));
+  return service;
+});

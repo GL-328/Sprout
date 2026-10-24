@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../config/game_config.dart';
 import '../../core/haptics.dart';
 import '../../core/providers.dart';
+import '../../core/sound_service.dart';
 import '../home/garden_providers.dart';
 
 Future<void> showVisitorSheet(BuildContext context, VisitorConfig visitor) => showModalBottomSheet<void>(
@@ -46,6 +47,7 @@ class _VisitorSheet extends ConsumerWidget {
                 ? () async {
                     final coins = await ref.read(economyServiceProvider).feedVisitor(visitor.id);
                     Haptics.medium();
+                    ref.read(soundServiceProvider).play(Sfx.coin);
                     if (context.mounted) {
                       Navigator.pop(context);
                       ScaffoldMessenger.of(context).showSnackBar(
