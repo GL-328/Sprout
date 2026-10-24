@@ -360,6 +360,7 @@ class _EmptyRing extends StatelessWidget {
     child: Stack(
       alignment: Alignment.center,
       children: [
+        Positioned(bottom: 0, child: plantArtProvider.groundSpot(size: size * 1.1)),
         Container(
           width: size * (0.82 + 0.18 * pulse),
           height: size * (0.82 + 0.18 * pulse),

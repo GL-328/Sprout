@@ -19,6 +19,9 @@ abstract class PlantArtProvider {
 
   /// The fruit icon.
   Widget fruit(SpeciesConfig species, {double size = 28});
+
+  /// An empty patch of soil where a seed can be planted, [size] wide.
+  Widget groundSpot({required double size});
 }
 
 /// The art used by the app.
@@ -45,6 +48,9 @@ class SimplePlantArt implements PlantArtProvider {
 
   @override
   Widget fruit(SpeciesConfig species, {double size = 28}) => ArtIcon('fruit:${species.id}', size: size);
+
+  @override
+  Widget groundSpot({required double size}) => SizedBox(width: size, height: size * 0.4);
 }
 
 /// A rounded seed packet with the plant's fruit on the front.

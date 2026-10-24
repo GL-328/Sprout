@@ -5,7 +5,8 @@ import '../../core/haptics.dart';
 import '../../core/providers.dart';
 import '../../domain/logic/growth.dart';
 import '../../domain/models/plant.dart';
-import '../../ui/art/plant_art_provider.dart';
+import '../../ui/art/painted_plant_art.dart';
+import '../../ui/widgets/motion.dart';
 import '../../ui/theme/category_style.dart';
 import '../../ui/layout/insets.dart';
 import '../../ui/art/icon_art.dart';
@@ -74,7 +75,7 @@ class _PlantSheet extends ConsumerWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          plantArtProvider.plant(species, status.stage, size: 160),
+          LivePlant(species: species, stage: status.stage, size: 160, animate: !reduceMotion(context, ref)),
           const SizedBox(height: 8),
           Text(species.name, style: theme.textTheme.titleLarge),
           const SizedBox(height: 6),
