@@ -23,6 +23,7 @@ dependencies:
   timezone: ^0.11.2
   flutter_timezone: ^5.1.1
   file_picker: ^13.1.0
+  audioplayers: ^6.8.1
 
 dev_dependencies:
   flutter_test:
@@ -36,6 +37,7 @@ flutter:
 
   assets:
     - assets/config/
+    - assets/sounds/
 
   fonts:
     - family: Nunito

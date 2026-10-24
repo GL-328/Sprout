@@ -8,6 +8,7 @@ import '../../config/game_config.dart';
 import '../../core/greeting.dart';
 import '../../core/haptics.dart';
 import '../../core/providers.dart';
+import '../../core/sound_service.dart';
 import '../../data/services/garden_service.dart';
 import '../../domain/logic/growth.dart';
 import '../../domain/logic/seasons.dart';
@@ -17,6 +18,7 @@ import '../../domain/models/plant.dart';
 import '../../ui/art/plant_art_provider.dart';
 import '../../ui/art/scene_painter.dart';
 import '../../ui/widgets/fly_to_counter.dart';
+import '../../ui/widgets/gentle_motion.dart';
 import '../../ui/widgets/motion.dart';
 import '../../ui/widgets/seed_meter_ring.dart';
 import '../shop/basket_sheet.dart';
@@ -38,16 +40,32 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with SingleTickerProvid
   final _pages = PageController();
   late final _ambient = AnimationController(vsync: this, duration: const Duration(seconds: 24));
   int _page = 0;
+  bool _foreground = true;
+  late final _lifecycle = AppLifecycleListener(
+    onStateChange: (state) {
+      _foreground = state == AppLifecycleState.resumed;
+      ref.read(soundServiceProvider).setAmbient(_foreground && TickerMode.valuesOf(context).enabled);
+    },
+  );
+
+  @override
+  void initState() {
+    super.initState();
+    _lifecycle;
+  }
 
   @override
   void dispose() {
     _pages.dispose();
     _ambient.dispose();
+    _lifecycle.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    // Garden ambience plays only while Home is the visible tab.
+    ref.read(soundServiceProvider).setAmbient(TickerMode.valuesOf(context).enabled && _foreground);
     if (reduceMotion(context, ref)) {
       if (_ambient.isAnimating) _ambient.stop();
     } else if (!_ambient.isAnimating) {
@@ -163,7 +181,7 @@ class _TopBar extends ConsumerWidget {
             children: [
               const Text('🪙', style: TextStyle(fontSize: 18)),
               const SizedBox(width: 6),
-              Text('$coins', style: style),
+              AnimatedCount(value: coins, style: style, enabled: !reduceMotion(context, ref)),
             ],
           ),
         ),
@@ -211,6 +229,9 @@ class _TopBar extends ConsumerWidget {
   }
 }
 
+/// Garden plants are drawn taller than wide, so they fill the scene.
+const _plantAspect = 1.45;
+
 class _UnlockedPlot extends ConsumerStatefulWidget {
   const _UnlockedPlot({required this.env, required this.unlockedAt, required this.ambient});
 
@@ -237,6 +258,7 @@ class _UnlockedPlotState extends ConsumerState<_UnlockedPlot> {
     final result = await ref.read(gardenServiceProvider).harvest(plant.id);
     if (!mounted || result.fruit == 0) return;
     Haptics.medium();
+    ref.read(soundServiceProvider).play(Sfx.harvest);
     flyToCounter(
       context,
       from: globalPos,
@@ -295,9 +317,14 @@ class _UnlockedPlotState extends ConsumerState<_UnlockedPlot> {
       builder: (context, box) {
         final w = box.maxWidth;
         final h = box.maxHeight;
-        final plantSize = math.min(w * 0.40, h * 0.34);
-        final groundY = h * 0.86;
-        double slotX(int i) => w * (0.5 + (i - (env.slots - 1) / 2) * (0.92 / env.slots));
+        // Plants are big and may overlap a little; the middle one stands in front.
+        final plantSize = math.min(w * 0.52, h * 0.40);
+        double slotX(int i) => w * (0.5 + (i - (env.slots - 1) / 2) * (0.96 / env.slots));
+        final middle = (env.slots - 1) / 2;
+        double slotY(int i) => h * (0.84 + 0.035 * (1 - (i - middle).abs() / (middle == 0 ? 1 : middle)));
+        double slotSize(int i) => plantSize * (1 - 0.12 * ((i - middle).abs() / (middle == 0 ? 1 : middle)));
+        final drawOrder = [for (var i = 0; i < env.slots; i++) i]
+          ..sort((a, b) => (b - middle).abs().compareTo((a - middle).abs()));
 
         return AnimatedBuilder(
           animation: widget.ambient,
@@ -320,8 +347,8 @@ class _UnlockedPlotState extends ConsumerState<_UnlockedPlot> {
                   ),
                 ),
                 ..._cosmetics(config, placed, w, h),
-                for (var i = 0; i < env.slots; i++)
-                  _slot(context, config, plants, statuses, i, Offset(slotX(i), groundY), plantSize, sway, env.id),
+                for (final i in drawOrder)
+                  _slot(context, config, plants, statuses, i, Offset(slotX(i), slotY(i)), slotSize(i), sway, env.id),
                 for (final (i, v) in visitors.indexed) _visitor(context, v, i, phase, w, h, calm),
               ],
             );
@@ -371,7 +398,7 @@ class _UnlockedPlotState extends ConsumerState<_UnlockedPlot> {
     final status = statuses[plant.id]!;
     return Positioned(
       left: base.dx - size / 2,
-      top: base.dy - size * 0.94,
+      top: base.dy - size * _plantAspect * 0.94,
       child: Semantics(
         button: true,
         label: '${species.name}, ${status.stage.label}${status.canHarvest ? ', ready to harvest' : ''}',
@@ -393,6 +420,7 @@ class _UnlockedPlotState extends ConsumerState<_UnlockedPlot> {
                     species,
                     status.stage,
                     size: size,
+                    height: size * _plantAspect,
                     sway: sway * (0.6 + 0.4 * ((i + 1) % 2)),
                   ),
                 ),
@@ -500,6 +528,7 @@ class _LockedPlot extends ConsumerWidget {
       try {
         await ref.read(economyServiceProvider).unlockPlot(env.id);
         Haptics.medium();
+        ref.read(soundServiceProvider).play(Sfx.coin);
       } on GardenException catch (e) {
         if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.message)));
       }

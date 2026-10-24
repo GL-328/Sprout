@@ -8,6 +8,7 @@ import 'package:sprout/app.dart';
 import 'package:sprout/config/game_config.dart';
 import 'package:sprout/core/notifications_service.dart';
 import 'package:sprout/core/providers.dart';
+import 'package:sprout/core/sound_service.dart';
 import 'package:sprout/data/db/app_database.dart';
 import 'package:sprout/domain/models/app_settings.dart';
 
@@ -20,6 +21,7 @@ Widget testApp(AppDatabase db, {AppSettings settings = const AppSettings(reduced
     databaseProvider.overrideWithValue(db),
     initialSettingsProvider.overrideWithValue(settings),
     reminderSchedulerProvider.overrideWithValue(const NoopReminderScheduler()),
+    soundServiceProvider.overrideWithValue(const SilentSoundService()),
   ],
   child: const SproutApp(),
 );

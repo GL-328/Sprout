@@ -114,6 +114,7 @@ class _MoodsTabState extends ConsumerState<_MoodsTab> {
               ),
               const SizedBox(height: 6),
               GridView.count(
+                padding: EdgeInsets.zero,
                 crossAxisCount: 7,
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
@@ -278,6 +279,7 @@ class _PlantsTab extends ConsumerWidget {
         Text('${discovered.length} of ${config.species.length} plants discovered', style: theme.textTheme.titleMedium),
         const SizedBox(height: 12),
         GridView.count(
+          padding: EdgeInsets.zero,
           crossAxisCount: 3,
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
@@ -357,6 +359,7 @@ class _VisitorsTab extends ConsumerWidget {
         ),
         const SizedBox(height: 12),
         GridView.count(
+          padding: EdgeInsets.zero,
           crossAxisCount: 3,
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
@@ -420,6 +423,7 @@ class _StatsTab extends ConsumerWidget {
         ),
         const SizedBox(height: 12),
         GridView.count(
+          padding: EdgeInsets.zero,
           crossAxisCount: 2,
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),

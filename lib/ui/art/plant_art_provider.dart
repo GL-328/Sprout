@@ -9,9 +9,9 @@ import 'painted_plant_art.dart';
 /// (see [plantArtProvider]) to use real illustrations without touching game
 /// logic.
 abstract class PlantArtProvider {
-  /// The plant in [stage], drawn to fit [size]. [sway] is -1..1, for gentle
-  /// wind animation.
-  Widget plant(SpeciesConfig species, GrowthStage stage, {required double size, double sway = 0});
+  /// The plant in [stage], drawn [size] wide and [height] tall (square when
+  /// [height] is null). [sway] is -1..1, for gentle wind animation.
+  Widget plant(SpeciesConfig species, GrowthStage stage, {required double size, double? height, double sway = 0});
 
   /// A seed packet for [species].
   Widget seed(SpeciesConfig species, {double size = 56});
@@ -26,15 +26,16 @@ PlantArtProvider plantArtProvider = PaintedPlantArt();
 /// Simple placeholder art using emoji.
 class EmojiPlantArt implements PlantArtProvider {
   @override
-  Widget plant(SpeciesConfig species, GrowthStage stage, {required double size, double sway = 0}) {
+  Widget plant(SpeciesConfig species, GrowthStage stage, {required double size, double? height, double sway = 0}) {
     final emoji = switch (stage) {
       GrowthStage.seed => '🟤',
       GrowthStage.sprout => '🌱',
       GrowthStage.young => '🪴',
       _ => species.fruit.emoji,
     };
-    return SizedBox.square(
-      dimension: size,
+    return SizedBox(
+      width: size,
+      height: height ?? size,
       child: Center(
         child: Text(emoji, style: TextStyle(fontSize: size * 0.6)),
       ),
