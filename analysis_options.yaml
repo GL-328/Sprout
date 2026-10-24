@@ -1,0 +1,19 @@
+include: package:flutter_lints/flutter.yaml
+
+formatter:
+  page_width: 120
+
+analyzer:
+  exclude:
+    - "**/*.g.dart"
+    - build/**
+    - android/**
+  language:
+    strict-casts: false
+
+linter:
+  rules:
+    - prefer_single_quotes
+    - prefer_const_constructors
+    - prefer_final_locals
+    - unawaited_futures

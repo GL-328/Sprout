@@ -1,0 +1,98 @@
+rules_version = '2';
+
+// Sprout Friends. Opt-in, and only ever holds display names, friend codes,
+// friend links, requests, once-a-day visit notes and a garden snapshot
+// (plots, what grows in each spot and its stage, placed decorations).
+// Never quests, moods, notes, contacts or history.
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() { return request.auth != null; }
+    function me() { return request.auth.uid; }
+    function userDoc(uid) { return /databases/$(database)/documents/users/$(uid); }
+    function isFriendOf(owner) { return exists(/databases/$(database)/documents/users/$(owner)/friends/$(me())); }
+    function today() { return int(request.time.toMillis() / 86400000); }
+
+    // Friend codes: 8 characters without 0, O, 1 or I. Claimed once, by
+    // their owner; anyone signed in can look one up to send a request.
+    match /codes/{code} {
+      allow get: if signedIn();
+      allow create: if signedIn()
+        && code.matches('^[A-HJ-NP-Z2-9]{8}$')
+        && request.resource.data.keys().hasOnly(['uid'])
+        && request.resource.data.uid == me();
+      allow delete: if signedIn() && resource.data.uid == me();
+    }
+
+    function validUser(d) {
+      return d.keys().hasOnly(['name', 'code', 'snapshot', 'snapshotAt', 'reqDay', 'reqCount'])
+        && d.name is string && d.name.size() >= 1 && d.name.size() <= 20
+        && (!('code' in d) || (d.code is string && d.code.size() == 8))
+        && (!('snapshot' in d) || (d.snapshot is map && d.snapshot.keys().hasOnly(['plots'])
+            && d.snapshot.plots is list && d.snapshot.plots.size() <= 12))
+        && (!('reqDay' in d) || d.reqDay is int)
+        && (!('reqCount' in d) || (d.reqCount is int && d.reqCount >= 0 && d.reqCount <= 10));
+    }
+
+    match /users/{uid} {
+      // Your own garden, and your friends' gardens.
+      allow get: if signedIn() && (uid == me() || isFriendOf(uid));
+      allow create, update: if signedIn() && uid == me() && validUser(request.resource.data);
+      allow delete: if signedIn() && uid == me();
+
+      match /friends/{fid} {
+        allow read: if signedIn() && uid == me();
+        // Accepting a request writes both sides at once. Only the person
+        // the request was sent to can do that, while the request exists.
+        allow create: if signedIn()
+          && request.resource.data.keys().hasOnly(['name'])
+          && request.resource.data.name is string && request.resource.data.name.size() <= 20
+          && ((uid == me() && exists(/databases/$(database)/documents/requests/$(fid + '_' + me())))
+              || (fid == me() && exists(/databases/$(database)/documents/requests/$(uid + '_' + me()))));
+        // Either friend can end the friendship.
+        allow delete: if signedIn() && (uid == me() || fid == me());
+      }
+
+      match /blocked/{bid} {
+        allow read, write: if signedIn() && uid == me();
+      }
+
+      // Once-a-day visit notes: the id starts with the visitor's own id and
+      // the day, so each friend can leave one note a day.
+      match /visits/{vid} {
+        allow read, delete: if signedIn() && uid == me();
+        allow create: if signedIn()
+          && isFriendOf(uid)
+          && vid == me() + '_' + request.resource.data.day
+          && request.resource.data.keys().hasOnly(['visitor', 'name', 'day', 'at'])
+          && request.resource.data.visitor == me()
+          && request.resource.data.day is string && request.resource.data.day.matches('^[0-9]{8}$')
+          && request.resource.data.name is string && request.resource.data.name.size() <= 20;
+      }
+    }
+
+    // Friend requests, at most 10 a day per person (counted on their own
+    // user document in the same write).
+    match /requests/{rid} {
+      allow read: if signedIn() && (resource.data.from == me() || resource.data.to == me());
+      allow create: if signedIn()
+        && request.resource.data.keys().hasOnly(['from', 'to', 'fromName', 'at'])
+        && request.resource.data.from == me()
+        && request.resource.data.to is string
+        && request.resource.data.to != me()
+        && rid == me() + '_' + request.resource.data.to
+        && request.resource.data.fromName is string && request.resource.data.fromName.size() <= 20
+        && !exists(/databases/$(database)/documents/users/$(request.resource.data.to)/blocked/$(me()))
+        && !exists(/databases/$(database)/documents/users/$(me())/friends/$(request.resource.data.to))
+        && withinDailyLimit();
+      allow delete: if signedIn() && (resource.data.from == me() || resource.data.to == me());
+    }
+
+    function withinDailyLimit() {
+      let before = get(userDoc(me())).data;
+      let after = getAfter(userDoc(me())).data;
+      return after.reqDay == today()
+        && after.reqCount <= 10
+        && after.reqCount == (before.get('reqDay', 0) == today() ? before.get('reqCount', 0) + 1 : 1);
+    }
+  }
+}

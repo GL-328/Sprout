@@ -1,0 +1,159 @@
+name: Build APK
+
+on:
+  push:
+    branches:
+      - main
+      - "claude/**"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: build-apk-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  FLUTTER_VERSION: "3.47.7"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - name: Get packages
+        run: flutter pub get
+
+      - name: Generate code
+        run: |
+          if grep -q build_runner pubspec.yaml; then
+            dart run build_runner build --delete-conflicting-outputs
+          fi
+
+      - name: Analyze
+        run: flutter analyze
+
+      - name: Test
+        run: flutter test
+
+      - name: Set up release signing key
+        env:
+          KEYSTORE_BASE64: ${{ secrets.SPROUT_KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.SPROUT_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.SPROUT_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.SPROUT_KEY_PASSWORD }}
+        run: |
+          if [ -z "$KEYSTORE_BASE64" ]; then
+            echo "::warning::No signing secrets found. Building with a temporary debug key; this APK cannot update one signed with a different key, so it will not be published as a release."
+            echo "SIGNED=false" >> "$GITHUB_ENV"
+            exit 0
+          fi
+          echo "SIGNED=true" >> "$GITHUB_ENV"
+          echo "$KEYSTORE_BASE64" | base64 --decode > android/app/upload.jks
+          {
+            echo "storeFile=upload.jks"
+            echo "storePassword=$KEYSTORE_PASSWORD"
+            echo "keyAlias=$KEY_ALIAS"
+            echo "keyPassword=$KEY_PASSWORD"
+          } > android/key.properties
+
+      - name: Firebase settings for Friends (optional)
+        env:
+          GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
+        run: |
+          echo "FIREBASE_DEFINES=" >> "$GITHUB_ENV"
+          if [ -z "$GOOGLE_SERVICES_JSON" ]; then
+            echo "::notice::No GOOGLE_SERVICES_JSON secret, so Friends is switched off in this build."
+            exit 0
+          fi
+          printf '%s' "$GOOGLE_SERVICES_JSON" > gs.json
+          CLIENT='.client[] | select(.client_info.android_client_info.package_name == "app.sprout.sprout")'
+          API=$(jq -r "$CLIENT | .api_key[0].current_key" gs.json)
+          APP=$(jq -r "$CLIENT | .client_info.mobilesdk_app_id" gs.json)
+          SENDER=$(jq -r '.project_info.project_number' gs.json)
+          PROJECT=$(jq -r '.project_info.project_id' gs.json)
+          rm gs.json
+          for v in "$API" "$APP" "$SENDER" "$PROJECT"; do
+            if [ -z "$v" ] || [ "$v" = "null" ]; then
+              echo "::warning::GOOGLE_SERVICES_JSON has no Android app 'app.sprout.sprout'. Friends stays off."
+              exit 0
+            fi
+          done
+          echo "::add-mask::$API"
+          echo "FIREBASE_DEFINES=--dart-define=FIREBASE_API_KEY=$API --dart-define=FIREBASE_APP_ID=$APP --dart-define=FIREBASE_SENDER_ID=$SENDER --dart-define=FIREBASE_PROJECT_ID=$PROJECT" >> "$GITHUB_ENV"
+          echo "Friends is switched on in this build (project $PROJECT)."
+
+      - name: Build release APK
+        run: flutter build apk --release --build-number=${{ github.run_number }} $FIREBASE_DEFINES
+
+      - name: Rename APK
+        run: cp build/app/outputs/flutter-apk/app-release.apk sprout.apk
+
+      - name: Check build number and signing key
+        run: |
+          BUILD_TOOLS=$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -1)
+          CODE=$("$BUILD_TOOLS/aapt2" dump badging sprout.apk | sed -n "s/.*versionCode='\([0-9]*\)'.*/\1/p" | head -1)
+          echo "APK versionCode: $CODE (run number ${GITHUB_RUN_NUMBER})"
+          if [ "$CODE" != "${GITHUB_RUN_NUMBER}" ]; then
+            echo "::error::The APK's build number ($CODE) doesn't match the run number. The updater would compare the wrong numbers."
+            exit 1
+          fi
+          "$BUILD_TOOLS/apksigner" verify --print-certs sprout.apk | grep -i "SHA-256" | head -1
+
+      - name: Upload workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: sprout-apk
+          path: sprout.apk
+
+      - name: Write version file for in-app updates
+        run: |
+          VERSION_NAME=$(grep '^version:' pubspec.yaml | sed 's/version: *//; s/+.*//')
+          jq -n \
+            --argjson code "${GITHUB_RUN_NUMBER}" \
+            --arg name "$VERSION_NAME" \
+            --arg sha "$(sha256sum sprout.apk | cut -d' ' -f1)" \
+            --argjson size "$(stat -c %s sprout.apk)" \
+            --arg notes "$(git log -1 --format=%s)" \
+            '{versionCode: $code, versionName: $name, sha256: $sha, size: $size, notes: $notes}' > version.json
+          cat version.json
+
+      - name: Publish rolling release
+        if: env.SIGNED == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if [ "${GITHUB_REF_NAME}" = "main" ]; then
+            TAG=latest
+            TITLE="Sprout (latest)"
+            EXTRA=""
+          else
+            TAG=dev-latest
+            TITLE="Sprout (dev preview)"
+            EXTRA="--prerelease"
+          fi
+          NOTES="Built from ${GITHUB_REF_NAME} at ${GITHUB_SHA::7} (run #${GITHUB_RUN_NUMBER}). Download sprout.apk below."
+          gh release delete "$TAG" --cleanup-tag --yes || true
+          gh api -X DELETE "repos/${GITHUB_REPOSITORY}/git/refs/tags/${TAG}" || true
+          gh release create "$TAG" sprout.apk version.json \
+            --target "$GITHUB_SHA" \
+            --title "$TITLE" \
+            --notes "$NOTES" \
+            $EXTRA

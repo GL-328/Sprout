@@ -1,0 +1,928 @@
+{
+ "lines": [
+  {
+   "type": "fact",
+   "text": "Bananas are berries in the botanical sense, but strawberries are not."
+  },
+  {
+   "type": "fact",
+   "text": "A sunflower's big head is made of hundreds of tiny flowers called florets."
+  },
+  {
+   "type": "fact",
+   "text": "Young sunflowers follow the sun across the sky. Grown-up ones mostly face east."
+  },
+  {
+   "type": "fact",
+   "text": "Bees can see ultraviolet light, which shows them hidden patterns on flowers."
+  },
+  {
+   "type": "fact",
+   "text": "Honeybees tell each other where flowers are with a little waggle dance."
+  },
+  {
+   "type": "fact",
+   "text": "Apples float in water because they're about a quarter air."
+  },
+  {
+   "type": "fact",
+   "text": "A strawberry wears its seeds on the outside, about 200 of them."
+  },
+  {
+   "type": "fact",
+   "text": "Earthworms have no lungs. They breathe through their skin."
+  },
+  {
+   "type": "fact",
+   "text": "Ladybirds love to eat aphids, which makes them a gardener's best friend."
+  },
+  {
+   "type": "fact",
+   "text": "Bamboo is a grass, and some kinds are among the fastest-growing plants on Earth."
+  },
+  {
+   "type": "fact",
+   "text": "Some bamboo can grow almost a metre in a single day."
+  },
+  {
+   "type": "fact",
+   "text": "You can tell a tree's age by counting the rings in its trunk."
+  },
+  {
+   "type": "fact",
+   "text": "Lavender belongs to the mint family."
+  },
+  {
+   "type": "fact",
+   "text": "Tomatoes are fruits, botanically speaking."
+  },
+  {
+   "type": "fact",
+   "text": "Peanuts aren't true nuts. They're legumes, like peas and beans."
+  },
+  {
+   "type": "fact",
+   "text": "Almonds are the seeds of a fruit that's a cousin of the peach."
+  },
+  {
+   "type": "fact",
+   "text": "Each cashew grows at the bottom of a fruit called a cashew apple."
+  },
+  {
+   "type": "fact",
+   "text": "A pineapple takes around two years to grow."
+  },
+  {
+   "type": "fact",
+   "text": "A pineapple is lots of little flowers that fused into one fruit."
+  },
+  {
+   "type": "fact",
+   "text": "A raspberry is made of many tiny drupelets, each with its own seed."
+  },
+  {
+   "type": "fact",
+   "text": "Coffee beans are the seeds of a small, cherry-like fruit."
+  },
+  {
+   "type": "fact",
+   "text": "Vanilla comes from the seed pods of an orchid."
+  },
+  {
+   "type": "fact",
+   "text": "Cacao pods grow straight out of the trunk of the cacao tree."
+  },
+  {
+   "type": "fact",
+   "text": "Avocados only start to ripen once they've been picked."
+  },
+  {
+   "type": "fact",
+   "text": "Banana plants are giant herbs, not trees."
+  },
+  {
+   "type": "fact",
+   "text": "Oak trees can live for hundreds of years."
+  },
+  {
+   "type": "fact",
+   "text": "A single oak can drop thousands of acorns in a good year."
+  },
+  {
+   "type": "fact",
+   "text": "Squirrels bury nuts and forget some, which helps new trees grow."
+  },
+  {
+   "type": "fact",
+   "text": "Dandelion seeds can drift a long way on the wind with their fluffy parachutes."
+  },
+  {
+   "type": "fact",
+   "text": "Clover and beans team up with soil bacteria to add nitrogen to the soil."
+  },
+  {
+   "type": "fact",
+   "text": "Moss has no roots. It holds on with tiny threads instead."
+  },
+  {
+   "type": "fact",
+   "text": "Ferns grow from spores, not seeds."
+  },
+  {
+   "type": "fact",
+   "text": "A mushroom is the fruit of a fungus that mostly lives hidden underground."
+  },
+  {
+   "type": "fact",
+   "text": "Fungi are more closely related to animals than to plants."
+  },
+  {
+   "type": "fact",
+   "text": "Some fungi glow softly in the dark. People call it foxfire."
+  },
+  {
+   "type": "fact",
+   "text": "Fireflies make light with a chemical reaction that gives off very little heat."
+  },
+  {
+   "type": "fact",
+   "text": "Different kinds of fireflies flash in different patterns."
+  },
+  {
+   "type": "fact",
+   "text": "Frogs can soak up water through their skin."
+  },
+  {
+   "type": "fact",
+   "text": "Tadpoles breathe with gills before they grow lungs."
+  },
+  {
+   "type": "fact",
+   "text": "Butterflies taste with their feet."
+  },
+  {
+   "type": "fact",
+   "text": "Monarch butterflies migrate thousands of kilometres each year."
+  },
+  {
+   "type": "fact",
+   "text": "Hummingbirds can hover in one spot and even fly backwards."
+  },
+  {
+   "type": "fact",
+   "text": "Owls can turn their heads about 270 degrees."
+  },
+  {
+   "type": "fact",
+   "text": "Hedgehogs roll into a spiky ball when they feel scared."
+  },
+  {
+   "type": "fact",
+   "text": "Some snails can rest for months during dry weather, waiting for rain."
+  },
+  {
+   "type": "fact",
+   "text": "Bumblebees warm up by shivering, so they can fly on chilly days."
+  },
+  {
+   "type": "fact",
+   "text": "Many of the fruits we love need pollinators like bees to grow."
+  },
+  {
+   "type": "fact",
+   "text": "In Japan, cherry blossoms are called sakura."
+  },
+  {
+   "type": "fact",
+   "text": "Cherries, plums, peaches and apricots are all stone fruits."
+  },
+  {
+   "type": "fact",
+   "text": "Apples, pears, strawberries and roses all belong to the same plant family."
+  },
+  {
+   "type": "fact",
+   "text": "There are thousands of apple varieties around the world."
+  },
+  {
+   "type": "fact",
+   "text": "An apple seed rarely grows into the same kind of apple, so growers graft trees."
+  },
+  {
+   "type": "fact",
+   "text": "Pears ripen best after they've been picked."
+  },
+  {
+   "type": "fact",
+   "text": "Oranges and lemons are a special kind of berry."
+  },
+  {
+   "type": "fact",
+   "text": "Blueberries are native to North America."
+  },
+  {
+   "type": "fact",
+   "text": "Cranberries are often harvested by flooding the bog so the berries float up."
+  },
+  {
+   "type": "fact",
+   "text": "Fresh cranberries bounce, thanks to little pockets of air inside."
+  },
+  {
+   "type": "fact",
+   "text": "Some lotus seeds have sprouted after more than a thousand years."
+  },
+  {
+   "type": "fact",
+   "text": "Water rolls right off lotus leaves and carries the dust away with it."
+  },
+  {
+   "type": "fact",
+   "text": "Weeping willows love damp ground near ponds and rivers."
+  },
+  {
+   "type": "fact",
+   "text": "Cacti store water in their thick, juicy stems."
+  },
+  {
+   "type": "fact",
+   "text": "A cactus's spines are leaves that changed shape over time."
+  },
+  {
+   "type": "fact",
+   "text": "The saguaro cactus can live for well over a hundred years."
+  },
+  {
+   "type": "fact",
+   "text": "Some cactus flowers only open at night."
+  },
+  {
+   "type": "fact",
+   "text": "People have grown date palms for thousands of years."
+  },
+  {
+   "type": "fact",
+   "text": "Coconuts can float across the sea and sprout on faraway beaches."
+  },
+  {
+   "type": "fact",
+   "text": "A coconut isn't a true nut. It's a kind of stone fruit."
+  },
+  {
+   "type": "fact",
+   "text": "Mangoes are cousins of cashews and pistachios."
+  },
+  {
+   "type": "fact",
+   "text": "Edelweiss grows high in the mountains, wrapped in soft, woolly hairs."
+  },
+  {
+   "type": "fact",
+   "text": "Pine cones open up in dry weather and close when it's damp."
+  },
+  {
+   "type": "fact",
+   "text": "Most pine trees keep their needles all year round."
+  },
+  {
+   "type": "fact",
+   "text": "Coast redwoods are the tallest trees in the world, over 100 metres tall."
+  },
+  {
+   "type": "fact",
+   "text": "Some bristlecone pines are more than 4,000 years old."
+  },
+  {
+   "type": "fact",
+   "text": "Leaves turn yellow in autumn as their green fades and hidden colours show."
+  },
+  {
+   "type": "fact",
+   "text": "Red autumn leaves get their colour from pigments called anthocyanins."
+  },
+  {
+   "type": "fact",
+   "text": "Snowflakes almost always have six sides."
+  },
+  {
+   "type": "fact",
+   "text": "A layer of snow works like a cosy blanket for the soil underneath."
+  },
+  {
+   "type": "fact",
+   "text": "Rainbows appear when sunlight bends and bounces inside raindrops."
+  },
+  {
+   "type": "fact",
+   "text": "To see a rainbow, the sun has to be behind you."
+  },
+  {
+   "type": "fact",
+   "text": "The lovely smell of rain on dry ground is called petrichor."
+  },
+  {
+   "type": "fact",
+   "text": "Thunder is the sound of air rushing outwards from the heat of lightning."
+  },
+  {
+   "type": "fact",
+   "text": "Dew forms when cool night air turns water vapour into droplets."
+  },
+  {
+   "type": "fact",
+   "text": "Frost forms when water vapour freezes straight onto cold surfaces."
+  },
+  {
+   "type": "fact",
+   "text": "At the spring equinox, day and night are about the same length."
+  },
+  {
+   "type": "fact",
+   "text": "We have seasons because the Earth is tilted."
+  },
+  {
+   "type": "fact",
+   "text": "Plants breathe in carbon dioxide and give out oxygen as they make food."
+  },
+  {
+   "type": "fact",
+   "text": "Leaves have tiny pores called stomata that let air in and out."
+  },
+  {
+   "type": "fact",
+   "text": "Roots can sense gravity, so they know which way is down."
+  },
+  {
+   "type": "fact",
+   "text": "Seeds can wait quietly for years until the conditions are just right."
+  },
+  {
+   "type": "fact",
+   "text": "Some pine cones only open after the heat of a fire."
+  },
+  {
+   "type": "fact",
+   "text": "Every seed holds a tiny baby plant and a packed lunch of stored food."
+  },
+  {
+   "type": "fact",
+   "text": "Sunflower seeds sit in spirals that follow the Fibonacci numbers."
+  },
+  {
+   "type": "fact",
+   "text": "Pine cones and pineapples have spiral patterns too."
+  },
+  {
+   "type": "fact",
+   "text": "Compost is made by tiny creatures and microbes munching plant scraps."
+  },
+  {
+   "type": "fact",
+   "text": "A spoonful of healthy soil can hold millions of tiny living things."
+  },
+  {
+   "type": "fact",
+   "text": "Worms mix the soil and leave tunnels that let in air and water."
+  },
+  {
+   "type": "fact",
+   "text": "A layer of mulch keeps soil moist and cool."
+  },
+  {
+   "type": "fact",
+   "text": "Basil is a cousin of mint."
+  },
+  {
+   "type": "fact",
+   "text": "Rosemary, thyme and sage all belong to the mint family."
+  },
+  {
+   "type": "fact",
+   "text": "Mint spreads with underground runners, so many people grow it in pots."
+  },
+  {
+   "type": "fact",
+   "text": "A potato is a swollen underground stem called a tuber."
+  },
+  {
+   "type": "fact",
+   "text": "Carrots used to be purple or yellow. Orange ones came along later."
+  },
+  {
+   "type": "fact",
+   "text": "Peas climb by curling little tendrils around anything they can reach."
+  },
+  {
+   "type": "fact",
+   "text": "Ivy clings to walls with tiny roots along its stems."
+  },
+  {
+   "type": "fact",
+   "text": "Cut tulips keep growing a little in their vase."
+  },
+  {
+   "type": "fact",
+   "text": "Holly stays green and glossy right through winter."
+  },
+  {
+   "type": "fact",
+   "text": "European robins keep singing all through the winter."
+  },
+  {
+   "type": "fact",
+   "text": "Migrating birds find their way partly by the stars and the Earth's magnetism."
+  },
+  {
+   "type": "fact",
+   "text": "Ducks stay dry thanks to an oil they spread on their feathers."
+  },
+  {
+   "type": "fact",
+   "text": "Squirrels can turn their back feet around to climb down trees head first."
+  },
+  {
+   "type": "fact",
+   "text": "A rabbit's teeth never stop growing."
+  },
+  {
+   "type": "fact",
+   "text": "Sloths move so slowly that tiny algae can grow in their fur."
+  },
+  {
+   "type": "fact",
+   "text": "Geckos can climb glass thanks to millions of tiny hairs on their toes."
+  },
+  {
+   "type": "fact",
+   "text": "Spiders aren't insects. They have eight legs, not six."
+  },
+  {
+   "type": "fact",
+   "text": "Spider silk is amazingly strong for how light it is."
+  },
+  {
+   "type": "fact",
+   "text": "Dragonflies are expert fliers and can even fly backwards."
+  },
+  {
+   "type": "fact",
+   "text": "A snail's shell grows along with it its whole life."
+  },
+  {
+   "type": "fact",
+   "text": "The word daisy comes from 'day's eye', because it opens in the daylight."
+  },
+  {
+   "type": "fact",
+   "text": "Moonflowers open in the evening and close again by morning."
+  },
+  {
+   "type": "fact",
+   "text": "Many night flowers are pale, so moths can find them in the dark."
+  },
+  {
+   "type": "fact",
+   "text": "Bananas curve because they grow upwards, towards the light."
+  },
+  {
+   "type": "fact",
+   "text": "Watermelons are about 92 percent water."
+  },
+  {
+   "type": "fact",
+   "text": "A fig is really a cluster of tiny flowers, tucked inside out."
+  },
+  {
+   "type": "fact",
+   "text": "Some olive trees have lived for more than a thousand years."
+  },
+  {
+   "type": "fact",
+   "text": "Ginkgo trees have been around since the time of the dinosaurs."
+  },
+  {
+   "type": "fact",
+   "text": "It takes about 40 litres of maple sap to make one litre of syrup."
+  },
+  {
+   "type": "fact",
+   "text": "A honeybee makes about a twelfth of a teaspoon of honey in its whole life."
+  },
+  {
+   "type": "fact",
+   "text": "Kiwi fruit grows on twisty climbing vines."
+  },
+  {
+   "type": "fact",
+   "text": "Lizards bask in the sun to warm up for the day."
+  },
+  {
+   "type": "greeting",
+   "text": "Hello, friend! Lovely to see you."
+  },
+  {
+   "type": "greeting",
+   "text": "Oh, hello! Come on in."
+  },
+  {
+   "type": "greeting",
+   "text": "Welcome back to my little stall."
+  },
+  {
+   "type": "greeting",
+   "text": "Hi there! The kettle's warm."
+  },
+  {
+   "type": "greeting",
+   "text": "Good to see you. Take your time."
+  },
+  {
+   "type": "greeting",
+   "text": "Hello! Have a little look around."
+  },
+  {
+   "type": "greeting",
+   "text": "There you are! I was hoping you'd stop by."
+  },
+  {
+   "type": "greeting",
+   "text": "Welcome, welcome. No rush at all."
+  },
+  {
+   "type": "greeting",
+   "text": "Hello again! Your garden's looking lovely."
+  },
+  {
+   "type": "greeting",
+   "text": "Hi! It's a nice day for browsing."
+  },
+  {
+   "type": "greeting",
+   "text": "Oh, a visitor! Make yourself at home."
+  },
+  {
+   "type": "greeting",
+   "text": "Hello, gardener! What a treat."
+  },
+  {
+   "type": "greeting",
+   "text": "Welcome! Just looking is perfectly fine."
+  },
+  {
+   "type": "greeting",
+   "text": "Hi there. It's always nice when you pop in."
+  },
+  {
+   "type": "greeting",
+   "text": "Hello! I've been tidying the shelves."
+  },
+  {
+   "type": "greeting",
+   "text": "Ah, a friendly face. Hello!"
+  },
+  {
+   "type": "greeting",
+   "text": "Welcome to the stall. Mind the flowerpots."
+  },
+  {
+   "type": "greeting",
+   "text": "Hello! The bees have been busy today."
+  },
+  {
+   "type": "greeting",
+   "text": "Hi! I saved you a sunny spot."
+  },
+  {
+   "type": "greeting",
+   "text": "Hello, hello! Browse as long as you like."
+  },
+  {
+   "type": "greeting",
+   "text": "Welcome back. I hope your day's been gentle."
+  },
+  {
+   "type": "greeting",
+   "text": "Hi there! Fancy a little wander round?"
+  },
+  {
+   "type": "greeting",
+   "text": "Hello! Everything here is grown with care."
+  },
+  {
+   "type": "greeting",
+   "text": "Oh, lovely to see you again."
+  },
+  {
+   "type": "greeting",
+   "text": "Welcome! Have a peek, there's no hurry."
+  },
+  {
+   "type": "greeting",
+   "text": "Hello! The breeze is nice today."
+  },
+  {
+   "type": "greeting",
+   "text": "Hi! Pull up a crate and stay a while."
+  },
+  {
+   "type": "greeting",
+   "text": "Hello, friend. The shop's all yours."
+  },
+  {
+   "type": "greeting",
+   "text": "Welcome! I just polished the apples."
+  },
+  {
+   "type": "greeting",
+   "text": "Hi there! How's your garden growing?"
+  },
+  {
+   "type": "greeting",
+   "text": "Hello! It's a good day to be among plants."
+  },
+  {
+   "type": "greeting",
+   "text": "Welcome in. I'll be right here if you need me."
+  },
+  {
+   "type": "greeting",
+   "text": "Hi! You always brighten up the stall."
+  },
+  {
+   "type": "greeting",
+   "text": "Hello! Shall we have a look together?"
+  },
+  {
+   "type": "greeting",
+   "text": "Welcome back, gardener!"
+  },
+  {
+   "type": "greeting",
+   "text": "Hello there. Breathe in that garden air."
+  },
+  {
+   "type": "greeting",
+   "text": "Hi! Lovely weather for seeds and sunshine."
+  },
+  {
+   "type": "greeting",
+   "text": "Hello! I'm glad you came by."
+  },
+  {
+   "type": "greeting",
+   "text": "Welcome! Every visit makes my day."
+  },
+  {
+   "type": "greeting",
+   "text": "Hi, friend! The shop is open and cosy."
+  },
+  {
+   "type": "tip",
+   "text": "Plants love a morning drink before the day gets warm."
+  },
+  {
+   "type": "tip",
+   "text": "Talk to your plants if you like. They don't mind listening."
+  },
+  {
+   "type": "tip",
+   "text": "Mature plants keep giving fruit, so they're worth the wait."
+  },
+  {
+   "type": "tip",
+   "text": "Rare seeds often love the faraway plots."
+  },
+  {
+   "type": "tip",
+   "text": "Fruit keeps safely in your bag until you need it."
+  },
+  {
+   "type": "tip",
+   "text": "A recipe can give the whole garden a little boost."
+  },
+  {
+   "type": "tip",
+   "text": "Visitors come by when your garden is thriving."
+  },
+  {
+   "type": "tip",
+   "text": "Some visitors only appear at night. Have a peek after dark."
+  },
+  {
+   "type": "tip",
+   "text": "Spare seeds can go back into the soil as compost."
+  },
+  {
+   "type": "tip",
+   "text": "Bigger quests have a better chance of growing rare seeds."
+  },
+  {
+   "type": "tip",
+   "text": "Every plot has plants you won't find anywhere else."
+  },
+  {
+   "type": "tip",
+   "text": "Your plants never wilt, so there's no need to worry."
+  },
+  {
+   "type": "tip",
+   "text": "A little decoration can make a plot feel like home."
+  },
+  {
+   "type": "tip",
+   "text": "Swipe across your garden to visit each plant."
+  },
+  {
+   "type": "encourage",
+   "text": "You're doing better than you think."
+  },
+  {
+   "type": "encourage",
+   "text": "Small steps still count. Every one of them."
+  },
+  {
+   "type": "encourage",
+   "text": "Be gentle with yourself today."
+  },
+  {
+   "type": "encourage",
+   "text": "Your garden grows a little every time you care for yourself."
+  },
+  {
+   "type": "encourage",
+   "text": "Rest is part of growing too."
+  },
+  {
+   "type": "encourage",
+   "text": "I'm proud of you for showing up."
+  },
+  {
+   "type": "encourage",
+   "text": "There's no rush here. Go at your own pace."
+  },
+  {
+   "type": "encourage",
+   "text": "Even the tallest trees started as tiny seeds."
+  },
+  {
+   "type": "encourage",
+   "text": "One kind thing for yourself is plenty for today."
+  },
+  {
+   "type": "encourage",
+   "text": "You deserve the same care you give your plants."
+  },
+  {
+   "type": "encourage",
+   "text": "Some days are for growing, some are for resting. Both are fine."
+  },
+  {
+   "type": "encourage",
+   "text": "You're tending to something lovely."
+  },
+  {
+   "type": "encourage",
+   "text": "Whatever today looks like, you're welcome here."
+  },
+  {
+   "type": "encourage",
+   "text": "Little by little, things bloom."
+  },
+  {
+   "type": "encourage",
+   "text": "It's okay to take things slowly."
+  },
+  {
+   "type": "encourage",
+   "text": "You brought some sunshine in with you."
+  },
+  {
+   "type": "encourage",
+   "text": "Your effort matters, even when it's quiet."
+  },
+  {
+   "type": "encourage",
+   "text": "Every season has its own kind of beauty."
+  },
+  {
+   "type": "encourage",
+   "text": "Take a breath. You're doing just fine."
+  },
+  {
+   "type": "encourage",
+   "text": "Growing takes time, and that's perfectly okay."
+  },
+  {
+   "type": "buy",
+   "text": "Lovely choice!"
+  },
+  {
+   "type": "buy",
+   "text": "Oh, that will look wonderful."
+  },
+  {
+   "type": "buy",
+   "text": "A fine pick! Enjoy it."
+  },
+  {
+   "type": "buy",
+   "text": "That's one of my favourites."
+  },
+  {
+   "type": "buy",
+   "text": "Wonderful! I'll wrap it in a smile."
+  },
+  {
+   "type": "buy",
+   "text": "Your garden is going to love that."
+  },
+  {
+   "type": "sell",
+   "text": "That's a fine harvest."
+  },
+  {
+   "type": "sell",
+   "text": "Beautiful fruit! Thank you."
+  },
+  {
+   "type": "sell",
+   "text": "Mmm, these look delicious."
+  },
+  {
+   "type": "sell",
+   "text": "What a lovely crop you've grown."
+  },
+  {
+   "type": "sell",
+   "text": "Freshly picked! Wonderful."
+  },
+  {
+   "type": "sell",
+   "text": "Your plants have been busy. Well done."
+  },
+  {
+   "type": "compost",
+   "text": "Back to the soil it goes. Nothing wasted."
+  },
+  {
+   "type": "compost",
+   "text": "The worms will be pleased."
+  },
+  {
+   "type": "compost",
+   "text": "Good compost makes happy gardens."
+  },
+  {
+   "type": "compost",
+   "text": "A gift for next season's soil."
+  },
+  {
+   "type": "compost",
+   "text": "Thank you. That'll feed lots of roots."
+  },
+  {
+   "type": "unlock",
+   "text": "A whole new place to grow!"
+  },
+  {
+   "type": "unlock",
+   "text": "How exciting! New soil to explore."
+  },
+  {
+   "type": "unlock",
+   "text": "That plot is going to be beautiful."
+  },
+  {
+   "type": "unlock",
+   "text": "Oh, I can't wait to see what grows there."
+  },
+  {
+   "type": "unlock",
+   "text": "A new adventure for your garden!"
+  },
+  {
+   "type": "no_coins",
+   "text": "Come back whenever you're ready."
+  },
+  {
+   "type": "no_coins",
+   "text": "No rush at all. It'll be here waiting."
+  },
+  {
+   "type": "no_coins",
+   "text": "Your garden will get you there in time."
+  },
+  {
+   "type": "no_coins",
+   "text": "Just looking is lovely too."
+  },
+  {
+   "type": "no_coins",
+   "text": "It'll keep. Take all the time you need."
+  },
+  {
+   "type": "no_coins",
+   "text": "Maybe another day. I'll keep it safe for you."
+  }
+ ]
+}
