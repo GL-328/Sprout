@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../friends/friends_section.dart';
+
 import '../../core/providers.dart';
 import '../../domain/models/app_settings.dart';
 import '../../ui/theme/app_theme.dart';
@@ -145,6 +147,7 @@ class SettingsScreen extends ConsumerWidget {
               ),
             ],
           ),
+          const _Section(title: 'Friends', children: [FriendsSection()]),
           const _Section(title: 'Your data', children: [DataSection()]),
           const _Section(title: 'Updates', children: [UpdatesSection()]),
           _Section(

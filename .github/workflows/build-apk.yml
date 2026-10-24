@@ -74,8 +74,34 @@ jobs:
             echo "keyPassword=$KEY_PASSWORD"
           } > android/key.properties
 
+      - name: Firebase settings for Friends (optional)
+        env:
+          GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
+        run: |
+          echo "FIREBASE_DEFINES=" >> "$GITHUB_ENV"
+          if [ -z "$GOOGLE_SERVICES_JSON" ]; then
+            echo "::notice::No GOOGLE_SERVICES_JSON secret, so Friends is switched off in this build."
+            exit 0
+          fi
+          printf '%s' "$GOOGLE_SERVICES_JSON" > gs.json
+          CLIENT='.client[] | select(.client_info.android_client_info.package_name == "app.sprout.sprout")'
+          API=$(jq -r "$CLIENT | .api_key[0].current_key" gs.json)
+          APP=$(jq -r "$CLIENT | .client_info.mobilesdk_app_id" gs.json)
+          SENDER=$(jq -r '.project_info.project_number' gs.json)
+          PROJECT=$(jq -r '.project_info.project_id' gs.json)
+          rm gs.json
+          for v in "$API" "$APP" "$SENDER" "$PROJECT"; do
+            if [ -z "$v" ] || [ "$v" = "null" ]; then
+              echo "::warning::GOOGLE_SERVICES_JSON has no Android app 'app.sprout.sprout'. Friends stays off."
+              exit 0
+            fi
+          done
+          echo "::add-mask::$API"
+          echo "FIREBASE_DEFINES=--dart-define=FIREBASE_API_KEY=$API --dart-define=FIREBASE_APP_ID=$APP --dart-define=FIREBASE_SENDER_ID=$SENDER --dart-define=FIREBASE_PROJECT_ID=$PROJECT" >> "$GITHUB_ENV"
+          echo "Friends is switched on in this build (project $PROJECT)."
+
       - name: Build release APK
-        run: flutter build apk --release --build-number=${{ github.run_number }}
+        run: flutter build apk --release --build-number=${{ github.run_number }} $FIREBASE_DEFINES
 
       - name: Rename APK
         run: cp build/app/outputs/flutter-apk/app-release.apk sprout.apk
