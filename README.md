@@ -90,3 +90,17 @@ test/         domain, data and widget tests
   Meadow scene whose sky follows the time of day. Settings for theme, accent,
   reduced motion, sound and reminder preferences. An About page with a
   not-medical-advice note.
+- **Stage 2: quests.** A library of 41 premade quests in 7 categories, added
+  with one tap, plus your own custom quests (title, category, notes, size,
+  and repeat: once, daily or chosen weekdays). Quests can be edited,
+  archived and deleted (deleting asks first, and history is kept). A
+  "My quests" screen chooses what shows on Today. The Today screen has
+  rounded quest cards: tap the circle to complete one (with confetti and a
+  soft haptic), swipe to skip today, save for later, or edit. Done quests
+  fold into a "Done today" section. You can undo a completion for 10
+  seconds. The Seed Meter fills one dot per quest, and every 3 earns a seed
+  with a "You earned a seed!" reveal. The seed's family comes from your
+  quest categories and its rarity from their sizes. Up to 9 completions a
+  day fill the meter; anything beyond that still counts as done. Undo rolls
+  the meter back, and takes the seed back too if that quest had just earned
+  one. Onboarding now adds starter quests for your focus areas.

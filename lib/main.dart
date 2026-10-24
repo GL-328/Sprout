@@ -6,6 +6,8 @@ import 'app.dart';
 import 'config/config_loader.dart';
 import 'core/providers.dart';
 import 'data/db/app_database.dart';
+import 'core/clock.dart';
+import 'data/repositories/seed_repository.dart';
 import 'data/repositories/settings_repository.dart';
 
 Future<void> main() async {
@@ -15,6 +17,7 @@ Future<void> main() async {
   final config = await loadGameConfig();
   final db = AppDatabase();
   final settings = await SettingsRepository(db).load();
+  await SeedRepository(db, const Clock()).ensurePlot(config.startingEnvironment.id);
 
   runApp(
     ProviderScope(

@@ -62,6 +62,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   Future<void> _finish({required bool plantStarter}) async {
     Haptics.light();
     await ref.read(settingsRepositoryProvider).writeValue(OnboardingKeys.starterSeed, plantStarter ? 'plant' : 'bag');
+    await ref.read(questRepositoryProvider).addStarterQuests(_focus);
+    await ref.read(gardenServiceProvider).grantStarterSeed(plant: plantStarter);
     await ref
         .read(settingsProvider.notifier)
         .update(

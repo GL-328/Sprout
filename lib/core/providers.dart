@@ -2,7 +2,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../config/game_config.dart';
 import '../data/db/app_database.dart';
+import '../data/repositories/counters_repository.dart';
+import '../data/repositories/quest_repository.dart';
+import '../data/repositories/seed_repository.dart';
 import '../data/repositories/settings_repository.dart';
+import '../data/services/garden_service.dart';
+import '../data/services/progress_service.dart';
+import '../domain/logic/seed_roller.dart';
 import '../domain/models/app_settings.dart';
 import 'clock.dart';
 
@@ -32,3 +38,55 @@ class SettingsNotifier extends Notifier<AppSettings> {
     await ref.read(settingsRepositoryProvider).save(state);
   }
 }
+
+final countersRepositoryProvider = Provider<CountersRepository>(
+  (ref) => CountersRepository(ref.watch(databaseProvider)),
+);
+
+final questRepositoryProvider = Provider<QuestRepository>(
+  (ref) => QuestRepository(ref.watch(databaseProvider), ref.watch(clockProvider)),
+);
+
+final seedRepositoryProvider = Provider<SeedRepository>(
+  (ref) => SeedRepository(ref.watch(databaseProvider), ref.watch(clockProvider)),
+);
+
+final seedRollerProvider = Provider<SeedRoller>((ref) => SeedRoller(ref.watch(gameConfigProvider)));
+
+final progressServiceProvider = Provider<ProgressService>(
+  (ref) => ProgressService(
+    ref.watch(databaseProvider),
+    ref.watch(gameConfigProvider),
+    ref.watch(clockProvider),
+    ref.watch(seedRepositoryProvider),
+    ref.watch(countersRepositoryProvider),
+    ref.watch(seedRollerProvider),
+  ),
+);
+
+/// "Now", refreshed every minute so growth timers and "today" stay current.
+final nowProvider = StreamProvider<DateTime>((ref) async* {
+  final clock = ref.watch(clockProvider);
+  yield clock.now();
+  yield* Stream.periodic(const Duration(minutes: 1), (_) => clock.now());
+});
+
+/// Today's day key (`yyyy-mm-dd`). Changes at midnight.
+final todayKeyProvider = Provider<String>((ref) {
+  final now = ref.watch(nowProvider).value ?? ref.watch(clockProvider).now();
+  return dayKey(now);
+});
+
+/// Re-schedules reminder notifications. Invalidate it after quests or
+/// reminder settings change. Replaced with the real scheduler in Stage 5.
+final reminderSyncProvider = FutureProvider<void>((ref) async {});
+
+final gardenServiceProvider = Provider<GardenService>(
+  (ref) => GardenService(
+    ref.watch(databaseProvider),
+    ref.watch(gameConfigProvider),
+    ref.watch(clockProvider),
+    ref.watch(seedRepositoryProvider),
+    ref.watch(countersRepositoryProvider),
+  ),
+);
