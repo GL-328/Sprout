@@ -8,6 +8,7 @@ import '../../domain/models/enums.dart';
 import '../../domain/models/plant.dart';
 import '../../ui/art/plant_art_provider.dart';
 import '../../ui/art/icon_art.dart';
+import '../../ui/theme/app_theme.dart';
 
 /// One plot's slots, one large plant at a time. Neighbours peek in from the
 /// sides; arrows and swipes move between them.
@@ -23,6 +24,7 @@ class PlantCarousel extends StatelessWidget {
     required this.sway,
     required this.pulse,
     required this.reduceMotion,
+    this.night = false,
     required this.onPageChanged,
     required this.onTapEmpty,
     required this.onTapPlant,
@@ -41,6 +43,9 @@ class PlantCarousel extends StatelessWidget {
   /// 0..1, for the soft pulse on empty slots and ready plants.
   final double pulse;
   final bool reduceMotion;
+
+  /// Dims the plants a little at night, like the scenery around them.
+  final bool night;
   final ValueChanged<int> onPageChanged;
   final ValueChanged<int> onTapEmpty;
   final void Function(Plant plant, Offset globalPosition) onTapPlant;
@@ -93,6 +98,7 @@ class PlantCarousel extends StatelessWidget {
                     statuses: statuses,
                     sway: sway,
                     pulse: pulse,
+                    night: night,
                     onTapEmpty: () => i == page ? onTapEmpty(i) : _go(i),
                     onTapPlant: (p, pos) => i == page ? onTapPlant(p, pos) : _go(i),
                   ),
@@ -141,6 +147,14 @@ class PlantCarousel extends StatelessWidget {
   }
 }
 
+/// The same night shade the scenery uses, a little lighter so plants stay clear.
+const nightTint = ColorFilter.mode(Color(0x591E2E40), BlendMode.srcATop);
+
+/// The soft shadow under the garden's white buttons and bubbles.
+final _softShadow = [
+  BoxShadow(color: Colors.black.withValues(alpha: 0.10), blurRadius: 10, offset: const Offset(0, 3)),
+];
+
 class _Arrow extends StatelessWidget {
   const _Arrow({required this.icon, required this.label, required this.enabled, required this.onTap});
 
@@ -157,14 +171,17 @@ class _Arrow extends StatelessWidget {
       ignoring: !enabled,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 6),
-        child: Material(
-          color: Colors.white.withValues(alpha: 0.55),
-          shape: const CircleBorder(),
-          child: IconButton(
-            tooltip: label,
-            visualDensity: VisualDensity.compact,
-            icon: Icon(icon, color: const Color(0xFF5B5268)),
-            onPressed: onTap,
+        child: DecoratedBox(
+          decoration: BoxDecoration(shape: BoxShape.circle, boxShadow: _softShadow),
+          child: Material(
+            color: SproutColors.paper,
+            shape: const CircleBorder(),
+            child: IconButton(
+              tooltip: label,
+              visualDensity: VisualDensity.compact,
+              icon: Icon(icon, color: Theme.of(context).colorScheme.primary, weight: 700),
+              onPressed: onTap,
+            ),
           ),
         ),
       ),
@@ -181,6 +198,7 @@ class _Slot extends StatelessWidget {
     required this.statuses,
     required this.sway,
     required this.pulse,
+    required this.night,
     required this.onTapEmpty,
     required this.onTapPlant,
   });
@@ -192,12 +210,14 @@ class _Slot extends StatelessWidget {
   final Map<String, GrowthStatus> statuses;
   final double sway;
   final double pulse;
+  final bool night;
   final VoidCallback onTapEmpty;
   final void Function(Plant plant, Offset globalPosition) onTapPlant;
 
   @override
   Widget build(BuildContext context) {
     final p = plant;
+    Widget dim(Widget art) => night ? ColorFiltered(colorFilter: nightTint, child: art) : art;
     return LayoutBuilder(
       builder: (context, box) {
         // On short screens (landscape) the bubble, then the label, step aside so
@@ -225,7 +245,7 @@ class _Slot extends StatelessWidget {
                     onTap: onTapEmpty,
                     child: GestureDetector(
                       onTap: onTapEmpty,
-                      child: _EmptyRing(pulse: pulse, size: math.min(artW * 0.6, 120)),
+                      child: _EmptyRing(pulse: pulse, size: math.min(artW * 0.6, 120), dim: dim),
                     ),
                   ),
                 ),
@@ -272,7 +292,9 @@ class _Slot extends StatelessWidget {
                         ),
                         child: KeyedSubtree(
                           key: ValueKey('${p.id}-${status.stage}'),
-                          child: plantArtProvider.plant(species, status.stage, size: artW, height: artH, sway: sway),
+                          child: dim(
+                            plantArtProvider.plant(species, status.stage, size: artW, height: artH, sway: sway),
+                          ),
                         ),
                       ),
                     ),
@@ -317,9 +339,9 @@ class _Bubble extends StatelessWidget {
     constraints: const BoxConstraints(maxWidth: 240),
     padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
     decoration: BoxDecoration(
-      color: Colors.white.withValues(alpha: 0.92),
+      color: SproutColors.paper,
       borderRadius: BorderRadius.circular(18),
-      boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.08), blurRadius: 10, offset: const Offset(0, 3))],
+      boxShadow: _softShadow,
     ),
     child: IconText(
       text,
@@ -340,7 +362,11 @@ class _Label extends StatelessWidget {
   Widget build(BuildContext context) => Container(
     margin: const EdgeInsets.only(top: 6),
     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-    decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.6), borderRadius: BorderRadius.circular(100)),
+    decoration: BoxDecoration(
+      color: SproutColors.paper,
+      borderRadius: BorderRadius.circular(100),
+      boxShadow: _softShadow,
+    ),
     child: IconText(
       text,
       style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFF4A4257)),
@@ -349,37 +375,39 @@ class _Label extends StatelessWidget {
 }
 
 class _EmptyRing extends StatelessWidget {
-  const _EmptyRing({required this.pulse, required this.size});
+  const _EmptyRing({required this.pulse, required this.size, required this.dim});
 
   final double pulse;
   final double size;
+  final Widget Function(Widget art) dim;
 
   @override
-  Widget build(BuildContext context) => SizedBox.square(
-    dimension: size,
-    child: Stack(
-      alignment: Alignment.center,
-      children: [
-        Positioned(bottom: 0, child: plantArtProvider.groundSpot(size: size * 1.1)),
-        Container(
-          width: size * (0.82 + 0.18 * pulse),
-          height: size * (0.82 + 0.18 * pulse),
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: Colors.white.withValues(alpha: 0.18 * (1 - pulse) + 0.08),
+  Widget build(BuildContext context) {
+    final accent = Theme.of(context).colorScheme.primary;
+    final button = size * 0.7;
+    return SizedBox.square(
+      dimension: size,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          Positioned(bottom: 0, child: dim(plantArtProvider.groundSpot(size: size * 1.1))),
+          // A soft accent halo that breathes, then a white button with a +.
+          Container(
+            width: button * (1.1 + 0.25 * pulse),
+            height: button * (1.1 + 0.25 * pulse),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: accent.withValues(alpha: 0.28 * (1 - pulse) + 0.1),
+            ),
           ),
-        ),
-        Container(
-          width: size * 0.7,
-          height: size * 0.7,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: Colors.white.withValues(alpha: 0.28),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.85), width: 2.5),
+          Container(
+            width: button,
+            height: button,
+            decoration: BoxDecoration(shape: BoxShape.circle, color: SproutColors.paper, boxShadow: _softShadow),
+            child: Icon(Icons.add_rounded, color: accent, size: button * 0.6, weight: 700),
           ),
-          child: Icon(Icons.add_rounded, color: Colors.white, size: size * 0.32),
-        ),
-      ],
-    ),
-  );
+        ],
+      ),
+    );
+  }
 }

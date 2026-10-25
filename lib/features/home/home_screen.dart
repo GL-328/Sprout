@@ -253,6 +253,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with SingleTickerProvid
                   sway: sway,
                   pulse: pulse,
                   reduceMotion: calm,
+                  night: isNight,
                   onPageChanged: (i) {
                     Haptics.selection();
                     setState(() => _slot = i);

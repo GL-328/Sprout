@@ -481,17 +481,32 @@ class GardenScenePainter extends CustomPainter {
   void _palm(Canvas canvas, double x, double base, double height, double lean, Color leaf) {
     final topX = x + lean * height * 0.25;
     final topY = base - height;
-    canvas.drawPath(
-      Path()
-        ..moveTo(x - 3, base)
-        ..quadraticBezierTo(x + lean * height * 0.05, base - height * 0.5, topX, topY)
-        ..quadraticBezierTo(x + lean * height * 0.05 + 4, base - height * 0.5, x + 3, base),
-      Paint()
-        ..color = _land(const Color(0xFFB59472))
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = height * 0.05
-        ..strokeCap = StrokeCap.round,
-    );
+    // One tapered, gently curved trunk: wide at the foot, slim at the crown.
+    final bark = _land(const Color(0xFFB59472));
+    final foot = height * 0.035;
+    final crown = height * 0.014;
+    final bendX = x + lean * height * 0.05;
+    final midY = base - height * 0.5;
+    final trunk = Path()
+      ..moveTo(x - foot, base)
+      ..quadraticBezierTo(bendX - (foot + crown) / 2, midY, topX - crown, topY)
+      ..lineTo(topX + crown, topY)
+      ..quadraticBezierTo(bendX + (foot + crown) / 2, midY, x + foot, base)
+      ..close();
+    canvas.drawPath(trunk, _fill(bark));
+    // Soft rings along the trunk.
+    final ring = Paint()
+      ..color = shade(bark, 0.14)
+      ..strokeWidth = 1.2
+      ..strokeCap = StrokeCap.round;
+    for (var k = 1; k < 7; k++) {
+      final t = k / 7;
+      // A point on the trunk's centre line (the same curve as its edges).
+      final cx = (1 - t) * (1 - t) * x + 2 * t * (1 - t) * bendX + t * t * topX;
+      final cy = (1 - t) * (1 - t) * base + 2 * t * (1 - t) * midY + t * t * topY;
+      final half = (foot + (crown - foot) * t) * 0.8;
+      canvas.drawLine(Offset(cx - half, cy), Offset(cx + half, cy + 1), ring);
+    }
     final pen = Pen(canvas);
     for (final a in [-2.8, -2.2, -1.5, -0.9, -0.3]) {
       pen.leaf(topX, topY, height * 0.42, height * 0.07, a, a < -1.5 ? leaf : tint(leaf, 0.12));
