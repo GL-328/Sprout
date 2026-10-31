@@ -124,7 +124,6 @@ class _SectionTiles extends ConsumerWidget {
                   enabled: !calm,
                   onTap: () {
                     Haptics.selection();
-                    ref.read(soundServiceProvider).play(Sfx.tap);
                     onSelect(section);
                   },
                   child: AnimatedContainer(

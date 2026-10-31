@@ -1,4 +1,4 @@
-"""Generates Sprout's soft sound effects and ambient loop as WAV files.
+"""Generates Sprout's soft sound effects as WAV files. (Music: tool/generate_music.py.)
 
 Everything is synthesised here, so the sounds are original and free to use.
 Run from the repository root:  python3 tool/generate_sounds.py
@@ -92,19 +92,6 @@ def tap():
     return out
 
 
-def swipe():
-    """A soft breath of air, for moving between plants."""
-    rnd = random.Random(9)
-    n = int(0.28 * RATE)
-    out = []
-    lp = 0.0
-    for i in range(n):
-        t = i / RATE
-        lp += 0.08 * (rnd.uniform(-1, 1) - lp)
-        out.append(lp * math.sin(math.pi * t / 0.28) ** 2)
-    return out
-
-
 def chirp():
     """Two little bird notes, for saying hello to a visitor."""
     out = [0.0] * int(0.3 * RATE)
@@ -136,61 +123,14 @@ def compost():
     return out
 
 
-def pop():
-    """A gentle pop, for opening a sheet."""
-    n = int(0.12 * RATE)
-    out = []
-    phase = 0.0
-    for i in range(n):
-        t = i / RATE
-        phase += 2 * math.pi * (420 + 500 * t / 0.12) / RATE
-        out.append(math.sin(phase) * math.exp(-t * 38) * min(1, t / 0.003))
-    return out
-
-
-def ambient(seconds=16):
-    """Soft wind with a few distant birds. Loops seamlessly."""
-    rnd = random.Random(4)
-    n = seconds * RATE
-    wind = []
-    lp = 0.0
-    lp2 = 0.0
-    for i in range(n):
-        lp += 0.02 * (rnd.uniform(-1, 1) - lp)
-        lp2 += 0.05 * (lp - lp2)
-        t = i / RATE
-        gust = 0.55 + 0.45 * math.sin(2 * math.pi * t / seconds) * math.sin(2 * math.pi * 3 * t / seconds)
-        wind.append(lp2 * gust * 6)
-    birds = [0.0] * n
-    for _ in range(7):
-        start = rnd.uniform(0.5, seconds - 1.0)
-        base = rnd.uniform(2600, 3600)
-        for c in range(rnd.randint(2, 4)):
-            s0 = int((start + c * 0.16) * RATE)
-            for i in range(int(0.11 * RATE)):
-                t = i / RATE
-                f = base + 900 * math.sin(math.pi * t / 0.11)
-                if s0 + i < n:
-                    birds[s0 + i] += 0.12 * math.sin(2 * math.pi * f * t) * math.sin(math.pi * t / 0.11)
-    out = mix(wind, birds)
-    fade = int(0.5 * RATE)
-    for i in range(fade):  # crossfade the ends so the loop is seamless
-        a = i / fade
-        out[i] = out[i] * a + out[n - fade + i] * (1 - a)
-    return out[: n - fade]
-
-
 if __name__ == "__main__":
     write("complete", complete())
     write("seed", seed())
     write("coin", coin())
     write("harvest", harvest())
     write("plant", plant())
-    write("ambient", ambient())
     write("tap", tap())
-    write("swipe", swipe())
     write("chirp", chirp())
     write("mood", mood())
     write("compost", compost())
-    write("pop", pop())
     print("Sounds written to", OUT)

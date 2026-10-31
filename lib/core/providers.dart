@@ -141,8 +141,10 @@ final backupServiceProvider = Provider<BackupService>(
 
 /// Soft sounds, following the "Sounds" setting. Silent in tests.
 final soundServiceProvider = Provider<SoundService>((ref) {
-  final service = AudioSoundService(enabled: ref.read(settingsProvider).soundOn);
+  final settings = ref.read(settingsProvider);
+  final service = AudioSoundService(enabled: settings.soundOn, musicEnabled: settings.musicOn);
   ref.listen(settingsProvider.select((s) => s.soundOn), (_, on) => service.setEnabled(on));
+  ref.listen(settingsProvider.select((s) => s.musicOn), (_, on) => service.setMusicEnabled(on));
   return service;
 });
 

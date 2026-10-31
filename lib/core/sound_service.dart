@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/foundation.dart';
 
@@ -8,10 +10,8 @@ enum Sfx {
   harvest(0.55),
   plant(0.55),
 
-  /// Small and quiet: taps, swipes and hellos.
+  /// Small and quiet: button taps and hellos.
   tap(0.18, quick: true),
-  swipe(0.15, quick: true),
-  pop(0.22, quick: true),
   chirp(0.3, quick: true),
   mood(0.35),
   compost(0.45);
@@ -26,14 +26,21 @@ enum Sfx {
   final bool quick;
 }
 
-/// Optional soft sounds. Silent unless the user turns sound on in Settings.
+/// The music for each plot: `assets/music/<plot>.ogg`.
+String musicAsset(String envId) => 'music/$envId.ogg';
+
+/// Optional soft sounds and music. Silent unless the user turns them on in
+/// Settings.
 abstract class SoundService {
   void play(Sfx sfx);
 
-  /// Starts or stops the garden ambience.
-  void setAmbient(bool on);
+  /// Plays [envId]'s music, gently crossfading from whatever was playing.
+  /// `null` fades the music out (Home hidden, or the app in the background).
+  void setMusic(String? envId);
 
   void setEnabled(bool on);
+
+  void setMusicEnabled(bool on);
 }
 
 class SilentSoundService implements SoundService {
@@ -43,30 +50,52 @@ class SilentSoundService implements SoundService {
   void play(Sfx sfx) {}
 
   @override
-  void setAmbient(bool on) {}
+  void setMusic(String? envId) {}
 
   @override
   void setEnabled(bool on) {}
+
+  @override
+  void setMusicEnabled(bool on) {}
 }
 
 class AudioSoundService implements SoundService {
-  AudioSoundService({bool enabled = false}) : _enabled = enabled; // ignore: prefer_initializing_formals
+  AudioSoundService({bool enabled = false, bool musicEnabled = false})
+    : _enabled = enabled, // ignore: prefer_initializing_formals
+      _musicEnabled = musicEnabled; // ignore: prefer_initializing_formals
+
+  static const _musicVolume = 0.22;
 
   bool _enabled;
-  bool _wantAmbient = false;
+  bool _musicEnabled;
   final _effects = AudioPlayer();
   final _quick = AudioPlayer();
-  AudioPlayer? _ambient;
+  final _lastQuick = <Sfx, DateTime>{};
+
+  AudioPlayer? _music;
+  String? _wantTrack;
+  String? _playingTrack;
+  Timer? _fade;
 
   @override
-  void setEnabled(bool on) {
-    _enabled = on;
-    _syncAmbient();
+  void setEnabled(bool on) => _enabled = on;
+
+  @override
+  void setMusicEnabled(bool on) {
+    _musicEnabled = on;
+    _syncMusic();
   }
 
   @override
   void play(Sfx sfx) {
     if (!_enabled) return;
+    if (sfx.quick) {
+      // One tick per tap, even when a button and what it moves both ask.
+      final now = DateTime.now();
+      final last = _lastQuick[sfx];
+      if (last != null && now.difference(last) < const Duration(milliseconds: 120)) return;
+      _lastQuick[sfx] = now;
+    }
     final player = sfx.quick ? _quick : _effects;
     player
         .play(
@@ -80,24 +109,50 @@ class AudioSoundService implements SoundService {
   }
 
   @override
-  void setAmbient(bool on) {
-    _wantAmbient = on;
-    _syncAmbient();
+  void setMusic(String? envId) {
+    if (envId == _wantTrack) return;
+    _wantTrack = envId;
+    _syncMusic();
   }
 
-  Future<void> _syncAmbient() async {
-    try {
-      if (_enabled && _wantAmbient) {
-        final player = _ambient ??= AudioPlayer();
-        if (player.state != PlayerState.playing) {
+  /// Fades the current track out, then the wanted one in.
+  void _syncMusic() {
+    final target = _musicEnabled ? _wantTrack : null;
+    if (target == _playingTrack) return;
+    _fadeTo(0, () async {
+      final player = _music ??= AudioPlayer();
+      try {
+        if (target == null) {
+          await player.pause();
+        } else {
           await player.setReleaseMode(ReleaseMode.loop);
-          await player.play(AssetSource('sounds/ambient.wav'), volume: 0.25);
+          await player.play(AssetSource(musicAsset(target)), volume: 0);
         }
-      } else {
-        await _ambient?.pause();
+        _playingTrack = target;
+        if (target != null) _fadeTo(_musicVolume, null);
+      } catch (e) {
+        debugPrint('Music failed: $e');
       }
-    } catch (e) {
-      debugPrint('Ambient sound failed: $e');
+    });
+  }
+
+  void _fadeTo(double volume, Future<void> Function()? then) {
+    _fade?.cancel();
+    final player = _music;
+    if (player == null || _playingTrack == null) {
+      then?.call();
+      return;
     }
+    const steps = 10;
+    final from = player.volume;
+    var step = 0;
+    _fade = Timer.periodic(const Duration(milliseconds: 80), (timer) {
+      step++;
+      player.setVolume(from + (volume - from) * step / steps).catchError((Object _) {});
+      if (step >= steps) {
+        timer.cancel();
+        then?.call();
+      }
+    });
   }
 }

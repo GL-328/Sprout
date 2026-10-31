@@ -20,6 +20,7 @@ void main() {
     final s = await repo.load();
     expect(s.onboardingDone, isFalse);
     expect(s.soundOn, isFalse, reason: 'sound is off by default');
+    expect(s.musicOn, isFalse, reason: 'music is off by default');
     expect(s.remindersOn, isFalse, reason: 'reminders are opt-in');
     expect(s.autoUpdate, isTrue, reason: 'updates are on unless turned off');
   });
@@ -32,6 +33,7 @@ void main() {
       theme: ThemePreference.dark,
       accent: AccentChoice.lilac,
       soundOn: true,
+      musicOn: true,
       reducedMotion: true,
       remindersOn: true,
       checkInReminderMinutes: 8 * 60 + 30,

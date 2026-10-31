@@ -4,11 +4,6 @@ import 'package:go_router/go_router.dart';
 import '../../core/haptics.dart';
 import '../../ui/layout/insets.dart';
 
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-
-import '../../core/providers.dart';
-import '../../core/sound_service.dart';
-
 /// Scaffold with the floating, rounded bottom navigation bar.
 class AppShell extends StatelessWidget {
   const AppShell({super.key, required this.navigationShell});
@@ -38,7 +33,6 @@ class AppShell extends StatelessWidget {
             currentIndex: navigationShell.currentIndex,
             onTap: (i) {
               Haptics.selection();
-              ProviderScope.containerOf(context, listen: false).read(soundServiceProvider).play(Sfx.tap);
               navigationShell.goBranch(i, initialLocation: i == navigationShell.currentIndex);
             },
           ),
