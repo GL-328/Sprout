@@ -6,11 +6,12 @@ import '../../config/game_config.dart';
 import '../../ui/art/icon_art.dart';
 
 /// How a visitor gets about.
-enum _Gait { flutter, buzz, glide, perch, hop, waddle, stride, amble }
+enum _Gait { flutter, buzz, drift, glide, perch, hop, waddle, stride, amble }
 
 _Gait _gaitOf(String id) => switch (id) {
   'butterfly' => _Gait.flutter,
-  'bee' || 'firefly' || 'ladybird' => _Gait.buzz,
+  'bee' => _Gait.buzz,
+  'ladybird' || 'firefly' => _Gait.drift,
   'songbird' || 'parrot' => _Gait.glide,
   'owl' => _Gait.perch,
   'rabbit' || 'frog' || 'squirrel' => _Gait.hop,
@@ -117,7 +118,17 @@ class AnimatedVisitor extends StatelessWidget {
       case _Gait.buzz:
         lift = 1.5 * wave(240);
         turn = 0.08 * wave(6);
-        if (visitor.id == 'firefly') glow = 0.6 + 0.4 * (0.5 + 0.5 * wave(12));
+      case _Gait.drift:
+        // A slow, smooth float with a gentle bob: no jitter.
+        lift = 3 * wave(3);
+        if (visitor.id == 'firefly') {
+          glow = 0.6 + 0.4 * (0.5 + 0.5 * wave(12));
+          turn = 0.08 * wave(2, math.pi / 2);
+        } else {
+          // The ladybird is seen from above, head up: it leans smoothly
+          // towards the side it's drifting to.
+          turn = 0.5 * wave(2, math.pi / 2);
+        }
       case _Gait.glide:
         // A slow wingbeat, a gentle tilt into the turns.
         scaleY = 0.92 + 0.08 * wave(36).abs();
@@ -141,8 +152,9 @@ class AnimatedVisitor extends StatelessWidget {
         lift = 1 * wave(6).abs();
     }
     // The art faces left; turn it round when heading right. The butterfly
-    // turns its whole body instead.
-    final facing = gait == _Gait.flutter || heading <= 0.05 ? 1.0 : -1.0;
+    // and the ladybird (seen from above) turn their whole body instead.
+    final turnsBody = gait == _Gait.flutter || visitor.id == 'ladybird';
+    final facing = turnsBody || heading <= 0.05 ? 1.0 : -1.0;
 
     return Positioned(
       left: width * x,
