@@ -43,6 +43,7 @@ void main() {
     await tester.enterText(find.byType(TextField), 'not the password');
     await tester.tap(find.text('Unlock'));
     await settle(tester);
-    expect(find.text("That's not it."), findsOneWidget);
+    expect(find.textContaining("That's not it"), findsOneWidget, reason: 'shown right in the box');
+    expect(find.byType(TextField), findsOneWidget, reason: 'the box stays open to try again');
   });
 }
