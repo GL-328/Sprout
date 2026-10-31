@@ -181,6 +181,7 @@ class SeedBagList extends ConsumerWidget {
       if (ok != true) return;
       await ref.read(economyServiceProvider).compostSeed(seed.id);
       Haptics.light();
+      ref.read(soundServiceProvider).play(Sfx.compost);
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: IconText('Composted. +{coin} $coins')));
       }

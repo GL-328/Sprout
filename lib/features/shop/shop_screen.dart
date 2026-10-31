@@ -124,6 +124,7 @@ class _SectionTiles extends ConsumerWidget {
                   enabled: !calm,
                   onTap: () {
                     Haptics.selection();
+                    ref.read(soundServiceProvider).play(Sfx.tap);
                     onSelect(section);
                   },
                   child: AnimatedContainer(
@@ -493,7 +494,7 @@ class _SellGrid extends ConsumerWidget {
             return _ShopCard(
               picture: plantArtProvider.seed(s, size: 70),
               name: s.name,
-              pill: '{compost} +$coins',
+              pill: '{coin} $coins',
               tint: rarityColor(s.rarity),
               onTap: () => _showItemSheet(
                 context,
@@ -504,7 +505,7 @@ class _SellGrid extends ConsumerWidget {
                 action: 'Compost for {coin} $coins',
                 onAction: () async {
                   await ref.read(economyServiceProvider).compostSeed(seed.id);
-                  _celebrate(ref, BenLineType.compost, Sfx.coin);
+                  _celebrate(ref, BenLineType.compost, Sfx.compost);
                   if (context.mounted) _toast(context, 'Composted. +{coin} $coins');
                 },
               ),

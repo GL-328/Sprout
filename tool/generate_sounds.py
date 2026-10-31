@@ -82,6 +82,72 @@ def plant():
     return mix(out, bell(note("G5"), 0.3, 0.18, 0.45, decay=9))
 
 
+def tap():
+    """A tiny, soft wooden tick for taps."""
+    n = int(0.09 * RATE)
+    out = []
+    for i in range(n):
+        t = i / RATE
+        out.append((math.sin(2 * math.pi * 1250 * t) + 0.4 * math.sin(2 * math.pi * 2600 * t)) * math.exp(-t * 70) * min(1, t / 0.002))
+    return out
+
+
+def swipe():
+    """A soft breath of air, for moving between plants."""
+    rnd = random.Random(9)
+    n = int(0.28 * RATE)
+    out = []
+    lp = 0.0
+    for i in range(n):
+        t = i / RATE
+        lp += 0.08 * (rnd.uniform(-1, 1) - lp)
+        out.append(lp * math.sin(math.pi * t / 0.28) ** 2)
+    return out
+
+
+def chirp():
+    """Two little bird notes, for saying hello to a visitor."""
+    out = [0.0] * int(0.3 * RATE)
+    for c, start in enumerate([0.0, 0.13]):
+        s0 = int(start * RATE)
+        for i in range(int(0.09 * RATE)):
+            t = i / RATE
+            f = 2900 + 700 * math.sin(math.pi * t / 0.09) + c * 250
+            out[s0 + i] += math.sin(2 * math.pi * f * t) * math.sin(math.pi * t / 0.09)
+    return out
+
+
+def mood():
+    """One warm, round note."""
+    return mix(bell(note("G4"), 0.6, 0.0, 0.6, decay=5), bell(note("D5"), 0.5, 0.0, 0.6, decay=7))
+
+
+def compost():
+    """A soft, earthy pat."""
+    rnd = random.Random(2)
+    n = int(0.25 * RATE)
+    out = []
+    lp = 0.0
+    for i in range(n):
+        t = i / RATE
+        lp += 0.25 * (rnd.uniform(-1, 1) - lp)
+        thud = math.sin(2 * math.pi * (140 - 60 * t) * t)
+        out.append((0.6 * lp + thud) * math.exp(-t * 18) * min(1, t / 0.003))
+    return out
+
+
+def pop():
+    """A gentle pop, for opening a sheet."""
+    n = int(0.12 * RATE)
+    out = []
+    phase = 0.0
+    for i in range(n):
+        t = i / RATE
+        phase += 2 * math.pi * (420 + 500 * t / 0.12) / RATE
+        out.append(math.sin(phase) * math.exp(-t * 38) * min(1, t / 0.003))
+    return out
+
+
 def ambient(seconds=16):
     """Soft wind with a few distant birds. Loops seamlessly."""
     rnd = random.Random(4)
@@ -121,4 +187,10 @@ if __name__ == "__main__":
     write("harvest", harvest())
     write("plant", plant())
     write("ambient", ambient())
+    write("tap", tap())
+    write("swipe", swipe())
+    write("chirp", chirp())
+    write("mood", mood())
+    write("compost", compost())
+    write("pop", pop())
     print("Sounds written to", OUT)

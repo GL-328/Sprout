@@ -8,6 +8,7 @@ import '../home/garden_providers.dart';
 import '../../ui/layout/insets.dart';
 import 'moods.dart';
 import '../../ui/art/icon_art.dart';
+import '../../core/sound_service.dart';
 
 /// The daily check-in: one small card. Changes the sky in the garden.
 class MoodCheckInCard extends ConsumerWidget {
@@ -101,6 +102,7 @@ Future<void> showMoodSheet(BuildContext context, WidgetRef ref, {int? initial}) 
                     GestureDetector(
                       onTap: () {
                         Haptics.selection();
+                        ref.read(soundServiceProvider).play(Sfx.tap);
                         setState(() => value = o.value);
                       },
                       child: AnimatedContainer(
@@ -145,6 +147,7 @@ Future<void> showMoodSheet(BuildContext context, WidgetRef ref, {int? initial}) 
   if (saved == true) {
     await repo.setMood(day, value, note.text.trim());
     Haptics.light();
+    ref.read(soundServiceProvider).play(Sfx.mood);
   }
   note.dispose();
 }

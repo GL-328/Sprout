@@ -903,7 +903,6 @@ class PlantPainter extends CustomPainter {
         fruit ? const Color(0xFFF2E2C4) : tint(disk, 0.3),
       );
     }
-    p.shine(-0.05, -0.06, 0.05, 0.025);
     p.canvas.restore();
   }
 
