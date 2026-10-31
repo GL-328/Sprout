@@ -5,10 +5,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/providers.dart';
 import '../../core/sound_service.dart';
 
-/// A soft tick for every button in the app, from one place. A tap counts
-/// when the finger lifts close to where it went down, on something that
-/// says it is a button (Material buttons, and anything wrapped in
-/// `Semantics(button: true)`). Scrolls and drags stay silent.
+/// A soft pop for every button and a click for every switch, from one
+/// place. A tap counts when the finger lifts close to where it went down, on
+/// something that says it is a button or a switch (Material buttons, switches,
+/// and anything wrapped in `Semantics(button: true)`). Scrolls and drags stay
+/// silent.
 class TapSounds extends ConsumerStatefulWidget {
   const TapSounds({super.key, required this.child});
 
@@ -21,17 +22,22 @@ class TapSounds extends ConsumerStatefulWidget {
 class _TapSoundsState extends ConsumerState<TapSounds> {
   final _downs = <int, (Offset, Duration)>{};
 
-  bool _onButton(Offset position) {
+  /// The sound for what's under [position]: a click for switches and
+  /// checkboxes, a pop for buttons, or nothing.
+  Sfx? _soundAt(Offset position) {
     final result = HitTestResult();
     WidgetsBinding.instance.hitTestInView(result, position, View.of(context).viewId);
     for (final entry in result.path) {
       final target = entry.target;
       if (target is SemanticsAnnotationsMixin) {
         final p = target.properties;
-        if (p.button == true && p.enabled != false) return true;
+        final toggle = p.toggled != null || p.checked != null;
+        if ((toggle || p.button == true) && p.enabled == false) return null;
+        if (toggle) return Sfx.toggle;
+        if (p.button == true) return Sfx.tap;
       }
     }
-    return false;
+    return null;
   }
 
   @override
@@ -44,9 +50,9 @@ class _TapSoundsState extends ConsumerState<TapSounds> {
       if (down == null) return;
       final (at, time) = down;
       final quick = e.timeStamp - time < const Duration(milliseconds: 500);
-      if (quick && (e.position - at).distance < 18 && _onButton(e.position)) {
-        ref.read(soundServiceProvider).play(Sfx.tap);
-      }
+      if (!quick || (e.position - at).distance >= 18) return;
+      final sound = _soundAt(e.position);
+      if (sound != null) ref.read(soundServiceProvider).play(sound);
     },
     child: widget.child,
   );

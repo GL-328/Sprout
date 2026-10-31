@@ -22,7 +22,7 @@ class _Recorder implements SoundService {
 }
 
 void main() {
-  testWidgets('buttons tick; scrolls and plain text stay quiet', (tester) async {
+  testWidgets('buttons pop, switches click; scrolls and plain text stay quiet', (tester) async {
     final sounds = _Recorder();
     await tester.pumpWidget(
       ProviderScope(
@@ -33,6 +33,7 @@ void main() {
             body: ListView(
               children: [
                 FilledButton(onPressed: () {}, child: const Text('Go')),
+                Switch(value: false, onChanged: (_) {}),
                 const Text('Just words'),
                 for (var i = 0; i < 30; i++) SizedBox(height: 60, child: Text('Row $i')),
               ],
@@ -45,11 +46,14 @@ void main() {
     await tester.tap(find.text('Go'));
     expect(sounds.played, [Sfx.tap]);
 
+    await tester.tap(find.byType(Switch));
+    expect(sounds.played, [Sfx.tap, Sfx.toggle], reason: 'switches click');
+
     await tester.tap(find.text('Just words'));
-    expect(sounds.played, [Sfx.tap], reason: 'not a button');
+    expect(sounds.played, [Sfx.tap, Sfx.toggle], reason: 'not a button');
 
     await tester.drag(find.text('Go'), const Offset(0, -200));
     await tester.pumpAndSettle();
-    expect(sounds.played, [Sfx.tap], reason: 'a scroll is not a tap');
+    expect(sounds.played, [Sfx.tap, Sfx.toggle], reason: 'a scroll is not a tap');
   });
 }
