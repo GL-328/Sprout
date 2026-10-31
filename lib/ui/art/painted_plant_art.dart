@@ -343,7 +343,8 @@ class PlantPainter extends CustomPainter {
         _sprout(p);
       }
     } else {
-      if (young) _mound(p, 0.5);
+      // Water plants grow from their pond, not a mound of soil.
+      if (young && look.form != PlantForm.lotus && look.form != PlantForm.bog) _mound(p, 0.5);
       canvas.save();
       if (young) canvas.scale(growth);
       // Sway: a skew from the ground up, so tops move and roots stay put.
@@ -847,9 +848,42 @@ class PlantPainter extends CustomPainter {
     paddle(-1.05, 0.46, look.leaf);
     paddle(-1.6, 0.4, _light);
     if (fruit) {
-      p.line(0.06, -0.46, 0.14, -0.36, shade(look.leaf, 0.3), 0.02);
-      _fruit(p, [(0.15, -0.3), (0.2, -0.22)], size: 0.14);
-      p.oval(0.22, -0.13, 0.05, 0.08, const Color(0xFFB04F7A));
+      // A hanging bunch: a curved stalk, rows of chunky bananas curling up,
+      // and the purple flower bud at the tip.
+      final stalk = shade(look.leaf, 0.3);
+      p.stroke(
+        Path()
+          ..moveTo(0.04, -0.47)
+          ..quadraticBezierTo(0.17, -0.44, 0.17, -0.14),
+        stalk,
+        0.022,
+      );
+      const banana = Color(0xFFFFD84D);
+      for (final (y, n) in [(-0.38, 4), (-0.29, 4), (-0.21, 3)]) {
+        for (var i = 0; i < n; i++) {
+          final dx = (i - (n - 1) / 2) * 0.034;
+          p.canvas.save();
+          p.canvas.translate(0.17 + dx, y);
+          p.canvas.rotate(dx * 4);
+          final b = Path()
+            ..moveTo(-0.019, 0.02)
+            ..quadraticBezierTo(-0.04, -0.04, -0.012, -0.085)
+            ..quadraticBezierTo(0.006, -0.09, 0.016, -0.078)
+            ..quadraticBezierTo(-0.006, -0.04, 0.019, 0.02)
+            ..close();
+          p.fill(b, i.isEven ? banana : shade(banana, 0.07));
+          p.circle(-0.01, -0.087, 0.006, const Color(0xFF7A5A3A));
+          p.canvas.restore();
+        }
+      }
+      // The bud.
+      final bud = Path()
+        ..moveTo(0.17, -0.15)
+        ..quadraticBezierTo(0.205, -0.11, 0.17, -0.055)
+        ..quadraticBezierTo(0.135, -0.11, 0.17, -0.15)
+        ..close();
+      p.fill(bud, const Color(0xFF9C4A73));
+      p.oval(0.163, -0.11, 0.014, 0.04, tint(const Color(0xFF9C4A73), 0.25));
     }
   }
 
@@ -1019,44 +1053,88 @@ class PlantPainter extends CustomPainter {
     if (fruit) _fruit(p, [(-0.26, -0.08), (0.26, -0.08)], size: 0.14);
   }
 
-  void _mushroom(Pen p, double x, double s) {
+  /// A toadstool [s] high: a curved, tapering stem, gills under a domed cap,
+  /// and spots that follow the curve of the cap. [button] is a little round
+  /// one just poking up.
+  void _mushroom(Pen p, double x, double s, {double tilt = 0, bool button = false}) {
     const stem = Color(0xFFF6EAD6);
-    p.rrect(x - 0.045 * s, -0.24 * s, x + 0.045 * s, 0, 0.04 * s, stem);
-    p.rrect(x + 0.01 * s, -0.24 * s, x + 0.045 * s, 0, 0.02 * s, shade(stem, 0.08));
-    final capTop = -0.4 * s;
-    final cap = Path()
-      ..moveTo(x - 0.17 * s, -0.22 * s)
-      ..quadraticBezierTo(x - 0.16 * s, capTop, x, capTop)
-      ..quadraticBezierTo(x + 0.16 * s, capTop, x + 0.17 * s, -0.22 * s)
-      ..quadraticBezierTo(x, -0.18 * s, x - 0.17 * s, -0.22 * s)
-      ..close();
-    p.oval(x, -0.21 * s, 0.32 * s, 0.05 * s, shade(stem, 0.14));
-    p.fill(cap, look.accent);
+    final cap = look.accent;
     p.canvas.save();
-    p.canvas.clipPath(cap);
-    p.oval(x + 0.08 * s, -0.24 * s, 0.3 * s, 0.14 * s, shade(look.accent, 0.12));
+    p.canvas.translate(x, 0);
+    p.canvas.rotate(tilt);
+    final h = button ? 0.1 * s : 0.26 * s;
+    final top = button ? 0.07 * s : 0.05 * s;
+    final foot = button ? 0.075 * s : 0.065 * s;
+    // The stem: wider at the foot, a gentle curve, shaded on one side.
+    final stemPath = Path()
+      ..moveTo(-foot, 0)
+      ..quadraticBezierTo(-top * 1.1, -h * 0.5, -top, -h)
+      ..lineTo(top, -h)
+      ..quadraticBezierTo(top * 1.3, -h * 0.5, foot, 0)
+      ..quadraticBezierTo(0, 0.012 * s, -foot, 0)
+      ..close();
+    p.fill(stemPath, stem);
+    p.canvas.save();
+    p.canvas.clipPath(stemPath);
+    p.oval(foot * 0.9, -h * 0.5, foot * 1.2, h * 1.4, shade(stem, 0.1));
     p.canvas.restore();
-    for (final (dx, dy, r) in const [
-      (-0.08, -0.3, 0.026),
-      (0.03, -0.35, 0.022),
-      (0.09, -0.27, 0.018),
-      (-0.02, -0.26, 0.015),
-    ]) {
-      p.circle(x + dx * s, dy * s, r * s, const Color(0xFFFFFFFF));
+    // The cap: a dome over a soft curved rim.
+    final rimY = -h + 0.02 * s;
+    final half = button ? 0.1 * s : 0.19 * s;
+    final dome = button ? 0.12 * s : 0.2 * s;
+    // Gills, seen just under the rim.
+    p.oval(0, rimY + 0.004 * s, half * 1.9, 0.05 * s, shade(stem, 0.16));
+    if (!button) {
+      for (var i = -3; i <= 3; i++) {
+        p.line(i * half * 0.22, rimY + 0.002 * s, i * half * 0.12, rimY + 0.02 * s, shade(stem, 0.28), 0.004 * s);
+      }
     }
-    p.shine(x - 0.08 * s, -0.34 * s, 0.05 * s, 0.025 * s, rot: -0.5);
+    final capPath = Path()
+      ..moveTo(-half, rimY)
+      ..cubicTo(-half, rimY - dome * 0.9, half, rimY - dome * 0.9, half, rimY)
+      ..quadraticBezierTo(0, rimY + 0.03 * s, -half, rimY)
+      ..close();
+    p.fill(capPath, cap);
+    p.canvas.save();
+    p.canvas.clipPath(capPath);
+    // Darker towards the rim and the shady side, a soft light on top.
+    p.oval(half * 0.35, rimY + 0.01 * s, half * 2.2, dome * 0.7, shade(cap, 0.12));
+    p.oval(-half * 0.3, rimY - dome * 0.62, half * 0.9, dome * 0.32, tint(cap, 0.22));
+    // Spots: rounder on top, squashed where the cap curves away.
+    if (!button) {
+      for (final (fx, fy, r) in const [
+        (-0.52, 0.42, 0.11),
+        (0.05, 0.66, 0.13),
+        (0.55, 0.4, 0.09),
+        (-0.15, 0.25, 0.07),
+      ]) {
+        final squash = 1 - (fx.abs() * 0.45);
+        p.oval(fx * half, rimY - fy * dome * 0.75, r * half * 2 * squash, r * half * 1.5, const Color(0xFFFFF8EE));
+      }
+    } else {
+      p.circle(-half * 0.25, rimY - dome * 0.4, half * 0.18, const Color(0xFFFFF8EE));
+    }
+    p.canvas.restore();
+    p.canvas.restore();
   }
 
   void _grove(Pen p, {required bool fruit}) {
-    _puffs(p, const [(-0.32, -0.04, 0.1), (0.3, -0.04, 0.1), (-0.12, -0.05, 0.12), (0.12, -0.05, 0.12)], look.leaf);
-    _mushroom(p, -0.22, 0.78);
-    _mushroom(p, 0.24, 0.9);
-    _mushroom(p, 0.0, 1.2);
+    // A soft, mossy bank behind the mushrooms, not in front of their stems.
+    p.oval(0, -0.02, 0.86, 0.13, shade(look.leaf, 0.12));
+    p.oval(-0.05, -0.035, 0.7, 0.09, look.leaf);
+    p.oval(-0.18, -0.055, 0.22, 0.035, tint(look.leaf, 0.25));
     if (fruit) {
-      _mushroom(p, -0.38, 0.42);
-      _mushroom(p, 0.4, 0.38);
+      _mushroom(p, -0.38, 0.45, tilt: -0.18);
+      _mushroom(p, 0.4, 0.4, tilt: 0.2);
     }
-    for (final x in [-0.42, -0.08, 0.36]) {
+    _mushroom(p, -0.2, 0.78, tilt: -0.1);
+    _mushroom(p, 0.23, 0.88, tilt: 0.08);
+    _mushroom(p, 0.0, 1.2);
+    // Little button mushrooms peeking out, and grass at the front.
+    for (final (x, s) in [(-0.11, 0.55), (0.12, 0.45), (0.34, 0.4)]) {
+      _mushroom(p, x, s, button: true);
+    }
+    for (final x in [-0.44, -0.28, 0.06, 0.42]) {
       p.leaf(x, 0, 0.08, 0.02, -1.9, const Color(0xFF7DBF7E));
       p.leaf(x, 0, 0.07, 0.02, -1.2, const Color(0xFF8CC98A));
     }

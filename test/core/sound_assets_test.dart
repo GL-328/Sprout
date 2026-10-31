@@ -8,7 +8,9 @@ import '../widget/test_app.dart';
 void main() {
   test('every sound effect has its file, and every one is soft', () {
     for (final sfx in Sfx.values) {
-      expect(File('assets/sounds/${sfx.name}.wav').existsSync(), isTrue, reason: '${sfx.name}.wav');
+      for (var i = 0; i < sfx.variants; i++) {
+        expect(File('assets/${sfx.file(i)}').existsSync(), isTrue, reason: sfx.file(i));
+      }
       expect(sfx.volume, inInclusiveRange(0.1, 0.6), reason: sfx.name);
     }
   });

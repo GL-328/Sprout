@@ -10,13 +10,14 @@ enum Sfx {
   harvest(0.55),
   plant(0.55),
 
-  /// Small and quiet: button taps and hellos.
-  tap(0.18, quick: true),
+  /// Small and quiet: button pops, switch clicks and hellos.
+  tap(0.2, quick: true, variants: 3),
+  toggle(0.2, quick: true),
   chirp(0.3, quick: true),
   mood(0.35),
   compost(0.45);
 
-  const Sfx(this.volume, {this.quick = false});
+  const Sfx(this.volume, {this.quick = false, this.variants = 1});
 
   /// Every sound is soft; the little ones are softer still.
   final double volume;
@@ -24,6 +25,12 @@ enum Sfx {
   /// Short sounds that play on their own low-latency player, so a tap never
   /// cuts off a bigger sound.
   final bool quick;
+
+  /// How many takes there are (`tap`, `tap2`, `tap3`), so repeats don't sound samey.
+  final int variants;
+
+  /// The file for take [i].
+  String file(int i) => 'sounds/$name${i % variants == 0 ? '' : '${i % variants + 1}'}.wav';
 }
 
 /// The music for each plot: `assets/music/<plot>.ogg`.
@@ -66,16 +73,22 @@ class AudioSoundService implements SoundService {
 
   static const _musicVolume = 0.22;
 
+  /// Sound effects mix in and never take Android's audio focus. Taking it
+  /// made the garden music pause on every tap.
+  static final _mixIn = AudioContextConfig(focus: AudioContextConfigFocus.mixWithOthers).build();
+
   bool _enabled;
   bool _musicEnabled;
   final _effects = AudioPlayer();
   final _quick = AudioPlayer();
   final _lastQuick = <Sfx, DateTime>{};
+  var _take = 0;
 
   AudioPlayer? _music;
   String? _wantTrack;
   String? _playingTrack;
   Timer? _fade;
+  bool _resuming = false;
 
   @override
   void setEnabled(bool on) => _enabled = on;
@@ -99,8 +112,9 @@ class AudioSoundService implements SoundService {
     final player = sfx.quick ? _quick : _effects;
     player
         .play(
-          AssetSource('sounds/${sfx.name}.wav'),
+          AssetSource(sfx.file(_take++)),
           volume: sfx.volume,
+          ctx: _mixIn,
           mode: sfx.quick ? PlayerMode.lowLatency : PlayerMode.mediaPlayer,
         )
         .catchError((Object e) {
@@ -110,7 +124,6 @@ class AudioSoundService implements SoundService {
 
   @override
   void setMusic(String? envId) {
-    if (envId == _wantTrack) return;
     _wantTrack = envId;
     _syncMusic();
   }
@@ -118,7 +131,15 @@ class AudioSoundService implements SoundService {
   /// Fades the current track out, then the wanted one in.
   void _syncMusic() {
     final target = _musicEnabled ? _wantTrack : null;
-    if (target == _playingTrack) return;
+    if (target == _playingTrack) {
+      // Something else (a call, another app) paused it: pick up again.
+      final player = _music;
+      if (target != null && player != null && player.state == PlayerState.paused && !_resuming) {
+        _resuming = true;
+        player.resume().catchError((Object _) {}).whenComplete(() => _resuming = false);
+      }
+      return;
+    }
     _fadeTo(0, () async {
       final player = _music ??= AudioPlayer();
       try {
