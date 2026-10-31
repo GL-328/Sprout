@@ -48,6 +48,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with SingleTickerProvid
   late final _slots = PageController(viewportFraction: PlantCarousel.viewportFraction, initialPage: _slot);
   late final _ambient = AnimationController(vsync: this, duration: const Duration(seconds: 24));
   String? _envId;
+
+  /// The plot on screen, for its music.
+  String? _shownEnv;
   late int _slot = ref.read(gameConfigProvider).startingEnvironment.slots ~/ 2;
 
   /// Measured heights of the header and the quests panel, so the garden
@@ -89,12 +92,18 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with SingleTickerProvid
     });
   }
 
+  /// Each plot's music plays only while Home is the visible tab and the app is open.
+  void _syncMusic() {
+    final visible = _foreground && TickerMode.valuesOf(context).enabled;
+    ref.read(soundServiceProvider).setMusic(visible ? _shownEnv : null);
+  }
+
   final Set<String> _recorded = {};
   bool _foreground = true;
   late final _lifecycle = AppLifecycleListener(
     onStateChange: (state) {
       _foreground = state == AppLifecycleState.resumed;
-      ref.read(soundServiceProvider).setAmbient(_foreground && TickerMode.valuesOf(context).enabled);
+      _syncMusic();
     },
   );
 
@@ -122,7 +131,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with SingleTickerProvid
       now: ref.read(clockProvider).now(),
     );
     if (!status.canHarvest) {
-      ref.read(soundServiceProvider).play(Sfx.pop);
       await showPlantSheet(context, plant);
       return;
     }
@@ -157,8 +165,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with SingleTickerProvid
 
   @override
   Widget build(BuildContext context) {
-    // Garden ambience plays only while Home is the visible tab.
-    ref.read(soundServiceProvider).setAmbient(TickerMode.valuesOf(context).enabled && _foreground);
     final calm = reduceMotion(context, ref);
     if (calm) {
       if (_ambient.isAnimating) _ambient.stop();
@@ -171,6 +177,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with SingleTickerProvid
     final now = ref.watch(nowProvider).value ?? ref.watch(clockProvider).now();
     final name = ref.watch(settingsProvider.select((s) => s.name));
     final envId = _envId != null && plots.containsKey(_envId) ? _envId! : config.startingEnvironment.id;
+    _shownEnv = envId;
+    _syncMusic();
     final env = config.environment(envId);
     final unlockedAt = plots[envId] ?? now;
     final season = seasonFor(unlockedAt: unlockedAt, now: now, daysPerSeason: config.daysPerSeason);
@@ -258,13 +266,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with SingleTickerProvid
                   night: isNight,
                   onPageChanged: (i) {
                     Haptics.selection();
-                    ref.read(soundServiceProvider).play(Sfx.swipe);
+                    ref.read(soundServiceProvider).play(Sfx.tap);
                     setState(() => _slot = i);
                   },
-                  onTapEmpty: (i) {
-                    ref.read(soundServiceProvider).play(Sfx.pop);
-                    showChooseSeedSheet(context, envId: envId, slot: i);
-                  },
+                  onTapEmpty: (i) => showChooseSeedSheet(context, envId: envId, slot: i),
                   onTapPlant: _tapPlant,
                 ),
               );
@@ -448,10 +453,7 @@ class _Header extends ConsumerWidget {
                 key: CounterTargets.bag,
                 label: 'Bag, $seeds seeds and $fruit fruit',
                 circle: true,
-                onTap: () {
-                  ref.read(soundServiceProvider).play(Sfx.pop);
-                  showBagSheet(context);
-                },
+                onTap: () => showBagSheet(context),
                 child: const Padding(padding: EdgeInsets.all(9), child: ArtIcon('bag', size: 24)),
               ),
             ),

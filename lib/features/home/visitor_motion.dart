@@ -79,6 +79,12 @@ class AnimatedVisitor extends StatelessWidget {
         x = cx;
         y = top + 20 + i * 22;
       }
+      if (gait == _Gait.flutter && !still) {
+        // Butterflies wander right across the sky, with little rises and dips.
+        double turnOf(int n) => phase * 2 * math.pi * n + offset;
+        x = 0.46 + 0.36 * math.sin(turnOf(1)) + 0.05 * math.sin(turnOf(5));
+        y = top + 40 + i * 18 + 30 * math.sin(turnOf(2)) + 9 * math.sin(turnOf(7));
+      }
     } else {
       // Back and forth along the ground at the edge, slowly.
       final from = left ? 0.02 : 0.74;
@@ -96,9 +102,18 @@ class AnimatedVisitor extends StatelessWidget {
     var glow = 1.0;
     switch (gait) {
       case _Gait.flutter:
-        // Wings open and fold, seen from above: about three flaps a second.
-        scaleX = 0.3 + 0.7 * wave(72).abs();
-        lift = 3 * wave(24);
+        // Seen from above: the wings open and fold about three times a
+        // second, and now and then it glides with them open for a beat.
+        final beat = (0.5 + 0.5 * wave(3)).clamp(0.0, 1.0);
+        final glide = 1 - beat * beat;
+        scaleX = 1 - (0.7 - 0.6 * glide) * wave(72).abs();
+        if (!still) {
+          // It turns to face the way it's flying (the art's head points up).
+          double rate(int n) => 2 * math.pi * n * math.cos(phase * 2 * math.pi * n + offset);
+          final vx = width * (0.36 * rate(1) + 0.05 * rate(5));
+          final vy = 30 * rate(2) + 9 * rate(7);
+          turn = math.atan2(vx, -vy);
+        }
       case _Gait.buzz:
         lift = 1.5 * wave(240);
         turn = 0.08 * wave(6);
@@ -125,8 +140,9 @@ class AnimatedVisitor extends StatelessWidget {
       case _Gait.amble:
         lift = 1 * wave(6).abs();
     }
-    // The art faces left; turn it round when heading right.
-    final facing = heading > 0.05 ? -1.0 : 1.0;
+    // The art faces left; turn it round when heading right. The butterfly
+    // turns its whole body instead.
+    final facing = gait == _Gait.flutter || heading <= 0.05 ? 1.0 : -1.0;
 
     return Positioned(
       left: width * x,

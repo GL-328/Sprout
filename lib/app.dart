@@ -13,6 +13,7 @@ import 'features/shell/app_shell.dart';
 import 'features/shop/shop_screen.dart';
 import 'features/today/today_screen.dart';
 import 'ui/theme/app_theme.dart';
+import 'ui/widgets/tap_sounds.dart';
 
 abstract final class Routes {
   static const onboarding = '/onboarding';
@@ -109,6 +110,7 @@ class _SproutAppState extends ConsumerState<SproutApp> {
         ThemePreference.dark => ThemeMode.dark,
       },
       routerConfig: ref.watch(routerProvider),
+      builder: (context, child) => TapSounds(child: child ?? const SizedBox.shrink()),
     );
   }
 }

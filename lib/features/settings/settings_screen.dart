@@ -101,9 +101,15 @@ class SettingsScreen extends ConsumerWidget {
               ),
               SwitchListTile(
                 title: const Text('Sounds'),
-                subtitle: const Text('Soft sound effects and garden ambience'),
+                subtitle: const Text('Soft taps and little chimes'),
                 value: s.soundOn,
                 onChanged: (v) => notifier.update((x) => x.copyWith(soundOn: v)),
+              ),
+              SwitchListTile(
+                title: const Text('Music'),
+                subtitle: const Text('Gentle music in the garden that changes with each plot'),
+                value: s.musicOn,
+                onChanged: (v) => notifier.update((x) => x.copyWith(musicOn: v)),
               ),
             ],
           ),

@@ -164,32 +164,107 @@ class GardenScenePainter extends CustomPainter {
     }
   }
 
+  /// The sun by day (6:00 to 20:00) and the moon by night travel in an arc
+  /// across the whole skyline: up from the left horizon, highest in the
+  /// middle, down behind the right-hand hills.
   void _sunOrMoon(Canvas canvas, Size size) {
     if (isNight && !silhouette) _stars(canvas, size);
     if (weather == Weather.softRain && !isNight) return;
-    final t = isNight ? ((hour + 4) % 24) / 10 : (hour - 6) / 14;
-    final x = size.width * (0.58 + 0.32 * t.clamp(0.0, 1.0));
-    final y = size.height * (0.26 - 0.08 * math.sin(math.pi * t.clamp(0.0, 1.0)));
-    final r = size.width * 0.036;
-    final c = Offset(x, y);
+    final t = (isNight ? (hour >= 20 ? hour - 20 : hour + 4) / 10 : (hour - 6) / 14).clamp(0.0, 1.0);
+    final arc = math.sin(math.pi * t);
+    final c = Offset(size.width * (0.06 + 0.88 * t), size.height * (0.53 - 0.40 * arc));
+    // A little bigger and warmer near the horizon.
+    final low = 1 - arc;
+    final r = size.width * 0.05 * (1 + 0.15 * low);
     if (isNight) {
-      final moon = _mute(const Color(0xFFFBF3D5));
-      canvas.drawCircle(c, r * 2.1, _fill(moon.withValues(alpha: 0.08)));
-      canvas.drawCircle(c, r * 1.5, _fill(moon.withValues(alpha: 0.12)));
-      // A crescent: the moon with an offset circle cut away.
-      final crescent = Path.combine(
-        PathOperation.difference,
-        Path()..addOval(Rect.fromCircle(center: c, radius: r)),
-        Path()..addOval(Rect.fromCircle(center: c.translate(r * 0.55, -r * 0.3), radius: r * 0.88)),
-      );
-      canvas.drawPath(crescent, _fill(moon));
-      return;
+      _moon(canvas, c, r);
+    } else {
+      _sun(canvas, c, r, low);
     }
-    final sun = _mute(const Color(0xFFFFD86B));
-    canvas.drawCircle(c, r * 2.2, _fill(sun.withValues(alpha: 0.12)));
-    canvas.drawCircle(c, r * 1.55, _fill(sun.withValues(alpha: 0.2)));
-    canvas.drawCircle(c, r, _fill(sun));
-    canvas.drawCircle(c.translate(-r * 0.3, -r * 0.32), r * 0.3, _fill(Colors.white.withValues(alpha: 0.35)));
+  }
+
+  Paint _glow(Offset c, double radius, Color colour, double alpha) => Paint()
+    ..shader = RadialGradient(
+      colors: [
+        colour.withValues(alpha: alpha),
+        colour.withValues(alpha: 0),
+      ],
+    ).createShader(Rect.fromCircle(center: c, radius: radius));
+
+  void _sun(Canvas canvas, Offset c, double r, double low) {
+    final warm = Color.lerp(const Color(0xFFFFC94D), const Color(0xFFFF9F5A), low * 0.8)!;
+    final light = Color.lerp(const Color(0xFFFFEDA6), const Color(0xFFFFD08A), low * 0.8)!;
+    canvas.drawCircle(c, r * 2.8, _glow(c, r * 2.8, _mute(light), 0.45));
+    // Soft, rounded rays that turn very slowly (one ray's width per loop).
+    const rays = 10;
+    canvas.save();
+    canvas.translate(c.dx, c.dy);
+    canvas.rotate(phase * 2 * math.pi / rays);
+    for (var i = 0; i < rays; i++) {
+      final a = i * 2 * math.pi / rays;
+      canvas.save();
+      canvas.rotate(a);
+      canvas.drawRRect(
+        RRect.fromRectAndRadius(
+          Rect.fromCenter(center: Offset(r * 1.42, 0), width: r * 0.5, height: r * 0.3),
+          Radius.circular(r * 0.15),
+        ),
+        _fill(_mute(light).withValues(alpha: 0.9)),
+      );
+      canvas.restore();
+    }
+    canvas.restore();
+    final disc = Rect.fromCircle(center: c, radius: r);
+    canvas.drawCircle(
+      c,
+      r,
+      Paint()
+        ..shader = RadialGradient(
+          center: const Alignment(-0.35, -0.4),
+          colors: [_mute(light), _mute(warm)],
+        ).createShader(disc),
+    );
+    canvas.drawOval(
+      Rect.fromCenter(center: c.translate(-r * 0.34, -r * 0.38), width: r * 0.5, height: r * 0.3),
+      _fill(Colors.white.withValues(alpha: 0.4)),
+    );
+  }
+
+  void _moon(Canvas canvas, Offset c, double r) {
+    canvas.drawCircle(c, r * 3, _glow(c, r * 3, _mute(const Color(0xFFDDE6FF)), 0.28));
+    // A crescent: the moon with an offset circle cut away.
+    final crescent = Path.combine(
+      PathOperation.difference,
+      Path()..addOval(Rect.fromCircle(center: c, radius: r)),
+      Path()..addOval(Rect.fromCircle(center: c.translate(r * 0.55, -r * 0.3), radius: r * 0.88)),
+    );
+    canvas.drawPath(
+      crescent,
+      Paint()
+        ..shader = LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [_mute(const Color(0xFFFFF8DC)), _mute(const Color(0xFFEBDDB0))],
+        ).createShader(Rect.fromCircle(center: c, radius: r)),
+    );
+    // Two faint craters.
+    canvas.save();
+    canvas.clipPath(crescent);
+    final crater = _fill(_mute(const Color(0xFFD9C893)).withValues(alpha: 0.55));
+    canvas.drawCircle(c.translate(-r * 0.5, r * 0.15), r * 0.14, crater);
+    canvas.drawCircle(c.translate(-r * 0.22, r * 0.58), r * 0.09, crater);
+    canvas.restore();
+    if (silhouette) return;
+    // A couple of twinkles keeping it company.
+    final pen = Pen(canvas);
+    for (final (dx, dy, s, k) in [(1.7, -1.1, 0.32, 0.0), (-1.5, -1.5, 0.22, 2.1)]) {
+      final tw = 0.6 + 0.4 * math.sin(phase * 2 * math.pi * 4 + k);
+      final size = r * s * tw;
+      pen.fill(
+        pen.star(c.dx + r * dx, c.dy + r * dy, size, size * 0.32, points: 4, rot: 0),
+        Colors.white.withValues(alpha: 0.9 * tw),
+      );
+    }
   }
 
   /// Twinkling four-point sparkles and tiny dots, always in the same places.

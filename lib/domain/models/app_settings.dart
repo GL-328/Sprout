@@ -14,6 +14,7 @@ class AppSettings {
     this.theme = ThemePreference.system,
     this.accent = AccentChoice.peach,
     this.soundOn = false,
+    this.musicOn = false,
     this.reducedMotion = false,
     this.remindersOn = false,
     this.checkInReminderMinutes = 9 * 60,
@@ -26,6 +27,9 @@ class AppSettings {
   final ThemePreference theme;
   final AccentChoice accent;
   final bool soundOn;
+
+  /// Gentle music on Home that changes with the plot.
+  final bool musicOn;
   final bool reducedMotion;
 
   /// Master switch for gentle reminders. Off unless the user turns it on.
@@ -44,6 +48,7 @@ class AppSettings {
     ThemePreference? theme,
     AccentChoice? accent,
     bool? soundOn,
+    bool? musicOn,
     bool? reducedMotion,
     bool? remindersOn,
     int? checkInReminderMinutes,
@@ -55,6 +60,7 @@ class AppSettings {
     theme: theme ?? this.theme,
     accent: accent ?? this.accent,
     soundOn: soundOn ?? this.soundOn,
+    musicOn: musicOn ?? this.musicOn,
     reducedMotion: reducedMotion ?? this.reducedMotion,
     remindersOn: remindersOn ?? this.remindersOn,
     checkInReminderMinutes: checkInReminderMinutes ?? this.checkInReminderMinutes,
@@ -68,6 +74,7 @@ class AppSettings {
     'theme': theme.name,
     'accent': accent.name,
     'sound_on': '$soundOn',
+    'music_on': '$musicOn',
     'reduced_motion': '$reducedMotion',
     'reminders_on': '$remindersOn',
     'check_in_reminder_minutes': '$checkInReminderMinutes',
@@ -89,6 +96,7 @@ class AppSettings {
       theme: pick(ThemePreference.values, e['theme'], d.theme),
       accent: pick(AccentChoice.values, e['accent'], d.accent),
       soundOn: e['sound_on'] == 'true',
+      musicOn: e['music_on'] == 'true',
       reducedMotion: e['reduced_motion'] == 'true',
       remindersOn: e['reminders_on'] == 'true',
       checkInReminderMinutes: int.tryParse(e['check_in_reminder_minutes'] ?? '') ?? d.checkInReminderMinutes,

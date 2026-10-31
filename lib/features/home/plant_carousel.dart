@@ -385,34 +385,43 @@ class _EmptyRing extends StatelessWidget {
   Widget build(BuildContext context) {
     final accent = Theme.of(context).colorScheme.primary;
     final button = size * 0.7;
-    return SizedBox.square(
-      dimension: size,
+    // The ring floats above the soil patch, so the patch shows clearly below it.
+    return SizedBox(
+      width: size,
+      height: size * 1.35,
       child: Stack(
         alignment: Alignment.center,
         children: [
           Positioned(bottom: 0, child: dim(plantArtProvider.groundSpot(size: size * 1.1))),
-          // See-through: a white ring that breathes out and fades away, then
-          // a white ring around an orange +, so the soil shows through.
-          Container(
-            width: button * (1 + 0.3 * pulse),
-            height: button * (1 + 0.3 * pulse),
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              border: Border.all(color: SproutColors.paper.withValues(alpha: 0.7 * (1 - pulse)), width: 2),
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            height: size,
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                // See-through: a white ring that breathes out and fades away,
+                // then a white ring around an orange +.
+                Container(
+                  width: button * (1 + 0.3 * pulse),
+                  height: button * (1 + 0.3 * pulse),
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(color: SproutColors.paper.withValues(alpha: 0.7 * (1 - pulse)), width: 2),
+                  ),
+                ),
+                Container(
+                  width: button,
+                  height: button,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(color: SproutColors.paper.withValues(alpha: 0.9), width: 3),
+                  ),
+                ),
+                CustomPaint(size: Size.square(button * 0.44), painter: _PlusPainter(accent)),
+              ],
             ),
-          ),
-          Container(
-            width: button,
-            height: button,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              border: Border.all(color: SproutColors.paper.withValues(alpha: 0.9), width: 3),
-            ),
-          ),
-          // The + sits a little high in the ring, so the soil shows beneath it.
-          Transform.translate(
-            offset: Offset(0, -button * 0.1),
-            child: CustomPaint(size: Size.square(button * 0.44), painter: _PlusPainter(accent)),
           ),
         ],
       ),

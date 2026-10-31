@@ -4,13 +4,17 @@ A Finch-like self-care app: finish quests, earn seeds, grow a garden. Flutter, A
 The owner is GL-328 (repo GL-328/Sprout, renamed from GL328). Read this first in every session.
 
 ## Toolchain and checks
-- Flutter 3.47.7, `dart format -l 120`, `flutter analyze` must be clean, `flutter test` must pass (211 tests).
+- Flutter 3.47.7, `dart format -l 120`, `flutter analyze` must be clean, `flutter test` must pass (213 tests).
 - Riverpod 3 (unlistened providers pause: don't await `.future` from a Notifier, read repositories directly), drift
   (in-memory DB in tests), game rules in `assets/config/game_config.yaml`.
 - Visual checks: `test/visual/*` render PNGs to `build/visual/` (`loadAppFonts`, `setPhoneScreen`, `shot`,
   `savePng`). Always render and look at UI changes before calling them done.
 - Style: the owner prefers no outlines and no 3D/lip styling (tried in build 33, reverted). Keep art flat and soft.
 - AppBar titles need an explicit font size in the theme (the text theme has no sizes when the theme is built).
+- Sound: `lib/core/sound_service.dart`. Effects are made by `tool/generate_sounds.py`, music (one seamless OGG
+  loop per plot) by `tool/generate_music.py` (numpy + ffmpeg); Settings has separate Sounds and Music switches.
+  Every button ticks via the global `TapSounds` listener (`lib/ui/widgets/tap_sounds.dart`, anything with
+  `Semantics(button: true)`), so don't add tap sounds by hand.
 - No emoji anywhere in the app: flat painted icons via `ArtIcon(id)` / `IconText` in `lib/ui/art/icon_art.dart`
   (guarded by `test/widget/no_emoji_test.dart`).
 
