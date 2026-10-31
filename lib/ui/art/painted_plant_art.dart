@@ -324,50 +324,94 @@ class PlantPainter extends CustomPainter {
     final tall = growth == 0 ? 0.56 : naturalHeight(look) * growth;
     final fit = math.min(1.0, (groundY / w) / math.max(tall, 0.4));
 
+    final small = stage == GrowthStage.seed || stage == GrowthStage.sprout;
+    // Seeds and sprouts are small in life; draw them a little larger so they
+    // read well in the garden.
+    void place() {
+      canvas.translate(w / 2, groundY);
+      canvas.scale(w * fit);
+    }
+
+    // The shadow and the soil bed sit on the ground, outside the outline, so
+    // they fade softly into the grass.
     canvas.save();
-    canvas.translate(w / 2, groundY);
-    canvas.scale(w * fit);
+    place();
     final p = Pen(canvas);
-
-    // A gentle shadow under every plant.
-    p.oval(0, 0.005, growth == 0 ? 0.5 : 0.36 + 0.3 * growth, 0.07, const Color(0x1F3B2E3A));
-
-    if (stage == GrowthStage.seed || stage == GrowthStage.sprout) {
-      // Seeds and sprouts are small in life; draw them a little larger so
-      // they read well in the garden.
-      canvas.scale(1.35);
-      if (stage == GrowthStage.seed) {
-        _seedInSoil(p);
-      } else {
-        _mound(p, 0.48);
-        _sprout(p);
-      }
-    } else {
-      if (young) _mound(p, 0.5);
-      canvas.save();
-      if (young) canvas.scale(growth);
-      // Sway: a skew from the ground up, so tops move and roots stay put.
-      canvas.transform(Matrix4.skewX(-sway * 0.05).storage);
-      _form(p, flowers: mature, fruit: stage == GrowthStage.fruiting);
-      canvas.restore();
+    _softOval(canvas, 0, 0.005, growth == 0 ? 0.6 : 0.44 + 0.34 * growth, 0.1, const Color(0x2E3B2E3A), solid: 0.3);
+    if (small) canvas.scale(1.35);
+    final bed = switch (stage) {
+      GrowthStage.seed => 0.56,
+      GrowthStage.sprout => 0.48,
+      GrowthStage.young => 0.5,
+      _ => 0.0,
+    };
+    if (bed > 0) {
+      _softSoil(p, bed * 1.3, seed: 5);
+      // The mound fades into its bed, so it stays outside the outline too.
+      _mound(p, bed);
     }
     canvas.restore();
+
+    paintOutlined(canvas, Offset.zero & size, outlineWidth(w) * 0.85, () {
+      canvas.save();
+      place();
+      if (small) {
+        canvas.scale(1.35);
+        if (stage == GrowthStage.seed) {
+          _seedInSoil(p);
+        } else {
+          _sprout(p);
+        }
+      } else {
+        canvas.save();
+        if (young) canvas.scale(growth);
+        // Sway: a skew from the ground up, so tops move and roots stay put.
+        canvas.transform(Matrix4.skewX(-sway * 0.05).storage);
+        _form(p, flowers: mature, fruit: stage == GrowthStage.fruiting);
+        canvas.restore();
+      }
+      canvas.restore();
+    });
+    if (stage == GrowthStage.seed) {
+      canvas.save();
+      place();
+      canvas.scale(1.35);
+      _seedHug(p);
+      canvas.restore();
+    }
   }
 
   // --- Seed and sprout -------------------------------------------------------
 
+  /// The soil mound. Its soft bed is drawn separately, under the outline.
   void _mound(Pen p, double width) {
     final h = width * 0.36;
     final dome = Path()
       ..moveTo(-width / 2, 0)
       ..cubicTo(-width * 0.42, -h * 1.15, width * 0.42, -h * 1.15, width / 2, 0)
       ..close();
+    // The mound is drawn on its own layer, then faded out towards its foot,
+    // so it sinks into the soil bed with no hard bottom edge.
+    final bounds = Rect.fromLTRB(-width / 2, -h, width / 2, 0);
+    p.canvas.saveLayer(bounds.inflate(width * 0.05), Paint());
     p.fill(dome, _soil);
     p.canvas.save();
     p.canvas.clipPath(dome);
     // Tonal shading: a darker base and a soft lit top.
     p.oval(0, h * 0.25, width * 1.1, h * 1.1, shade(_soil, 0.12));
     p.oval(-width * 0.12, -h * 0.82, width * 0.5, h * 0.38, tint(_soil, 0.22));
+    p.canvas.restore();
+    p.canvas.drawRect(
+      bounds.inflate(width * 0.05),
+      Paint()
+        ..blendMode = BlendMode.dstIn
+        ..shader = const LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [Colors.white, Colors.white, Color(0x00FFFFFF)],
+          stops: [0, 0.62, 0.96],
+        ).createShader(bounds),
+    );
     p.canvas.restore();
     // Speckled texture, always in the same places.
     final rnd = math.Random(7);
@@ -376,16 +420,9 @@ class PlantPainter extends CustomPainter {
       final y = -rnd.nextDouble() * h * 0.7 - h * 0.08;
       p.circle(x, y, width * (0.012 + rnd.nextDouble() * 0.01), i.isEven ? shade(_soil, 0.25) : tint(_soil, 0.35));
     }
-    // Two little grass tufts.
-    for (final side in [-1.0, 1.0]) {
-      final x = side * width * 0.46;
-      p.leaf(x, 0, 0.07, 0.018, -math.pi / 2 - side * 0.5, const Color(0xFF8CC98A));
-      p.leaf(x, 0, 0.055, 0.016, -math.pi / 2 + side * 0.1, const Color(0xFF7DBF7E));
-    }
   }
 
   void _seedInSoil(Pen p) {
-    _mound(p, 0.56);
     const seed = Color(0xFFB97B4E);
     p.canvas.save();
     // The seed rocks gently on its base.
@@ -422,7 +459,11 @@ class PlantPainter extends CustomPainter {
     );
     p.leaf(0.022, -0.212, 0.06, 0.022, -0.5, const Color(0xFF8BD18F));
     p.canvas.restore();
-    // Soil hugging the seed's base, so it sits in the ground.
+  }
+
+  /// Soil hugging the seed's base, so it sits in the ground. Drawn over the
+  /// seed's outline.
+  void _seedHug(Pen p) {
     p.fill(
       Path()
         ..moveTo(-0.16, -0.06)
@@ -1325,6 +1366,62 @@ class PlantPainter extends CustomPainter {
       old.stage != stage || old.sway != sway || old.look != look || old.fruitIcon != fruitIcon;
 }
 
+/// A soft oval that fades out at its edge, [width] by [height], centred on
+/// ([cx], [cy]). Nothing hard-edged, so it melts into whatever is under it.
+void _softOval(Canvas canvas, double cx, double cy, double width, double height, Color colour, {double solid = 0.55}) {
+  canvas.save();
+  canvas.translate(cx, cy);
+  canvas.scale(1, height / width);
+  final r = width / 2;
+  canvas.drawCircle(
+    Offset.zero,
+    r,
+    Paint()
+      ..shader = RadialGradient(
+        colors: [colour, colour, colour.withValues(alpha: 0)],
+        stops: [0, solid, 1],
+      ).createShader(Rect.fromCircle(center: Offset.zero, radius: r)),
+  );
+  canvas.restore();
+}
+
+/// Dug soil that blends into the grass: a soft shadow, a soil bed with a
+/// feathered edge, crumbs spilling onto the grass and blades at its sides.
+/// [width] is in the pen's units, centred on x = 0. The bed sits just above
+/// y = 0, so nothing is cut off at the bottom of the picture.
+void _softSoil(Pen p, double width, {int seed = 3}) {
+  final h = width * 0.27;
+  final cy = -h * 0.42;
+  _softOval(p.canvas, 0, cy + h * 0.06, width * 1.2, h * 0.8, const Color(0x2E3B2E3A), solid: 0.3);
+  _softOval(p.canvas, 0, cy, width * 1.06, h * 0.8, shade(_soil, 0.08), solid: 0.6);
+  _softOval(p.canvas, 0, cy - h * 0.04, width * 0.86, h * 0.62, _soil, solid: 0.7);
+  _softOval(p.canvas, -width * 0.14, cy - h * 0.14, width * 0.4, h * 0.2, tint(_soil, 0.22));
+  final rnd = math.Random(seed);
+  // Crumbs and small pebbles, inside the bed and just past its sides.
+  for (var i = 0; i < 12; i++) {
+    final a = rnd.nextDouble() * 2 * math.pi;
+    final d = i < 8 ? rnd.nextDouble() * 0.75 : 0.95 + rnd.nextDouble() * 0.2;
+    final c = i.isEven ? shade(_soil, 0.25) : tint(_soil, 0.35);
+    p.circle(
+      math.cos(a) * d * width * 0.5,
+      cy + math.sin(a) * d * h * 0.3,
+      width * (0.01 + rnd.nextDouble() * 0.008),
+      c,
+    );
+  }
+  // Grass blades over the bed's edge at each side.
+  const blade = Color(0xFF8CC98A);
+  const bladeDark = Color(0xFF7DBF7E);
+  for (final fx in [-0.5, -0.4, 0.42, 0.5]) {
+    final x = fx * width;
+    final s = width * (0.09 + rnd.nextDouble() * 0.04);
+    final lean = fx.sign * 0.25;
+    p.leaf(x, cy + h * 0.1, s, s * 0.24, -math.pi / 2 - 0.4 + lean, bladeDark);
+    p.leaf(x, cy + h * 0.1, s * 1.2, s * 0.26, -math.pi / 2 + lean, blade);
+    p.leaf(x, cy + h * 0.1, s, s * 0.24, -math.pi / 2 + 0.4 + lean, bladeDark);
+  }
+}
+
 /// An empty patch of dug soil, where a new seed can go.
 class _SpotPainter extends CustomPainter {
   @override
@@ -1332,20 +1429,7 @@ class _SpotPainter extends CustomPainter {
     canvas.save();
     canvas.translate(size.width / 2, size.height * 0.55);
     canvas.scale(size.width);
-    final p = Pen(canvas);
-    p.oval(0, 0.02, 0.9, 0.24, const Color(0x1F3B2E3A));
-    p.oval(0, 0, 0.86, 0.22, shade(_soil, 0.1));
-    p.oval(0, -0.01, 0.78, 0.17, _soil);
-    p.oval(-0.12, -0.03, 0.36, 0.06, tint(_soil, 0.22));
-    final rnd = math.Random(3);
-    for (var i = 0; i < 10; i++) {
-      final c = i.isEven ? shade(_soil, 0.25) : tint(_soil, 0.35);
-      p.circle((rnd.nextDouble() - 0.5) * 0.6, (rnd.nextDouble() - 0.5) * 0.1, 0.012, c);
-    }
-    for (final side in [-1.0, 1.0]) {
-      p.leaf(side * 0.44, 0.0, 0.08, 0.02, -math.pi / 2 - side * 0.5, const Color(0xFF8CC98A));
-      p.leaf(side * 0.44, 0.0, 0.06, 0.018, -math.pi / 2 + side * 0.1, const Color(0xFF7DBF7E));
-    }
+    _softSoil(Pen(canvas), 0.82);
     canvas.restore();
   }
 

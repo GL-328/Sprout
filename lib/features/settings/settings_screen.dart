@@ -10,6 +10,7 @@ import '../../ui/theme/app_theme.dart';
 import '../../ui/widgets/soft_card.dart';
 import 'about_screen.dart';
 import 'data_section.dart';
+import 'dev_mode_section.dart';
 import 'updates_section.dart';
 import '../../ui/layout/insets.dart';
 
@@ -27,6 +28,7 @@ class SettingsScreen extends ConsumerWidget {
       body: ListView(
         padding: AppInsets.list(context),
         children: [
+          const DevModeCard(),
           _Section(
             title: 'You',
             children: [

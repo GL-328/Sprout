@@ -4,11 +4,17 @@ A Finch-like self-care app: finish quests, earn seeds, grow a garden. Flutter, A
 The owner is GL-328 (repo GL-328/Sprout, renamed from GL328). Read this first in every session.
 
 ## Toolchain and checks
-- Flutter 3.47.7, `dart format -l 120`, `flutter analyze` must be clean, `flutter test` must pass (207 tests).
+- Flutter 3.47.7, `dart format -l 120`, `flutter analyze` must be clean, `flutter test` must pass (210 tests).
 - Riverpod 3 (unlistened providers pause: don't await `.future` from a Notifier, read repositories directly), drift
   (in-memory DB in tests), game rules in `assets/config/game_config.yaml`.
 - Visual checks: `test/visual/*` render PNGs to `build/visual/` (`loadAppFonts`, `setPhoneScreen`, `shot`,
   `savePng`). Always render and look at UI changes before calling them done.
+- Art style (storybook, Finch-like): every drawing gets a soft outline in a deeper shade of its own colours via
+  `paintOutlined` (`lib/ui/art/icon_painters.dart`; icons, plants, the shopkeeper, scenery). The garden's land is
+  drawn once into a cached image (`GardenScenePainter._landImage`) with outlines and paper grain.
+- UI style: `Chunky.box` (outline + solid bottom lip) for cards, pills and tiles, and `ChunkyBorder` for buttons and
+  the FAB (`lib/ui/theme/chunky.dart`). No frosted/see-through buttons, no blurry drop shadows.
+- AppBar titles need an explicit font size in the theme (the text theme has no sizes when the theme is built).
 - No emoji anywhere in the app: flat painted icons via `ArtIcon(id)` / `IconText` in `lib/ui/art/icon_art.dart`
   (guarded by `test/widget/no_emoji_test.dart`).
 
@@ -25,6 +31,11 @@ The owner is GL-328 (repo GL-328/Sprout, renamed from GL328). Read this first in
 - Owner's phone is a Samsung. Build 24 fixed "Update was cancelled" there; confirmed working on the device.
 - Commits are authored as `GL-328 <331449904+GL-328@users.noreply.github.com>` (the owner's GitHub private
   email blocks pushes that expose their real address).
+
+## Developer mode (hidden)
+- Settings → About Sprout → tap "Version …" 7 times → password (only its SHA-256 is in `lib/core/dev_mode.dart`;
+  never write the password itself into the repo). Turning it on saves a full backup snapshot to a file, then
+  unlocks every plot. "Reset and turn off" (card at the top of Settings) restores that snapshot exactly.
 
 ## Friends (built, off until Firebase is set up)
 - Add friends by 8-letter code, accept/decline/block/remove, visit friends' gardens read-only, once-a-day visit

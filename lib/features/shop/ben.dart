@@ -98,53 +98,65 @@ class _BenWindowState extends ConsumerState<BenWindow> with SingleTickerProvider
     final now = ref.watch(nowProvider).value ?? ref.watch(clockProvider).now();
     final hour = now.hour + now.minute / 60;
 
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(28),
-      child: SizedBox(
-        height: widget.height,
-        child: AnimatedBuilder(
-          animation: _life,
-          builder: (context, _) {
-            final t = calm ? 0.0 : _life.value;
-            // A quick blink near the end of each loop.
-            final blink = t > 0.94 ? math.sin((t - 0.94) / 0.06 * math.pi) : 0.0;
-            final sway = math.sin(t * 2 * math.pi);
-            final bob = ben.mood == BenMood.idle || calm ? 0.0 : (math.sin(t * 2 * math.pi * 10).abs());
-            return Stack(
-              children: [
-                Positioned.fill(
-                  child: CustomPaint(painter: _StallPainter(hour: hour)),
-                ),
-                Positioned(
-                  left: 8,
-                  bottom: 34,
-                  child: Semantics(
-                    button: true,
-                    label: 'Ben the shopkeeper. Tap to chat',
-                    excludeSemantics: true,
-                    onTap: () => ref.read(benProvider.notifier).chat(),
-                    child: GestureDetector(
+    // A painted frame: a soft outline over the scene and a lip underneath.
+    const frame = Color(0xFFDCC9B6);
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(28),
+        boxShadow: const [BoxShadow(color: frame, offset: Offset(0, 3))],
+      ),
+      foregroundDecoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(28),
+        border: Border.all(color: frame, width: 1.5),
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(28),
+        child: SizedBox(
+          height: widget.height,
+          child: AnimatedBuilder(
+            animation: _life,
+            builder: (context, _) {
+              final t = calm ? 0.0 : _life.value;
+              // A quick blink near the end of each loop.
+              final blink = t > 0.94 ? math.sin((t - 0.94) / 0.06 * math.pi) : 0.0;
+              final sway = math.sin(t * 2 * math.pi);
+              final bob = ben.mood == BenMood.idle || calm ? 0.0 : (math.sin(t * 2 * math.pi * 10).abs());
+              return Stack(
+                children: [
+                  Positioned.fill(
+                    child: CustomPaint(painter: _StallPainter(hour: hour)),
+                  ),
+                  Positioned(
+                    left: 8,
+                    bottom: 34,
+                    child: Semantics(
+                      button: true,
+                      label: 'Ben the shopkeeper. Tap to chat',
+                      excludeSemantics: true,
                       onTap: () => ref.read(benProvider.notifier).chat(),
-                      child: characterArt.ben(
-                        mood: ben.mood,
-                        size: widget.height * 0.7,
-                        blink: blink,
-                        sway: sway,
-                        bob: bob,
+                      child: GestureDetector(
+                        onTap: () => ref.read(benProvider.notifier).chat(),
+                        child: characterArt.ben(
+                          mood: ben.mood,
+                          size: widget.height * 0.7,
+                          blink: blink,
+                          sway: sway,
+                          bob: bob,
+                        ),
                       ),
                     ),
                   ),
-                ),
-                Positioned(left: 0, right: 0, bottom: 0, height: 40, child: CustomPaint(painter: _CounterPainter())),
-                Positioned(
-                  left: widget.height * 0.7 + 4,
-                  right: 12,
-                  top: 30,
-                  child: _SpeechBubble(text: ben.text, reduceMotion: calm),
-                ),
-              ],
-            );
-          },
+                  Positioned(left: 0, right: 0, bottom: 0, height: 40, child: CustomPaint(painter: _CounterPainter())),
+                  Positioned(
+                    left: widget.height * 0.7 + 4,
+                    right: 12,
+                    top: 30,
+                    child: _SpeechBubble(text: ben.text, reduceMotion: calm),
+                  ),
+                ],
+              );
+            },
+          ),
         ),
       ),
     );

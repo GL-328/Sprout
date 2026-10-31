@@ -195,17 +195,22 @@ class _IconPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    canvas.save();
-    canvas.scale(size.width, size.height);
-    final pen = Pen(canvas);
-    if (id.startsWith('mood:')) {
-      final mood = int.tryParse(id.substring(5)) ?? 3;
-      paintMoodFace(pen, moodFaceColors[mood] ?? moodFaceColors[3]!, const Color(0xFFF7B6C4), mood);
-    } else {
-      final spec = iconSpecs[id] ?? const IconSpec(paintLeaf, Color(0xFF9AD5A0));
-      spec.paint(pen, spec.a, spec.b, spec.c);
-    }
-    canvas.restore();
+    // Icons stay inside a slightly smaller box, so the outline isn't clipped.
+    final width = outlineWidth(size.width);
+    paintOutlined(canvas, Offset.zero & size, width, () {
+      canvas.save();
+      canvas.translate(width, width);
+      canvas.scale(size.width - width * 2, size.height - width * 2);
+      final pen = Pen(canvas);
+      if (id.startsWith('mood:')) {
+        final mood = int.tryParse(id.substring(5)) ?? 3;
+        paintMoodFace(pen, moodFaceColors[mood] ?? moodFaceColors[3]!, const Color(0xFFF7B6C4), mood);
+      } else {
+        final spec = iconSpecs[id] ?? const IconSpec(paintLeaf, Color(0xFF9AD5A0));
+        spec.paint(pen, spec.a, spec.b, spec.c);
+      }
+      canvas.restore();
+    });
   }
 
   @override

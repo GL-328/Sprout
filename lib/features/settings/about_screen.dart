@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../ui/widgets/soft_card.dart';
 import '../../ui/layout/insets.dart';
 import '../../ui/art/icon_art.dart';
+import 'dev_mode_section.dart';
 
 /// Shared wording for the wellbeing note, also shown in the Journal.
 const notMedicalAdviceNote =
@@ -57,6 +58,7 @@ class AboutScreen extends StatelessWidget {
             'Font: Nunito, by Vernon Adams and contributors, under the SIL Open Font License.',
             style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
           ),
+          const BuildLine(),
         ],
       ),
     );

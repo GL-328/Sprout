@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 
 import '../theme/app_theme.dart';
+import '../theme/chunky.dart';
 
-/// Large rounded card with a soft shadow. The building block of most screens.
+/// Large rounded card with a soft outline and lip. The building block of most screens.
 class SoftCard extends StatelessWidget {
   const SoftCard({super.key, required this.child, this.padding = const EdgeInsets.all(20), this.color, this.onTap});
 
@@ -15,22 +16,14 @@ class SoftCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final dark = theme.brightness == Brightness.dark;
+    final fill = color ?? theme.colorScheme.surface;
+    final radius = BorderRadius.circular(AppTheme.radius);
+    // Painted cards: a soft outline and a solid lip, not a blurry shadow.
     return DecoratedBox(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(AppTheme.radius),
-        boxShadow: dark
-            ? null
-            : [
-                BoxShadow(
-                  color: const Color(0xFF8C6E5A).withValues(alpha: 0.08),
-                  blurRadius: 24,
-                  offset: const Offset(0, 8),
-                ),
-              ],
-      ),
+      decoration: Chunky.box(fill, radius: radius, dark: dark),
       child: Material(
-        color: color ?? theme.colorScheme.surface,
-        borderRadius: BorderRadius.circular(AppTheme.radius),
+        color: fill,
+        borderRadius: radius,
         clipBehavior: Clip.antiAlias,
         child: InkWell(
           onTap: onTap,

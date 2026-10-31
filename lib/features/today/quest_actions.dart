@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/haptics.dart';
@@ -9,6 +10,7 @@ import '../../ui/theme/category_style.dart';
 import '../quests/quest_editor_screen.dart';
 import 'seed_reveal.dart';
 import '../../ui/layout/insets.dart';
+import '../../ui/theme/chunky.dart';
 
 /// Completes [quest]: haptic, sound, the undo snackbar and, when the Seed Meter
 /// fills, the seed reveal. Shared by the Home quests panel and the Today tab.
@@ -155,66 +157,77 @@ class _QuestRowState extends State<QuestRow> {
     final tint = categoryColor(q.category);
     final duration = widget.reduceMotion ? Duration.zero : const Duration(milliseconds: 320);
     final circle = widget.compact ? 34.0 : 40.0;
-    return Material(
-      color: tint.withValues(alpha: 0.22),
-      borderRadius: BorderRadius.circular(22),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(22),
-        onTap: _tick,
-        onLongPress: widget.onMenu,
-        child: Padding(
-          padding: EdgeInsets.fromLTRB(12, widget.compact ? 8 : 12, 4, widget.compact ? 8 : 12),
-          child: Row(
-            children: [
-              Semantics(
-                button: true,
-                label: 'Complete ${q.title}',
-                excludeSemantics: true,
-                onTap: _tick,
-                child: AnimatedContainer(
-                  duration: duration,
-                  curve: Curves.easeOutBack,
-                  width: circle,
-                  height: circle,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: _ticked ? const Color(0xFF7FC48B) : theme.colorScheme.surface,
-                    border: Border.all(color: _ticked ? const Color(0xFF7FC48B) : tint, width: 3),
-                  ),
-                  child: AnimatedScale(
-                    scale: _ticked ? 1 : 0,
+    final dark = theme.brightness == Brightness.dark;
+    final fill = Color.alphaBlend(tint.withValues(alpha: dark ? 0.16 : 0.22), theme.colorScheme.surface);
+    final radius = BorderRadius.circular(22);
+    return DecoratedBox(
+      decoration: Chunky.box(fill, radius: radius, dark: dark),
+      child: Material(
+        color: fill,
+        borderRadius: radius,
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(22),
+          onTap: _tick,
+          onLongPress: widget.onMenu,
+          child: Padding(
+            padding: EdgeInsets.fromLTRB(12, widget.compact ? 8 : 12, 4, widget.compact ? 8 : 12),
+            child: Row(
+              children: [
+                Semantics(
+                  button: true,
+                  label: 'Complete ${q.title}',
+                  excludeSemantics: true,
+                  onTap: _tick,
+                  child: AnimatedContainer(
                     duration: duration,
                     curve: Curves.easeOutBack,
-                    child: const Icon(Icons.check_rounded, color: Colors.white),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      q.title,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        decoration: _ticked ? TextDecoration.lineThrough : null,
+                    width: circle,
+                    height: circle,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: _ticked ? const Color(0xFF7FC48B) : theme.colorScheme.surface,
+                      border: Border.all(
+                        color: _ticked ? Chunky.edge(const Color(0xFF7FC48B)) : Chunky.edge(tint, dark: dark),
+                        width: 3,
                       ),
                     ),
-                    const SizedBox(height: 4),
-                    DifficultyDots(q.difficulty),
-                  ],
+                    child: AnimatedScale(
+                      scale: _ticked ? 1 : 0,
+                      duration: duration,
+                      curve: Curves.easeOutBack,
+                      child: const Icon(Icons.check_rounded, color: Colors.white),
+                    ),
+                  ),
                 ),
-              ),
-              CategoryBadge(q.category, size: widget.compact ? 26 : 30),
-              IconButton(
-                tooltip: 'More',
-                visualDensity: VisualDensity.compact,
-                icon: Icon(Icons.more_horiz, color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.6)),
-                onPressed: widget.onMenu,
-              ),
-            ],
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        q.title,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          decoration: _ticked ? TextDecoration.lineThrough : null,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      DifficultyDots(q.difficulty),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 10),
+                CategoryBadge(q.category, size: widget.compact ? 26 : 30),
+                IconButton(
+                  tooltip: 'More',
+                  visualDensity: VisualDensity.compact,
+                  icon: Icon(Icons.more_horiz, color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.6)),
+                  onPressed: widget.onMenu,
+                ),
+              ],
+            ),
           ),
         ),
       ),
