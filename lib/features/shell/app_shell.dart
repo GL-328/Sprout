@@ -3,7 +3,6 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/haptics.dart';
 import '../../ui/layout/insets.dart';
-import '../../ui/theme/chunky.dart';
 
 /// Scaffold with the floating, rounded bottom navigation bar.
 class AppShell extends StatelessWidget {
@@ -55,11 +54,10 @@ class _FloatingNavBar extends StatelessWidget {
     final scheme = theme.colorScheme;
     return Container(
       height: AppInsets.navBar,
-      decoration: Chunky.box(
-        scheme.surface,
-        radius: BorderRadius.circular(34),
-        dark: theme.brightness == Brightness.dark,
-        lipHeight: 4,
+      decoration: BoxDecoration(
+        color: scheme.surface,
+        borderRadius: BorderRadius.circular(34),
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.10), blurRadius: 24, offset: const Offset(0, 8))],
       ),
       padding: const EdgeInsets.symmetric(horizontal: 6),
       child: Row(
@@ -77,16 +75,16 @@ class _FloatingNavBar extends StatelessWidget {
                     duration: const Duration(milliseconds: 250),
                     curve: Curves.easeOutCubic,
                     margin: const EdgeInsets.symmetric(vertical: 7, horizontal: 1),
-                    // The selected tab is a little painted pill in the accent colour.
-                    decoration: i == currentIndex
-                        ? Chunky.box(scheme.primary, radius: BorderRadius.circular(26), lipHeight: 2.5)
-                        : BoxDecoration(borderRadius: BorderRadius.circular(26)),
+                    decoration: BoxDecoration(
+                      color: i == currentIndex ? scheme.primary.withValues(alpha: 0.16) : Colors.transparent,
+                      borderRadius: BorderRadius.circular(26),
+                    ),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Icon(
                           i == currentIndex ? tab.selected : tab.icon,
-                          color: i == currentIndex ? Colors.white : scheme.onSurfaceVariant,
+                          color: i == currentIndex ? scheme.primary : scheme.onSurfaceVariant,
                           size: 24,
                         ),
                         const SizedBox(height: 2),
@@ -98,7 +96,7 @@ class _FloatingNavBar extends StatelessWidget {
                             softWrap: false,
                             style: theme.textTheme.labelSmall?.copyWith(
                               fontWeight: FontWeight.w800,
-                              color: i == currentIndex ? Colors.white : scheme.onSurfaceVariant,
+                              color: i == currentIndex ? scheme.primary : scheme.onSurfaceVariant,
                             ),
                           ),
                         ),

@@ -1,5 +1,4 @@
 import 'dart:math' as math;
-import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 
@@ -105,72 +104,14 @@ class GardenScenePainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    if (size.isEmpty) return;
     _sky(canvas, size);
     _sunOrMoon(canvas, size);
     _weather(canvas, size);
-    // The land doesn't move, so it is drawn once (outlines, paper grain and
-    // all) and reused on every frame of the ambient animation.
-    final land = _landImage(size);
-    canvas.drawImageRect(
-      land,
-      Rect.fromLTWH(0, 0, land.width.toDouble(), land.height.toDouble()),
-      Offset.zero & size,
-      Paint()..filterQuality = FilterQuality.medium,
-    );
+    _farHills(canvas, size);
+    _backdrop(canvas, size);
+    _midHills(canvas, size);
+    _ground(canvas, size);
     _seasonal(canvas, size);
-  }
-
-  // --- Land, drawn once -----------------------------------------------------------
-
-  static final _landCache = <String, ui.Image>{};
-
-  ui.Image _landImage(Size size) {
-    final ratio = WidgetsBinding.instance.platformDispatcher.implicitView?.devicePixelRatio ?? 2;
-    final key = [
-      envId,
-      season,
-      isNight,
-      silhouette,
-      _skyColors().last.toARGB32(),
-      size.width,
-      size.height,
-      ratio,
-    ].join('|');
-    final hit = _landCache.remove(key);
-    if (hit != null) return _landCache[key] = hit;
-
-    final recorder = ui.PictureRecorder();
-    final c = Canvas(recorder)..scale(ratio);
-    final bounds = Offset.zero & size;
-    final line = silhouette ? 0.0 : 1.1;
-    paintOutlined(c, bounds, line * 0.75, () => _farHills(c, size));
-    paintOutlined(c, bounds, line * 1.2, () => _backdrop(c, size));
-    paintOutlined(c, bounds, line, () => _midHills(c, size));
-    paintOutlined(c, bounds, line, () => _ground(c, size));
-    if (!silhouette) _grain(c, size);
-    final picture = recorder.endRecording();
-    final image = picture.toImageSync((size.width * ratio).ceil(), (size.height * ratio).ceil());
-    picture.dispose();
-
-    // Keep a handful: Home, the shop's plot cards and a friend's garden.
-    while (_landCache.length >= 12) {
-      _landCache.remove(_landCache.keys.first)!.dispose();
-    }
-    return _landCache[key] = image;
-  }
-
-  /// A faint paper grain, so the land feels painted rather than printed.
-  void _grain(Canvas canvas, Size size) {
-    final rnd = math.Random(5);
-    final dark = Paint()..color = const Color(0xFF3B2E3A).withValues(alpha: 0.05);
-    final light = Paint()..color = Colors.white.withValues(alpha: 0.07);
-    final top = size.height * 0.42;
-    final count = (size.width * (size.height - top) / 90).round();
-    for (var i = 0; i < count; i++) {
-      final p = Offset(rnd.nextDouble() * size.width, top + rnd.nextDouble() * (size.height - top));
-      canvas.drawCircle(p, 0.5 + rnd.nextDouble() * 0.7, i.isEven ? dark : light);
-    }
   }
 
   // --- Sky ----------------------------------------------------------------------
@@ -242,27 +183,12 @@ class GardenScenePainter extends CustomPainter {
         Path()..addOval(Rect.fromCircle(center: c.translate(r * 0.55, -r * 0.3), radius: r * 0.88)),
       );
       canvas.drawPath(crescent, _fill(moon));
-      canvas.drawPath(
-        crescent,
-        Paint()
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = 1.1
-          ..color = const Color(0xFFD9C48E),
-      );
       return;
     }
     final sun = _mute(const Color(0xFFFFD86B));
     canvas.drawCircle(c, r * 2.2, _fill(sun.withValues(alpha: 0.12)));
     canvas.drawCircle(c, r * 1.55, _fill(sun.withValues(alpha: 0.2)));
     canvas.drawCircle(c, r, _fill(sun));
-    canvas.drawCircle(
-      c,
-      r,
-      Paint()
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 1.2
-        ..color = _mute(const Color(0xFFE0A33A)),
-    );
     canvas.drawCircle(c.translate(-r * 0.3, -r * 0.32), r * 0.3, _fill(Colors.white.withValues(alpha: 0.35)));
   }
 
@@ -284,34 +210,22 @@ class GardenScenePainter extends CustomPainter {
   }
 
   void _cloud(Canvas canvas, Offset c, double s, Color colour, Color under) {
-    Path puffs(Offset at) {
-      var p = Path()..addOval(Rect.fromCircle(center: at.translate(-s * 0.42, s * 0.12), radius: s * 0.34));
-      for (final shape in [
-        Path()..addOval(Rect.fromCircle(center: at.translate(s * 0.05, -s * 0.06), radius: s * 0.46)),
-        Path()..addOval(Rect.fromCircle(center: at.translate(s * 0.5, s * 0.1), radius: s * 0.36)),
-        Path()..addRRect(
-          RRect.fromRectAndRadius(
-            Rect.fromCenter(center: at.translate(0, s * 0.28), width: s * 1.75, height: s * 0.42),
-            Radius.circular(s),
-          ),
+    void puffs(Offset at, Paint p) {
+      canvas.drawCircle(at.translate(-s * 0.42, s * 0.12), s * 0.34, p);
+      canvas.drawCircle(at.translate(s * 0.05, -s * 0.06), s * 0.46, p);
+      canvas.drawCircle(at.translate(s * 0.5, s * 0.1), s * 0.36, p);
+      canvas.drawRRect(
+        RRect.fromRectAndRadius(
+          Rect.fromCenter(center: at.translate(0, s * 0.28), width: s * 1.75, height: s * 0.42),
+          Radius.circular(s),
         ),
-      ]) {
-        p = Path.combine(PathOperation.union, p, shape);
-      }
-      return p;
+        p,
+      );
     }
 
-    // A soft underside, then the cloud itself, with a flat base and a soft edge.
-    final shape = puffs(c);
-    canvas.drawPath(puffs(c.translate(0, s * 0.08)), _fill(under));
-    canvas.drawPath(shape, _fill(colour));
-    canvas.drawPath(
-      shape,
-      Paint()
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 1.1
-        ..color = shade(under, 0.22).withValues(alpha: colour.a * 0.7),
-    );
+    // A soft underside, then the cloud itself, with a flat base.
+    puffs(c.translate(0, s * 0.08), _fill(under));
+    puffs(c, _fill(colour));
   }
 
   void _weather(Canvas canvas, Size size) {

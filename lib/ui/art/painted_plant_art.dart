@@ -324,67 +324,40 @@ class PlantPainter extends CustomPainter {
     final tall = growth == 0 ? 0.56 : naturalHeight(look) * growth;
     final fit = math.min(1.0, (groundY / w) / math.max(tall, 0.4));
 
-    final small = stage == GrowthStage.seed || stage == GrowthStage.sprout;
-    // Seeds and sprouts are small in life; draw them a little larger so they
-    // read well in the garden.
-    void place() {
-      canvas.translate(w / 2, groundY);
-      canvas.scale(w * fit);
-    }
-
-    // The shadow and the soil bed sit on the ground, outside the outline, so
-    // they fade softly into the grass.
     canvas.save();
-    place();
+    canvas.translate(w / 2, groundY);
+    canvas.scale(w * fit);
     final p = Pen(canvas);
+
+    // A gentle shadow under every plant.
     _softOval(canvas, 0, 0.005, growth == 0 ? 0.6 : 0.44 + 0.34 * growth, 0.1, const Color(0x2E3B2E3A), solid: 0.3);
-    if (small) canvas.scale(1.35);
-    final bed = switch (stage) {
-      GrowthStage.seed => 0.56,
-      GrowthStage.sprout => 0.48,
-      GrowthStage.young => 0.5,
-      _ => 0.0,
-    };
-    if (bed > 0) {
-      _softSoil(p, bed * 1.3, seed: 5);
-      // The mound fades into its bed, so it stays outside the outline too.
-      _mound(p, bed);
+
+    if (stage == GrowthStage.seed || stage == GrowthStage.sprout) {
+      // Seeds and sprouts are small in life; draw them a little larger so
+      // they read well in the garden.
+      canvas.scale(1.35);
+      if (stage == GrowthStage.seed) {
+        _seedInSoil(p);
+      } else {
+        _mound(p, 0.48);
+        _sprout(p);
+      }
+    } else {
+      if (young) _mound(p, 0.5);
+      canvas.save();
+      if (young) canvas.scale(growth);
+      // Sway: a skew from the ground up, so tops move and roots stay put.
+      canvas.transform(Matrix4.skewX(-sway * 0.05).storage);
+      _form(p, flowers: mature, fruit: stage == GrowthStage.fruiting);
+      canvas.restore();
     }
     canvas.restore();
-
-    paintOutlined(canvas, Offset.zero & size, outlineWidth(w) * 0.85, () {
-      canvas.save();
-      place();
-      if (small) {
-        canvas.scale(1.35);
-        if (stage == GrowthStage.seed) {
-          _seedInSoil(p);
-        } else {
-          _sprout(p);
-        }
-      } else {
-        canvas.save();
-        if (young) canvas.scale(growth);
-        // Sway: a skew from the ground up, so tops move and roots stay put.
-        canvas.transform(Matrix4.skewX(-sway * 0.05).storage);
-        _form(p, flowers: mature, fruit: stage == GrowthStage.fruiting);
-        canvas.restore();
-      }
-      canvas.restore();
-    });
-    if (stage == GrowthStage.seed) {
-      canvas.save();
-      place();
-      canvas.scale(1.35);
-      _seedHug(p);
-      canvas.restore();
-    }
   }
 
   // --- Seed and sprout -------------------------------------------------------
 
-  /// The soil mound. Its soft bed is drawn separately, under the outline.
   void _mound(Pen p, double width) {
+    _softSoil(p, width * 1.3, seed: 5);
     final h = width * 0.36;
     final dome = Path()
       ..moveTo(-width / 2, 0)
@@ -423,6 +396,7 @@ class PlantPainter extends CustomPainter {
   }
 
   void _seedInSoil(Pen p) {
+    _mound(p, 0.56);
     const seed = Color(0xFFB97B4E);
     p.canvas.save();
     // The seed rocks gently on its base.
@@ -459,11 +433,7 @@ class PlantPainter extends CustomPainter {
     );
     p.leaf(0.022, -0.212, 0.06, 0.022, -0.5, const Color(0xFF8BD18F));
     p.canvas.restore();
-  }
-
-  /// Soil hugging the seed's base, so it sits in the ground. Drawn over the
-  /// seed's outline.
-  void _seedHug(Pen p) {
+    // Soil hugging the seed's base, so it sits in the ground.
     p.fill(
       Path()
         ..moveTo(-0.16, -0.06)
