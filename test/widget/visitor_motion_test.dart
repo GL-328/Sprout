@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sprout/features/home/visitor_motion.dart';
@@ -49,4 +51,52 @@ void main() {
       expect(reversals, lessThan(24 * 2), reason: 'up/down reversals in 24 s');
     });
   }
+
+  testWidgets('a garden full of visitors keeps them apart', (tester) async {
+    const ids = ['butterfly', 'bee', 'ladybird', 'songbird', 'rabbit', 'duck', 'hedgehog'];
+    final flyers = [
+      for (final id in ids)
+        if (AnimatedVisitor.flies(id)) id,
+    ];
+    final walkers = [
+      for (final id in ids)
+        if (!AnimatedVisitor.flies(id)) id,
+    ];
+    var closest = double.infinity;
+    for (var frame = 0; frame < 24 * 60; frame += 6) {
+      await tester.pumpWidget(
+        Directionality(
+          textDirection: TextDirection.ltr,
+          child: Stack(
+            children: [
+              for (final (i, id) in ids.indexed)
+                AnimatedVisitor(
+                  key: ValueKey(id),
+                  visitor: testConfig.visitors[id]!,
+                  index: i,
+                  slot: (flyers.contains(id) ? flyers : walkers).indexOf(id),
+                  slots: (flyers.contains(id) ? flyers : walkers).length,
+                  phase: frame / (24 * 60),
+                  width: 412,
+                  top: 140,
+                  bottom: 560,
+                  onTap: () {},
+                ),
+            ],
+          ),
+        ),
+      );
+      final spots = {
+        for (final id in ids)
+          id: tester.getCenter(find.descendant(of: find.byKey(ValueKey(id)), matching: find.byType(GestureDetector))),
+      };
+      for (final a in ids) {
+        for (final b in ids) {
+          if (a.compareTo(b) < 0) closest = math.min(closest, (spots[a]! - spots[b]!).distance);
+        }
+      }
+    }
+    // Icons are 36 across: they should never sit on top of each other.
+    expect(closest, greaterThan(30));
+  });
 }
