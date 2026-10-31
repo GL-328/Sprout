@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -31,15 +33,16 @@ class _BuildLineState extends ConsumerState<BuildLine> {
       _say(context, "You're in the dev account. Settings has the way back to your garden.");
       return;
     }
-    final password = await showDialog<String>(context: context, builder: (_) => const _PasswordDialog());
-    if (password == null || !mounted) return;
-    if (!devPasswordMatches(password)) {
-      _say(context, "That's not it.");
-      return;
-    }
+    final hash = ref.read(devPasswordHashProvider);
+    // The dialog checks the password itself, and only closes when it's right.
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (_) => _PasswordDialog(hash: hash),
+    );
+    if (ok != true || !mounted) return;
     await ref.read(settingsRepositoryProvider).writeValue(devUnlockedKey, 'true');
     ref.invalidate(devUnlockedProvider);
-    await ref.read(accountSwitcherProvider)(Account.dev);
+    if (mounted) await openDevAccount(context, ref);
   }
 
   @override
@@ -62,8 +65,47 @@ class _BuildLineState extends ConsumerState<BuildLine> {
   }
 }
 
+/// Opens the dev account (or resets it), with a little "Opening…" note, and
+/// shows what went wrong if it can't.
+Future<void> openDevAccount(BuildContext context, WidgetRef ref, {bool reset = false}) async {
+  final switcher = ref.read(accountSwitcherProvider);
+  final navigator = Navigator.of(context, rootNavigator: true);
+  unawaited(
+    showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const AlertDialog(
+        content: Row(
+          children: [
+            SizedBox.square(dimension: 22, child: CircularProgressIndicator(strokeWidth: 2.5)),
+            SizedBox(width: 16),
+            Expanded(child: Text('Opening the dev account...')),
+          ],
+        ),
+      ),
+    ),
+  );
+  try {
+    await switcher(Account.dev, reset: reset);
+  } catch (e) {
+    if (navigator.mounted) {
+      navigator.pop();
+      await showDialog<void>(
+        context: navigator.context,
+        builder: (c) => AlertDialog(
+          title: const Text("Couldn't open the dev account"),
+          content: Text('$e'),
+          actions: [TextButton(onPressed: () => Navigator.pop(c), child: const Text('OK'))],
+        ),
+      );
+    }
+  }
+}
+
 class _PasswordDialog extends StatefulWidget {
-  const _PasswordDialog();
+  const _PasswordDialog({required this.hash});
+
+  final String hash;
 
   @override
   State<_PasswordDialog> createState() => _PasswordDialogState();
@@ -71,11 +113,22 @@ class _PasswordDialog extends StatefulWidget {
 
 class _PasswordDialogState extends State<_PasswordDialog> {
   final _controller = TextEditingController();
+  bool _show = false;
+  bool _wrong = false;
 
   @override
   void dispose() {
     _controller.dispose();
     super.dispose();
+  }
+
+  void _submit() {
+    // Spaces a keyboard adds by itself don't count.
+    if (devPasswordMatches(_controller.text.trim(), hash: widget.hash)) {
+      Navigator.pop(context, true);
+    } else {
+      setState(() => _wrong = true);
+    }
   }
 
   @override
@@ -84,15 +137,28 @@ class _PasswordDialogState extends State<_PasswordDialog> {
     content: TextField(
       controller: _controller,
       autofocus: true,
-      obscureText: true,
+      obscureText: !_show,
       autocorrect: false,
       enableSuggestions: false,
-      decoration: const InputDecoration(hintText: 'Password'),
-      onSubmitted: (v) => Navigator.pop(context, v),
+      keyboardType: TextInputType.visiblePassword,
+      decoration: InputDecoration(
+        hintText: 'Password',
+        errorText: _wrong ? "That's not it. Capitals and symbols count." : null,
+        errorMaxLines: 2,
+        suffixIcon: IconButton(
+          tooltip: _show ? 'Hide password' : 'Show password',
+          icon: Icon(_show ? Icons.visibility_off_rounded : Icons.visibility_rounded),
+          onPressed: () => setState(() => _show = !_show),
+        ),
+      ),
+      onChanged: (_) {
+        if (_wrong) setState(() => _wrong = false);
+      },
+      onSubmitted: (_) => _submit(),
     ),
     actions: [
-      TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
-      FilledButton(onPressed: () => Navigator.pop(context, _controller.text), child: const Text('Unlock')),
+      TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
+      FilledButton(onPressed: _submit, child: const Text('Unlock')),
     ],
   );
 }
@@ -117,7 +183,7 @@ class DevModeCard extends ConsumerWidget {
         ],
       ),
     );
-    if (ok == true) await ref.read(accountSwitcherProvider)(Account.dev, reset: true);
+    if (ok == true && context.mounted) await openDevAccount(context, ref, reset: true);
   }
 
   @override
@@ -150,7 +216,7 @@ class DevModeCard extends ConsumerWidget {
                   FilledButton(onPressed: () => switcher(Account.main), child: const Text('Back to my garden')),
                   OutlinedButton(onPressed: () => _reset(context, ref), child: const Text('Reset dev account')),
                 ] else
-                  FilledButton(onPressed: () => switcher(Account.dev), child: const Text('Open dev account')),
+                  FilledButton(onPressed: () => openDevAccount(context, ref), child: const Text('Open dev account')),
               ],
             ),
           ],

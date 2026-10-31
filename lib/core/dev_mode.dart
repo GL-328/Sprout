@@ -28,6 +28,10 @@ const devPasswordHash = '15ae3c6a70058a5ab60c19e20419c1e86bfff08b7530243b0a6dd92
 bool devPasswordMatches(String input, {String hash = devPasswordHash}) =>
     sha256.convert(utf8.encode(input)).toString() == hash;
 
+/// The password's hash. Tests override it with their own, so the real
+/// password never appears in the repo.
+final devPasswordHashProvider = Provider<String>((ref) => devPasswordHash);
+
 /// Whether the dev account has been unlocked on this phone.
 final devUnlockedProvider = FutureProvider<bool>(
   (ref) async => await ref.watch(settingsRepositoryProvider).readValue(devUnlockedKey) == 'true',
