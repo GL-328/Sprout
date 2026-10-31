@@ -83,6 +83,30 @@ void main() {
     expect(await env.settings.readValue(visitorLureUntilKey), isNotNull);
   });
 
+  test('each recipe can be made once a day, so boosts cannot loop into endless coins', () async {
+    Future<void> stock() async {
+      await env.garden.addToInventory('cacao', 2);
+      await env.garden.addToInventory('coconut_palm', 1);
+    }
+
+    await stock();
+    await env.economy.cook('hot_cocoa');
+    expect(await env.economy.watchRecipesMadeToday().first, {'hot_cocoa'});
+
+    // Plenty of fruit again, but not until tomorrow.
+    await stock();
+    await expectLater(env.economy.cook('hot_cocoa'), throwsA(isA<GardenException>()));
+    expect((await env.garden.inventory())['cacao'], 2, reason: 'nothing is used up when it says no');
+
+    // Another recipe is still fine today.
+    await env.garden.addToInventory('lavender_hedge', 2);
+    await env.economy.cook('calming_tea');
+
+    env.clock.advance(const Duration(days: 1));
+    await env.economy.cook('hot_cocoa');
+    expect(await env.economy.watchRecipesMadeToday().first, {'hot_cocoa'});
+  });
+
   test('feeding a visitor uses its favourite fruit', () async {
     await env.economy.recordVisitors(['butterfly']);
     await env.garden.addToInventory('lavender_hedge', 1);

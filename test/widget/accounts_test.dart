@@ -19,6 +19,8 @@ import 'package:sprout/data/db/app_database.dart';
 import 'package:sprout/data/repositories/counters_repository.dart';
 import 'package:sprout/data/repositories/settings_repository.dart';
 import 'package:sprout/domain/models/app_settings.dart';
+import 'package:sprout/features/settings/about_screen.dart';
+import 'package:sprout/features/settings/dev_mode_section.dart';
 
 import 'test_app.dart';
 
@@ -172,6 +174,13 @@ void main() {
       await tester.pump(const Duration(milliseconds: 50));
     }
     await settle(tester);
+    // On a phone the keyboard can push the Version line out of view, and
+    // Flutter removes it while the box is open. Take the whole About page away
+    // to be sure: the dev account must open anyway.
+    final about = tester.element(find.byType(AboutScreen, skipOffstage: false));
+    Navigator.of(about).removeRoute(ModalRoute.of(about)!);
+    await settle(tester);
+    expect(find.byType(BuildLine, skipOffstage: false), findsNothing);
     // A keyboard's stray trailing space doesn't count.
     await tester.enterText(find.byType(TextField), '$password ');
     await tester.tap(find.text('Unlock'));

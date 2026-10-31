@@ -4,7 +4,7 @@ A Finch-like self-care app: finish quests, earn seeds, grow a garden. Flutter, A
 The owner is GL-328 (repo GL-328/Sprout, renamed from GL328). Read this first in every session.
 
 ## Toolchain and checks
-- Flutter 3.47.7, `dart format -l 120`, `flutter analyze` must be clean, `flutter test` must pass (221 tests).
+- Flutter 3.47.7, `dart format -l 120`, `flutter analyze` must be clean, `flutter test` must pass (222 tests).
 - Riverpod 3 (unlistened providers pause: don't await `.future` from a Notifier, read repositories directly), drift
   (in-memory DB in tests), game rules in `assets/config/game_config.yaml`.
 - Visual checks: `test/visual/*` render PNGs to `build/visual/` (`loadAppFonts`, `setPhoneScreen`, `shot`,
