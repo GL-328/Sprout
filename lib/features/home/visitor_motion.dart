@@ -6,11 +6,12 @@ import '../../config/game_config.dart';
 import '../../ui/art/icon_art.dart';
 
 /// How a visitor gets about.
-enum _Gait { flutter, buzz, glide, perch, hop, waddle, stride, amble }
+enum _Gait { flutter, buzz, drift, glide, perch, hop, waddle, stride, amble }
 
 _Gait _gaitOf(String id) => switch (id) {
   'butterfly' => _Gait.flutter,
-  'bee' || 'firefly' || 'ladybird' => _Gait.buzz,
+  'bee' => _Gait.buzz,
+  'ladybird' || 'firefly' => _Gait.drift,
   'songbird' || 'parrot' => _Gait.glide,
   'owl' => _Gait.perch,
   'rabbit' || 'frog' || 'squirrel' => _Gait.hop,
@@ -38,7 +39,12 @@ class AnimatedVisitor extends StatelessWidget {
     required this.bottom,
     required this.onTap,
     this.still = false,
+    this.slot = 0,
+    this.slots = 1,
   });
+
+  /// Whether [id] flies (in the sky) rather than walking on the ground.
+  static bool flies(String id) => _gaitOf(id).index <= _Gait.perch.index;
 
   final VisitorConfig visitor;
   final int index;
@@ -53,13 +59,17 @@ class AnimatedVisitor extends StatelessWidget {
   /// Reduce motion: no movement at all.
   final bool still;
 
+  /// Each visitor's own patch of sky or ground: [slot] of [slots] among the
+  /// visitors that fly (or that walk), so they don't bunch up or cross paths.
+  final int slot;
+  final int slots;
+
   static const size = 36.0;
 
   @override
   Widget build(BuildContext context) {
     final gait = _gaitOf(visitor.id);
     final i = index;
-    final left = i.isEven;
     final offset = i * 0.9;
     // A wave that repeats [n] times per loop, starting [shift] radians in.
     double wave(int n, [double shift = 0]) => still ? 0 : math.sin(phase * 2 * math.pi * n + shift + offset);
@@ -70,28 +80,34 @@ class AnimatedVisitor extends StatelessWidget {
     double heading;
     final flies = gait.index <= _Gait.perch.index;
     if (flies) {
-      // A gentle figure-eight in the sky at the edge of the garden.
-      final cx = left ? 0.1 : 0.84;
-      x = cx + 0.06 * wave(2);
-      y = top + 20 + i * 22 + 14 * wave(4);
+      // Each flyer keeps to its own lane of sky, with neighbours a little
+      // higher or lower, so they never meet. A lone flyer has the whole sky.
+      final lane = 0.82 / slots;
+      final cx = 0.04 + lane * (slot + 0.5) - (AnimatedVisitor.size / 2) / width;
+      final row = top + 20 + (slot.isOdd ? 44 : 0);
+      x = cx + math.min(0.06, lane * 0.22) * wave(2);
+      y = row + 14 * wave(4);
       heading = still ? 0 : math.cos(phase * 2 * math.pi * 2 + offset);
       if (gait == _Gait.perch) {
         x = cx;
-        y = top + 20 + i * 22;
+        y = row;
       }
       if (gait == _Gait.flutter && !still) {
-        // Butterflies wander right across the sky, with little rises and dips.
+        // Butterflies wander their lane, with little rises and dips.
         double turnOf(int n) => phase * 2 * math.pi * n + offset;
-        x = 0.46 + 0.36 * math.sin(turnOf(1)) + 0.05 * math.sin(turnOf(5));
-        y = top + 40 + i * 18 + 30 * math.sin(turnOf(2)) + 9 * math.sin(turnOf(7));
+        final reach = math.min(0.36, lane * 0.3);
+        x = cx + reach * math.sin(turnOf(1)) + math.min(0.05, lane * 0.06) * math.sin(turnOf(5));
+        y = row + 20 + 20 * math.sin(turnOf(2)) + 7 * math.sin(turnOf(7));
       }
     } else {
-      // Back and forth along the ground at the edge, slowly.
-      final from = left ? 0.02 : 0.74;
-      final range = gait == _Gait.amble ? 0.03 : 0.12;
+      // Back and forth along the ground at the edges, slowly, each on its own
+      // stretch: the first on the left, the next on the right, then further in.
+      final inward = (slot ~/ 2) * 0.2;
+      final from = slot.isEven ? 0.02 + inward : 0.74 - inward;
+      final range = gait == _Gait.amble ? 0.03 : 0.08;
       final walk = still ? 0.5 : 0.5 - 0.5 * math.cos(phase * 2 * math.pi * 2 + offset);
       x = from + range * walk;
-      y = bottom - 70 - i * 8;
+      y = bottom - 70 - slot * 8;
       heading = still ? 0 : math.sin(phase * 2 * math.pi * 2 + offset);
     }
 
@@ -117,7 +133,17 @@ class AnimatedVisitor extends StatelessWidget {
       case _Gait.buzz:
         lift = 1.5 * wave(240);
         turn = 0.08 * wave(6);
-        if (visitor.id == 'firefly') glow = 0.6 + 0.4 * (0.5 + 0.5 * wave(12));
+      case _Gait.drift:
+        // A slow, smooth float with a gentle bob: no jitter.
+        lift = 3 * wave(3);
+        if (visitor.id == 'firefly') {
+          glow = 0.6 + 0.4 * (0.5 + 0.5 * wave(12));
+          turn = 0.08 * wave(2, math.pi / 2);
+        } else {
+          // The ladybird is seen from above, head up: it leans smoothly
+          // towards the side it's drifting to.
+          turn = 0.5 * wave(2, math.pi / 2);
+        }
       case _Gait.glide:
         // A slow wingbeat, a gentle tilt into the turns.
         scaleY = 0.92 + 0.08 * wave(36).abs();
@@ -141,8 +167,9 @@ class AnimatedVisitor extends StatelessWidget {
         lift = 1 * wave(6).abs();
     }
     // The art faces left; turn it round when heading right. The butterfly
-    // turns its whole body instead.
-    final facing = gait == _Gait.flutter || heading <= 0.05 ? 1.0 : -1.0;
+    // and the ladybird (seen from above) turn their whole body instead.
+    final turnsBody = gait == _Gait.flutter || visitor.id == 'ladybird';
+    final facing = turnsBody || heading <= 0.05 ? 1.0 : -1.0;
 
     return Positioned(
       left: width * x,

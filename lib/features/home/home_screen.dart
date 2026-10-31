@@ -216,6 +216,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with SingleTickerProvid
         !visitors.any((v) => v.id == butterfly.id)) {
       visitors.insert(0, butterfly);
     }
+    // Fliers share the sky and walkers share the ground: each gets its own patch.
+    (int, int) slotOf(VisitorConfig v) {
+      final group = [
+        for (final o in visitors)
+          if (AnimatedVisitor.flies(o.id) == AnimatedVisitor.flies(v.id)) o,
+      ];
+      return (group.indexOf(v), group.length);
+    }
+
     final fresh = visitors.map((v) => v.id).where((id) => !_recorded.contains(id)).toList();
     if (fresh.isNotEmpty) {
       _recorded.addAll(fresh);
@@ -314,6 +323,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with SingleTickerProvid
                     AnimatedVisitor(
                       visitor: v,
                       index: i,
+                      slot: slotOf(v).$1,
+                      slots: slotOf(v).$2,
                       phase: phase,
                       still: calm,
                       width: w,
