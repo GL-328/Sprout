@@ -207,6 +207,7 @@ class _QuestRowState extends State<QuestRow> {
                   ],
                 ),
               ),
+              const SizedBox(width: 10),
               CategoryBadge(q.category, size: widget.compact ? 26 : 30),
               IconButton(
                 tooltip: 'More',

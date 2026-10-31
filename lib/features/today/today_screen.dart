@@ -19,6 +19,7 @@ import '../quests/quest_editor_screen.dart';
 import 'quest_actions.dart';
 import 'today_providers.dart';
 import '../../ui/layout/insets.dart';
+import '../../ui/theme/app_theme.dart';
 import '../../ui/art/icon_art.dart';
 
 class TodayScreen extends ConsumerStatefulWidget {
@@ -223,7 +224,7 @@ class SeedMeterCard extends ConsumerWidget {
         ? '$streak days of caring for yourself'
         : null;
     return SoftCard(
-      color: const Color(0xFF7FC48B).withValues(alpha: 0.14),
+      color: theme.brightness == Brightness.dark ? null : SproutColors.butter,
       padding: const EdgeInsets.fromLTRB(14, 12, 16, 12),
       child: Row(
         children: [

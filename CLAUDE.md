@@ -9,6 +9,8 @@ The owner is GL-328 (repo GL-328/Sprout, renamed from GL328). Read this first in
   (in-memory DB in tests), game rules in `assets/config/game_config.yaml`.
 - Visual checks: `test/visual/*` render PNGs to `build/visual/` (`loadAppFonts`, `setPhoneScreen`, `shot`,
   `savePng`). Always render and look at UI changes before calling them done.
+- Style: the owner prefers no outlines and no 3D/lip styling (tried in build 33, reverted). Keep art flat and soft.
+- AppBar titles need an explicit font size in the theme (the text theme has no sizes when the theme is built).
 - No emoji anywhere in the app: flat painted icons via `ArtIcon(id)` / `IconText` in `lib/ui/art/icon_art.dart`
   (guarded by `test/widget/no_emoji_test.dart`).
 

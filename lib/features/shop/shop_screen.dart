@@ -51,7 +51,7 @@ class _ShopScreenState extends ConsumerState<ShopScreen> {
                 children: [
                   Row(
                     children: [
-                      Text('Shop', style: theme.textTheme.titleLarge),
+                      Text('Shop', style: theme.appBarTheme.titleTextStyle),
                       const Spacer(),
                       Container(
                         key: CounterTargets.shopCoins,
@@ -141,7 +141,17 @@ class _SectionTiles extends ConsumerWidget {
                       children: [
                         Icon(icon, size: 28, color: Color.lerp(color, Colors.black, 0.6)),
                         const SizedBox(height: 4),
-                        Text(label, style: theme.textTheme.labelLarge?.copyWith(color: const Color(0xFF3B3346))),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 4),
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text(
+                              label,
+                              maxLines: 1,
+                              style: theme.textTheme.labelLarge?.copyWith(color: const Color(0xFF3B3346)),
+                            ),
+                          ),
+                        ),
                       ],
                     ),
                   ),
