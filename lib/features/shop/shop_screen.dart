@@ -9,7 +9,6 @@ import '../../data/services/garden_service.dart';
 import '../../domain/logic/ben.dart';
 import '../../domain/logic/seasons.dart';
 import '../../domain/models/seed.dart';
-import '../../ui/theme/chunky.dart';
 import '../../ui/art/plant_art_provider.dart';
 import '../../ui/art/scene_painter.dart';
 import '../../ui/theme/category_style.dart';
@@ -57,11 +56,9 @@ class _ShopScreenState extends ConsumerState<ShopScreen> {
                       Container(
                         key: CounterTargets.shopCoins,
                         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
-                        decoration: Chunky.box(
-                          Color.alphaBlend(const Color(0xFFF4B740).withValues(alpha: 0.22), theme.colorScheme.surface),
-                          radius: BorderRadius.circular(100),
-                          dark: theme.brightness == Brightness.dark,
-                          lipHeight: 2,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF4B740).withValues(alpha: 0.22),
+                          borderRadius: BorderRadius.circular(100),
                         ),
                         child: IconText(
                           '{coin} $coins',
@@ -132,11 +129,13 @@ class _SectionTiles extends ConsumerWidget {
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 200),
                     padding: const EdgeInsets.symmetric(vertical: 12),
-                    // The chosen tile is fully coloured and stands taller.
-                    decoration: Chunky.box(
-                      section == selected ? color : Color.lerp(color, Colors.white, 0.5)!,
-                      radius: BorderRadius.circular(22),
-                      lipHeight: section == selected ? 4 : 2,
+                    decoration: BoxDecoration(
+                      color: section == selected ? color : color.withValues(alpha: 0.45),
+                      borderRadius: BorderRadius.circular(22),
+                      border: Border.all(
+                        color: section == selected ? Color.lerp(color, Colors.black, 0.25)! : Colors.transparent,
+                        width: 2,
+                      ),
                     ),
                     child: Column(
                       children: [
@@ -207,21 +206,9 @@ class _ShopCard extends ConsumerWidget {
               Expanded(
                 child: Container(
                   width: double.infinity,
-                  decoration: Chunky.box(
-                    Color.alphaBlend(tint.withValues(alpha: 0.55), theme.colorScheme.surface),
-                    radius: BorderRadius.circular(26),
-                    dark: theme.brightness == Brightness.dark,
-                  ),
-                  // The outline sits over the picture, so scenes get it too.
-                  foregroundDecoration: BoxDecoration(
+                  decoration: BoxDecoration(
+                    color: tint.withValues(alpha: 0.55),
                     borderRadius: BorderRadius.circular(26),
-                    border: Border.all(
-                      color: Chunky.edge(
-                        Color.alphaBlend(tint.withValues(alpha: 0.55), theme.colorScheme.surface),
-                        dark: theme.brightness == Brightness.dark,
-                      ),
-                      width: 1.5,
-                    ),
                   ),
                   clipBehavior: Clip.antiAlias,
                   child: Stack(
@@ -257,11 +244,9 @@ class _ShopCard extends ConsumerWidget {
               const SizedBox(height: 4),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 3),
-                decoration: Chunky.box(
-                  Color.alphaBlend(const Color(0xFFF4B740).withValues(alpha: 0.22), theme.colorScheme.surface),
-                  radius: BorderRadius.circular(100),
-                  dark: theme.brightness == Brightness.dark,
-                  lipHeight: 2,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF4B740).withValues(alpha: 0.22),
+                  borderRadius: BorderRadius.circular(100),
                 ),
                 child: IconText(pill, style: theme.textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w800)),
               ),

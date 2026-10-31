@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+import 'dart:ui' show ImageFilter;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -26,12 +27,11 @@ import 'garden_providers.dart';
 import 'plant_carousel.dart';
 import 'plant_sheet.dart';
 import 'plot_picker.dart';
+import 'visitor_motion.dart';
 import 'quests_panel.dart';
 import 'seed_sheets.dart';
 import '../../ui/art/icon_art.dart';
 import '../../ui/layout/insets.dart';
-import '../../ui/theme/app_theme.dart';
-import '../../ui/theme/chunky.dart';
 import '../../ui/widgets/measure_size.dart';
 import 'home_tutorial.dart';
 
@@ -300,7 +300,17 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with SingleTickerProvid
                     ),
                   ),
                   ..._cosmetics(config, placed, Size(w, sceneHeight), gardenBottom),
-                  for (final (i, v) in visitors.indexed) _visitor(v, i, phase, w, headerBottom, gardenBottom),
+                  for (final (i, v) in visitors.indexed)
+                    AnimatedVisitor(
+                      visitor: v,
+                      index: i,
+                      phase: phase,
+                      still: calm,
+                      width: w,
+                      top: headerBottom,
+                      bottom: gardenBottom,
+                      onTap: () => showVisitorSheet(context, v),
+                    ),
                   // The header normally sits on top. On very short screens the
                   // plant overlaps it, and then the plant comes first so it stays tappable.
                   if (gardenTop >= headerBottom) ...[carousel, header] else ...[header, carousel],
@@ -360,25 +370,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with SingleTickerProvid
       at('pond', 0.8, 40, 44),
       at('path', 0.3, 64, 36),
     ];
-  }
-
-  /// Visitors keep to the edges and the sky, so they never cover the plant.
-  Widget _visitor(VisitorConfig v, int i, double phase, double w, double top, double bottom) {
-    const flyers = {'butterfly', 'bee', 'songbird', 'firefly', 'parrot', 'owl', 'ladybird'};
-    final flies = flyers.contains(v.id);
-    final t = (phase * (flies ? 2 : 1) + i * 0.37) % 1;
-    final left = i.isEven;
-    final x = left ? 0.03 + 0.07 * math.sin(t * 2 * math.pi).abs() : 0.88 + 0.07 * math.sin(t * 2 * math.pi).abs();
-    final y = flies ? top + 12 + 30 * math.sin(t * 4 * math.pi + i).abs() + i * 26 : bottom - 70 - i * 8;
-    return Positioned(
-      left: w * x,
-      top: y,
-      child: Semantics(
-        button: true,
-        label: '${v.name} visiting',
-        child: GestureDetector(onTap: () => showVisitorSheet(context, v), child: ArtIcon('visitor:${v.id}', size: 36)),
-      ),
-    );
   }
 }
 
@@ -483,7 +474,7 @@ class _Header extends ConsumerWidget {
   }
 }
 
-/// A small painted pill: solid white, with a soft outline and lip.
+/// A small, soft, see-through pill.
 class _Frosted extends StatelessWidget {
   const _Frosted({super.key, required this.child, required this.onTap, required this.label, this.circle = false});
 
@@ -500,13 +491,15 @@ class _Frosted extends StatelessWidget {
       label: label,
       excludeSemantics: true,
       onTap: onTap,
-      child: DecoratedBox(
-        decoration: Chunky.box(SproutColors.paper, radius: radius),
-        child: Material(
-          color: SproutColors.paper,
-          borderRadius: radius,
-          clipBehavior: Clip.antiAlias,
-          child: InkWell(onTap: onTap, child: child),
+      child: ClipRRect(
+        borderRadius: radius,
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+          child: Material(
+            color: Colors.white.withValues(alpha: 0.55),
+            shape: circle ? const CircleBorder() : RoundedRectangleBorder(borderRadius: radius),
+            child: InkWell(onTap: onTap, child: child),
+          ),
         ),
       ),
     );

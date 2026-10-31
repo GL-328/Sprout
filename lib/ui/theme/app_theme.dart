@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../../domain/models/app_settings.dart';
-import 'chunky.dart';
 
 /// Soft pastel palette with a warm accent.
 class SproutColors {
@@ -69,12 +68,10 @@ class AppTheme {
         // so the title's size is set here, or it falls back to 14.
         titleTextStyle: TextStyle(
           fontFamily: fontFamily,
-          fontSize: 26,
-          height: 1.2,
-          fontWeight: FontWeight.w900,
+          fontSize: 24,
+          fontWeight: FontWeight.w800,
           color: scheme.onSurface,
         ),
-        toolbarHeight: 64,
       ),
       floatingActionButtonTheme: FloatingActionButtonThemeData(
         backgroundColor: accent,
@@ -83,20 +80,7 @@ class AppTheme {
         focusElevation: 0,
         hoverElevation: 0,
         highlightElevation: 0,
-        shape: const ChunkyBorder(radius: 22),
-        iconSize: 30,
-      ),
-      tabBarTheme: TabBarThemeData(
-        indicator: BoxDecoration(color: accent, borderRadius: BorderRadius.circular(100)),
-        indicatorSize: TabBarIndicatorSize.tab,
-        labelColor: Colors.white,
-        unselectedLabelColor: scheme.onSurfaceVariant,
-        dividerColor: Colors.transparent,
-        labelStyle: const TextStyle(fontFamily: fontFamily, fontWeight: FontWeight.w800, fontSize: 15),
-        unselectedLabelStyle: const TextStyle(fontFamily: fontFamily, fontWeight: FontWeight.w700, fontSize: 15),
-        labelPadding: const EdgeInsets.symmetric(horizontal: 16),
-        splashBorderRadius: BorderRadius.circular(100),
-        overlayColor: WidgetStatePropertyAll(accent.withValues(alpha: 0.08)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       ),
       cardTheme: CardThemeData(
         color: scheme.surface,
@@ -106,20 +90,17 @@ class AppTheme {
       ),
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
-          padding: const EdgeInsets.fromLTRB(28, 15, 28, 18),
+          shape: pill,
+          padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 16),
           textStyle: const TextStyle(fontFamily: fontFamily, fontWeight: FontWeight.w800, fontSize: 16),
-        ).copyWith(shape: ChunkyBorder.pressable()),
+        ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
-          backgroundColor: dark ? SproutColors.nightCard : SproutColors.paper,
-          side: BorderSide(
-            color: Chunky.edge(dark ? SproutColors.nightCard : SproutColors.paper, dark: dark),
-            width: 1.5,
-          ),
-          padding: const EdgeInsets.fromLTRB(24, 13, 24, 16),
+          shape: pill,
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
           textStyle: const TextStyle(fontFamily: fontFamily, fontWeight: FontWeight.w700, fontSize: 15),
-        ).copyWith(shape: ChunkyBorder.pressable()),
+        ),
       ),
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
@@ -129,10 +110,7 @@ class AppTheme {
       ),
       chipTheme: base.chipTheme.copyWith(
         shape: pill,
-        side: BorderSide(
-          color: Chunky.edge(dark ? SproutColors.nightCard : SproutColors.paper, dark: dark),
-          width: 1.5,
-        ),
+        side: BorderSide.none,
         labelStyle: TextStyle(fontFamily: fontFamily, fontWeight: FontWeight.w700, color: scheme.onSurface),
       ),
       inputDecorationTheme: InputDecorationTheme(

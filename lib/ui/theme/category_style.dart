@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../../domain/models/enums.dart';
-import 'chunky.dart';
 
 /// Soft colour for each quest category.
 Color categoryColor(QuestCategory c) => switch (c) {
@@ -48,11 +47,7 @@ class CategoryBadge extends StatelessWidget {
   Widget build(BuildContext context) => Container(
     width: size,
     height: size,
-    decoration: BoxDecoration(
-      color: categoryColor(category),
-      shape: BoxShape.circle,
-      border: Border.all(color: Chunky.edge(categoryColor(category)), width: 1.5),
-    ),
+    decoration: BoxDecoration(color: categoryColor(category), shape: BoxShape.circle),
     alignment: Alignment.center,
     child: Icon(
       categoryIcon(category),

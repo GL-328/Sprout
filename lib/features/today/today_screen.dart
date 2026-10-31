@@ -1,6 +1,5 @@
 import 'package:confetti/confetti.dart';
 import 'package:flutter/material.dart';
-
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
@@ -20,8 +19,8 @@ import '../quests/quest_editor_screen.dart';
 import 'quest_actions.dart';
 import 'today_providers.dart';
 import '../../ui/layout/insets.dart';
-import '../../ui/art/icon_art.dart';
 import '../../ui/theme/app_theme.dart';
+import '../../ui/art/icon_art.dart';
 
 class TodayScreen extends ConsumerStatefulWidget {
   const TodayScreen({super.key});

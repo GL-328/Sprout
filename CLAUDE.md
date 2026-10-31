@@ -9,11 +9,7 @@ The owner is GL-328 (repo GL-328/Sprout, renamed from GL328). Read this first in
   (in-memory DB in tests), game rules in `assets/config/game_config.yaml`.
 - Visual checks: `test/visual/*` render PNGs to `build/visual/` (`loadAppFonts`, `setPhoneScreen`, `shot`,
   `savePng`). Always render and look at UI changes before calling them done.
-- Art style (storybook, Finch-like): every drawing gets a soft outline in a deeper shade of its own colours via
-  `paintOutlined` (`lib/ui/art/icon_painters.dart`; icons, plants, the shopkeeper, scenery). The garden's land is
-  drawn once into a cached image (`GardenScenePainter._landImage`) with outlines and paper grain.
-- UI style: `Chunky.box` (outline + solid bottom lip) for cards, pills and tiles, and `ChunkyBorder` for buttons and
-  the FAB (`lib/ui/theme/chunky.dart`). No frosted/see-through buttons, no blurry drop shadows.
+- Style: the owner prefers no outlines and no 3D/lip styling (tried in build 33, reverted). Keep art flat and soft.
 - AppBar titles need an explicit font size in the theme (the text theme has no sizes when the theme is built).
 - No emoji anywhere in the app: flat painted icons via `ArtIcon(id)` / `IconText` in `lib/ui/art/icon_art.dart`
   (guarded by `test/widget/no_emoji_test.dart`).

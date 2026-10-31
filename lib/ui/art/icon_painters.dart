@@ -1,36 +1,6 @@
 import 'dart:math' as math;
-import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
-
-/// Turns the art's own colours into a deeper, warmer shade of themselves, for
-/// outlines: never black, never grey.
-const _deepen = ColorFilter.matrix([
-  0.5, 0, 0, 0, 0.09 * 255, //
-  0, 0.42, 0, 0, 0.05 * 255,
-  0, 0, 0.48, 0, 0.08 * 255,
-  0, 0, 0, 1, 0,
-]);
-
-/// The outline width for art [size] logical pixels across.
-double outlineWidth(double size) => (size * 0.03).clamp(0.8, 2.2);
-
-/// Draws [draw] with a soft outline around its whole silhouette: once into a
-/// layer that is grown by [width] and deepened in colour, then normally on top.
-/// [bounds] is the area [draw] paints into, before the outline.
-void paintOutlined(Canvas canvas, Rect bounds, double width, void Function() draw) {
-  if (width > 0) {
-    canvas.saveLayer(
-      bounds.inflate(width * 2),
-      Paint()
-        ..imageFilter = ui.ImageFilter.dilate(radiusX: width, radiusY: width)
-        ..colorFilter = _deepen,
-    );
-    draw();
-    canvas.restore();
-  }
-  draw();
-}
 
 /// Drawing helpers for flat, soft icons. Everything is drawn in a 1×1 box:
 /// flat pastel fills, rounded shapes, and at most one soft highlight.

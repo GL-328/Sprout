@@ -7,8 +7,6 @@ import '../../core/haptics.dart';
 import '../../core/providers.dart';
 import '../../data/premade/premade_quests.dart';
 import '../../domain/models/enums.dart';
-import '../../ui/theme/app_theme.dart';
-import '../../ui/theme/chunky.dart';
 import '../../ui/art/icon_art.dart';
 import '../../ui/theme/category_style.dart';
 import '../../ui/widgets/motion.dart';
@@ -424,7 +422,6 @@ class _PickCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final tint = categoryColor(quest.category);
-    final fill = Color.alphaBlend(selected ? tint : tint.withValues(alpha: 0.28), SproutColors.cream);
     return Semantics(
       button: true,
       selected: selected,
@@ -433,57 +430,52 @@ class _PickCard extends StatelessWidget {
       onTap: onTap,
       child: ConstrainedBox(
         constraints: const BoxConstraints(minHeight: 76),
-        child: DecoratedBox(
-          // Picked quests stand a little taller.
-          decoration: Chunky.box(fill, radius: BorderRadius.circular(18), lipHeight: selected ? 3.5 : 2),
-          child: Material(
-            color: fill,
+        child: Material(
+          color: selected ? tint : tint.withValues(alpha: 0.28),
+          borderRadius: BorderRadius.circular(18),
+          child: InkWell(
             borderRadius: BorderRadius.circular(18),
-            clipBehavior: Clip.antiAlias,
-            child: InkWell(
-              borderRadius: BorderRadius.circular(18),
-              onTap: onTap,
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(12, 10, 10, 10),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(
-                          child: Text(
-                            quest.title,
-                            style: theme.textTheme.labelLarge?.copyWith(
-                              color: const Color(0xFF3B3346),
-                              fontWeight: FontWeight.w800,
-                            ),
+            onTap: onTap,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(12, 10, 10, 10),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          quest.title,
+                          style: theme.textTheme.labelLarge?.copyWith(
+                            color: const Color(0xFF3B3346),
+                            fontWeight: FontWeight.w800,
                           ),
                         ),
-                        const SizedBox(width: 4),
-                        Icon(
-                          selected ? Icons.check_circle_rounded : Icons.circle_outlined,
-                          size: 20,
-                          color: const Color(0xFF3B3346).withValues(alpha: selected ? 1 : 0.35),
-                        ),
-                      ],
-                    ),
-                    if (suggested) ...[
-                      const SizedBox(height: 6),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.8),
-                          borderRadius: BorderRadius.circular(100),
-                        ),
-                        child: Text(
-                          'Suggested',
-                          style: theme.textTheme.labelSmall?.copyWith(color: const Color(0xFF3B3346)),
-                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      Icon(
+                        selected ? Icons.check_circle_rounded : Icons.circle_outlined,
+                        size: 20,
+                        color: const Color(0xFF3B3346).withValues(alpha: selected ? 1 : 0.35),
                       ),
                     ],
+                  ),
+                  if (suggested) ...[
+                    const SizedBox(height: 6),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.8),
+                        borderRadius: BorderRadius.circular(100),
+                      ),
+                      child: Text(
+                        'Suggested',
+                        style: theme.textTheme.labelSmall?.copyWith(color: const Color(0xFF3B3346)),
+                      ),
+                    ),
                   ],
-                ),
+                ],
               ),
             ),
           ),
