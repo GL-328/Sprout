@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sprout/core/sound_service.dart';
+import 'package:sprout/features/shell/app_shell.dart';
 
 import '../widget/test_app.dart';
 
@@ -15,9 +16,17 @@ void main() {
     }
   });
 
-  test('every plot has its own music', () {
-    for (final env in testConfig.environments) {
-      expect(File('assets/${musicAsset(env.id)}').existsSync(), isTrue, reason: env.id);
+  test('every plot, and the shop, has its own music', () {
+    for (final track in [for (final env in testConfig.environments) env.id, 'shop']) {
+      expect(File('assets/${musicAsset(track)}').existsSync(), isTrue, reason: track);
+    }
+  });
+
+  test('the music follows the tab: the plot on Home, shop music in the Shop, quiet elsewhere', () {
+    expect(AppShell.musicFor(0, 'forest'), 'forest');
+    expect(AppShell.musicFor(3, 'forest'), 'shop');
+    for (final tab in [1, 2, 4]) {
+      expect(AppShell.musicFor(tab, 'forest'), isNull);
     }
   });
 }

@@ -19,6 +19,9 @@ class _Recorder implements SoundService {
 
   @override
   void setMusicEnabled(bool on) {}
+
+  @override
+  void dispose() {}
 }
 
 void main() {

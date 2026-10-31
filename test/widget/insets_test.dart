@@ -63,7 +63,7 @@ Future<AppDatabase> seededDb(WidgetTester tester) async {
     await seeds.ensurePlot('meadow');
     final garden = GardenService(db, testConfig, clock, seeds, CountersRepository(db));
     final s = await seeds.add('giant_sunflower', Rarity.common, SeedSource.quests);
-    await garden.plantSeed(s.id, 'meadow', 1);
+    await garden.plantSeed(s.id, 'meadow', 0);
     final quests = QuestRepository(db, const Clock());
     for (var i = 1; i <= 10; i++) {
       await quests.create(

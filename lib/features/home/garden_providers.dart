@@ -9,6 +9,16 @@ import '../../domain/logic/streaks.dart';
 import '../../domain/models/plant.dart';
 
 /// Unlocked plots and when they were unlocked.
+/// The plot Home is showing, so the shell can play its music.
+final shownPlotProvider = NotifierProvider<ShownPlot, String?>(ShownPlot.new);
+
+class ShownPlot extends Notifier<String?> {
+  @override
+  String? build() => null;
+
+  void show(String envId) => state = envId;
+}
+
 final plotsProvider = StreamProvider<Map<String, DateTime>>((ref) => ref.watch(seedRepositoryProvider).watchPlots());
 
 final plantsInPlotProvider = StreamProvider.family<List<Plant>, String>(

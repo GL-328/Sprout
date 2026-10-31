@@ -1,11 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/haptics.dart';
+import '../../core/providers.dart';
 import '../../ui/layout/insets.dart';
+import '../home/garden_providers.dart';
 
-/// Scaffold with the floating, rounded bottom navigation bar.
-class AppShell extends StatelessWidget {
+/// Scaffold with the floating, rounded bottom navigation bar. It also picks
+/// the music: the plot's own tune on Home, shop music in the Shop, and
+/// quiet everywhere else or when the app is in the background.
+class AppShell extends ConsumerStatefulWidget {
   const AppShell({super.key, required this.navigationShell});
 
   final StatefulNavigationShell navigationShell;
@@ -18,8 +23,50 @@ class AppShell extends StatelessWidget {
     (icon: Icons.settings_outlined, selected: Icons.settings, label: 'Settings'),
   ];
 
+  /// The music for [tab] (an index into [_tabs]) on [plot], or none.
+  static String? musicFor(int tab, String? plot) => switch (_tabs[tab].label) {
+    'Home' => plot,
+    'Shop' => 'shop',
+    _ => null,
+  };
+
+  @override
+  ConsumerState<AppShell> createState() => _AppShellState();
+}
+
+class _AppShellState extends ConsumerState<AppShell> {
+  bool _foreground = true;
+  late final _lifecycle = AppLifecycleListener(
+    onStateChange: (state) {
+      _foreground = state == AppLifecycleState.resumed;
+      _syncMusic();
+    },
+  );
+
+  void _syncMusic() {
+    final track = AppShell.musicFor(widget.navigationShell.currentIndex, ref.read(shownPlotProvider));
+    ref.read(soundServiceProvider).setMusic(_foreground ? track : null);
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _lifecycle;
+  }
+
+  @override
+  void dispose() {
+    _lifecycle.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
+    final navigationShell = widget.navigationShell;
+    ref.listen(shownPlotProvider, (_, _) => _syncMusic());
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _syncMusic();
+    });
     final navHeight = AppInsets.shellNavHeight(MediaQuery.viewPaddingOf(context).bottom);
     return Scaffold(
       extendBody: true,

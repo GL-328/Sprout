@@ -48,6 +48,9 @@ abstract class SoundService {
   void setEnabled(bool on);
 
   void setMusicEnabled(bool on);
+
+  /// Stops everything, when the app swaps to another account.
+  void dispose();
 }
 
 class SilentSoundService implements SoundService {
@@ -64,6 +67,9 @@ class SilentSoundService implements SoundService {
 
   @override
   void setMusicEnabled(bool on) {}
+
+  @override
+  void dispose() {}
 }
 
 class AudioSoundService implements SoundService {
@@ -92,6 +98,14 @@ class AudioSoundService implements SoundService {
 
   @override
   void setEnabled(bool on) => _enabled = on;
+
+  @override
+  void dispose() {
+    _fade?.cancel();
+    for (final player in [_effects, _quick, ?_music]) {
+      player.dispose().catchError((Object _) {});
+    }
+  }
 
   @override
   void setMusicEnabled(bool on) {
