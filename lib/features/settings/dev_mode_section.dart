@@ -34,15 +34,20 @@ class _BuildLineState extends ConsumerState<BuildLine> {
       return;
     }
     final hash = ref.read(devPasswordHashProvider);
+    // Captured now: this line sits at the bottom of About, and the keyboard
+    // can scroll it out of view (and out of the tree) while the box is open.
+    // Everything after the password goes through these, not through it.
+    final container = ProviderScope.containerOf(context, listen: false);
+    final navigator = Navigator.of(context, rootNavigator: true);
     // The dialog checks the password itself, and only closes when it's right.
     final ok = await showDialog<bool>(
       context: context,
       builder: (_) => _PasswordDialog(hash: hash),
     );
-    if (ok != true || !mounted) return;
-    await ref.read(settingsRepositoryProvider).writeValue(devUnlockedKey, 'true');
-    ref.invalidate(devUnlockedProvider);
-    if (mounted) await openDevAccount(context, ref);
+    if (ok != true) return;
+    await container.read(settingsRepositoryProvider).writeValue(devUnlockedKey, 'true');
+    container.invalidate(devUnlockedProvider);
+    await openDevAccount(navigator, container);
   }
 
   @override
@@ -67,12 +72,12 @@ class _BuildLineState extends ConsumerState<BuildLine> {
 
 /// Opens the dev account (or resets it), with a little "Opening…" note, and
 /// shows what went wrong if it can't.
-Future<void> openDevAccount(BuildContext context, WidgetRef ref, {bool reset = false}) async {
-  final switcher = ref.read(accountSwitcherProvider);
-  final navigator = Navigator.of(context, rootNavigator: true);
+Future<void> openDevAccount(NavigatorState navigator, ProviderContainer container, {bool reset = false}) async {
+  final switcher = container.read(accountSwitcherProvider);
+  if (!navigator.mounted) return;
   unawaited(
     showDialog<void>(
-      context: context,
+      context: navigator.context,
       barrierDismissible: false,
       builder: (_) => const AlertDialog(
         content: Row(
@@ -183,7 +188,13 @@ class DevModeCard extends ConsumerWidget {
         ],
       ),
     );
-    if (ok == true && context.mounted) await openDevAccount(context, ref, reset: true);
+    if (ok == true && context.mounted) {
+      await openDevAccount(
+        Navigator.of(context, rootNavigator: true),
+        ProviderScope.containerOf(context, listen: false),
+        reset: true,
+      );
+    }
   }
 
   @override
@@ -216,7 +227,13 @@ class DevModeCard extends ConsumerWidget {
                   FilledButton(onPressed: () => switcher(Account.main), child: const Text('Back to my garden')),
                   OutlinedButton(onPressed: () => _reset(context, ref), child: const Text('Reset dev account')),
                 ] else
-                  FilledButton(onPressed: () => openDevAccount(context, ref), child: const Text('Open dev account')),
+                  FilledButton(
+                    onPressed: () => openDevAccount(
+                      Navigator.of(context, rootNavigator: true),
+                      ProviderScope.containerOf(context, listen: false),
+                    ),
+                    child: const Text('Open dev account'),
+                  ),
               ],
             ),
           ],

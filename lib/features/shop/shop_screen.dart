@@ -531,16 +531,18 @@ class _RecipesGrid extends ConsumerWidget {
     final config = ref.watch(gameConfigProvider);
     final inventory = ref.watch(inventoryProvider).value ?? const <String, int>{};
     final economy = ref.read(economyServiceProvider);
+    final madeToday = ref.watch(recipesMadeTodayProvider).value ?? const <String>{};
     return _grid([
       for (final r in config.recipes.values)
         Builder(
           builder: (context) {
-            final can = economy.canCook(r, inventory);
+            final made = madeToday.contains(r.id);
+            final can = !made && economy.canCook(r, inventory);
             final needs = [for (final e in r.ingredients.entries) '{fruit:${e.key}}${e.value}'].join(' ');
             return _ShopCard(
               picture: ArtIcon('recipe:${r.id}', size: 76),
               name: r.name,
-              pill: needs,
+              pill: made ? 'Made today' : needs,
               tint: const Color(0xFFF8D3DA),
               faded: !can,
               onTap: () => _showItemSheet(
@@ -548,13 +550,17 @@ class _RecipesGrid extends ConsumerWidget {
                 picture: ArtIcon('recipe:${r.id}', size: 110),
                 tint: const Color(0xFFF8D3DA),
                 title: r.name,
-                line: effectLine(r.effect),
+                line: '${effectLine(r.effect)} One a day.',
                 extra: IconText(
                   [for (final e in r.ingredients.entries) '{fruit:${e.key}} ${inventory[e.key] ?? 0}/${e.value}']
                       .join('    '),
                   style: const TextStyle(fontSize: 16),
                 ),
-                action: can ? 'Make it' : 'A little more fruit needed',
+                action: made
+                    ? 'Ready again tomorrow'
+                    : can
+                    ? 'Make it'
+                    : 'A little more fruit needed',
                 onAction: can
                     ? () async {
                         try {

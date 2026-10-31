@@ -51,6 +51,12 @@ final streakProvider = Provider<int>((ref) {
   return gentleStreak(activeDays: days, now: now);
 });
 
+/// Recipes already made today (each can be made once a day).
+final recipesMadeTodayProvider = StreamProvider<Set<String>>((ref) {
+  ref.watch(todayKeyProvider);
+  return ref.watch(economyServiceProvider).watchRecipesMadeToday();
+});
+
 final ownedCosmeticsProvider = StreamProvider<Set<String>>(
   (ref) => ref.watch(economyServiceProvider).watchOwnedCosmetics(),
 );

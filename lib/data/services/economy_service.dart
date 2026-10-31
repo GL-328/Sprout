@@ -136,11 +136,30 @@ class EconomyService {
   bool canCook(RecipeConfig recipe, Map<String, int> inventory) =>
       recipe.ingredients.entries.every((e) => (inventory[e.key] ?? 0) >= e.value);
 
+  /// Settings key holding the day a recipe was last made.
+  static String recipeDayKey(String recipeId) => 'recipe_made_$recipeId';
+
+  /// The recipes already made today. Each one can be made once a day, so a
+  /// growth boost can't be turned into endless fruit and coins.
+  Stream<Set<String>> watchRecipesMadeToday() =>
+      (_db.select(_db.settingsEntries)..where((t) => t.key.like('recipe_made_%'))).watch().map((rows) {
+        final today = dayKey(_clock.now());
+        return {
+          for (final r in rows)
+            if (r.value == today) r.key.substring('recipe_made_'.length),
+        };
+      });
+
   Future<RecipeOutcome> cook(String recipeId) => _db.transaction(() async {
     final recipe = _config.recipes[recipeId]!;
+    final today = dayKey(_clock.now());
+    if (await _settings.readValue(recipeDayKey(recipeId)) == today) {
+      throw const GardenException("You've made this today. It'll be ready to make again tomorrow.");
+    }
     if (!canCook(recipe, await _garden.inventory())) {
       throw const GardenException("You'll need a little more fruit for this one.");
     }
+    await _settings.writeValue(recipeDayKey(recipeId), today);
     for (final e in recipe.ingredients.entries) {
       await _garden.addToInventory(e.key, -e.value);
     }
