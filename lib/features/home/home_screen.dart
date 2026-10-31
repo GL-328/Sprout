@@ -122,6 +122,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with SingleTickerProvid
       now: ref.read(clockProvider).now(),
     );
     if (!status.canHarvest) {
+      ref.read(soundServiceProvider).play(Sfx.pop);
       await showPlantSheet(context, plant);
       return;
     }
@@ -257,9 +258,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with SingleTickerProvid
                   night: isNight,
                   onPageChanged: (i) {
                     Haptics.selection();
+                    ref.read(soundServiceProvider).play(Sfx.swipe);
                     setState(() => _slot = i);
                   },
-                  onTapEmpty: (i) => showChooseSeedSheet(context, envId: envId, slot: i),
+                  onTapEmpty: (i) {
+                    ref.read(soundServiceProvider).play(Sfx.pop);
+                    showChooseSeedSheet(context, envId: envId, slot: i);
+                  },
                   onTapPlant: _tapPlant,
                 ),
               );
@@ -309,7 +314,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with SingleTickerProvid
                       width: w,
                       top: headerBottom,
                       bottom: gardenBottom,
-                      onTap: () => showVisitorSheet(context, v),
+                      onTap: () {
+                        ref.read(soundServiceProvider).play(Sfx.chirp);
+                        showVisitorSheet(context, v);
+                      },
                     ),
                   // The header normally sits on top. On very short screens the
                   // plant overlaps it, and then the plant comes first so it stays tappable.
@@ -440,7 +448,10 @@ class _Header extends ConsumerWidget {
                 key: CounterTargets.bag,
                 label: 'Bag, $seeds seeds and $fruit fruit',
                 circle: true,
-                onTap: () => showBagSheet(context),
+                onTap: () {
+                  ref.read(soundServiceProvider).play(Sfx.pop);
+                  showBagSheet(context);
+                },
                 child: const Padding(padding: EdgeInsets.all(9), child: ArtIcon('bag', size: 24)),
               ),
             ),

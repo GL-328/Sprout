@@ -1,7 +1,30 @@
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/foundation.dart';
 
-enum Sfx { complete, seed, coin, harvest, plant }
+enum Sfx {
+  complete(0.6),
+  seed(0.6),
+  coin(0.5),
+  harvest(0.55),
+  plant(0.55),
+
+  /// Small and quiet: taps, swipes and hellos.
+  tap(0.18, quick: true),
+  swipe(0.15, quick: true),
+  pop(0.22, quick: true),
+  chirp(0.3, quick: true),
+  mood(0.35),
+  compost(0.45);
+
+  const Sfx(this.volume, {this.quick = false});
+
+  /// Every sound is soft; the little ones are softer still.
+  final double volume;
+
+  /// Short sounds that play on their own low-latency player, so a tap never
+  /// cuts off a bigger sound.
+  final bool quick;
+}
 
 /// Optional soft sounds. Silent unless the user turns sound on in Settings.
 abstract class SoundService {
@@ -32,6 +55,7 @@ class AudioSoundService implements SoundService {
   bool _enabled;
   bool _wantAmbient = false;
   final _effects = AudioPlayer();
+  final _quick = AudioPlayer();
   AudioPlayer? _ambient;
 
   @override
@@ -43,9 +67,16 @@ class AudioSoundService implements SoundService {
   @override
   void play(Sfx sfx) {
     if (!_enabled) return;
-    _effects.play(AssetSource('sounds/${sfx.name}.wav'), volume: 0.6).catchError((Object e) {
-      debugPrint('Sound failed: $e');
-    });
+    final player = sfx.quick ? _quick : _effects;
+    player
+        .play(
+          AssetSource('sounds/${sfx.name}.wav'),
+          volume: sfx.volume,
+          mode: sfx.quick ? PlayerMode.lowLatency : PlayerMode.mediaPlayer,
+        )
+        .catchError((Object e) {
+          debugPrint('Sound failed: $e');
+        });
   }
 
   @override

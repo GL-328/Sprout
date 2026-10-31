@@ -409,7 +409,11 @@ class _EmptyRing extends StatelessWidget {
               border: Border.all(color: SproutColors.paper.withValues(alpha: 0.9), width: 3),
             ),
           ),
-          CustomPaint(size: Size.square(button * 0.5), painter: _PlusPainter(accent)),
+          // The + sits a little high in the ring, so the soil shows beneath it.
+          Transform.translate(
+            offset: Offset(0, -button * 0.1),
+            child: CustomPaint(size: Size.square(button * 0.44), painter: _PlusPainter(accent)),
+          ),
         ],
       ),
     );
