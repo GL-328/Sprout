@@ -2,6 +2,8 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import 'icon_painters.dart';
+
 enum BenMood { idle, talking, happy }
 
 /// Art for characters, starting with Ben the shopkeeper. Swap the
@@ -54,7 +56,10 @@ class BenPainter extends CustomPainter {
   static final _shine = Color.lerp(_hair, Colors.white, 0.4)!;
 
   @override
-  void paint(Canvas canvas, Size size) {
+  void paint(Canvas canvas, Size size) =>
+      paintOutlined(canvas, Offset.zero & size, outlineWidth(size.width) * 0.8, () => _draw(canvas, size));
+
+  void _draw(Canvas canvas, Size size) {
     final w = size.width;
     final h = size.height;
     canvas.save();

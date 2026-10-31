@@ -9,6 +9,7 @@ import '../../domain/models/plant.dart';
 import '../../ui/art/plant_art_provider.dart';
 import '../../ui/art/icon_art.dart';
 import '../../ui/theme/app_theme.dart';
+import '../../ui/theme/chunky.dart';
 
 /// One plot's slots, one large plant at a time. Neighbours peek in from the
 /// sides; arrows and swipes move between them.
@@ -150,11 +151,6 @@ class PlantCarousel extends StatelessWidget {
 /// The same night shade the scenery uses, a little lighter so plants stay clear.
 const nightTint = ColorFilter.mode(Color(0x591E2E40), BlendMode.srcATop);
 
-/// The soft shadow under the garden's white buttons and bubbles.
-final _softShadow = [
-  BoxShadow(color: Colors.black.withValues(alpha: 0.10), blurRadius: 10, offset: const Offset(0, 3)),
-];
-
 class _Arrow extends StatelessWidget {
   const _Arrow({required this.icon, required this.label, required this.enabled, required this.onTap});
 
@@ -172,7 +168,7 @@ class _Arrow extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 6),
         child: DecoratedBox(
-          decoration: BoxDecoration(shape: BoxShape.circle, boxShadow: _softShadow),
+          decoration: Chunky.box(SproutColors.paper, radius: BorderRadius.circular(100)),
           child: Material(
             color: SproutColors.paper,
             shape: const CircleBorder(),
@@ -338,11 +334,7 @@ class _Bubble extends StatelessWidget {
   Widget build(BuildContext context) => Container(
     constraints: const BoxConstraints(maxWidth: 240),
     padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-    decoration: BoxDecoration(
-      color: SproutColors.paper,
-      borderRadius: BorderRadius.circular(18),
-      boxShadow: _softShadow,
-    ),
+    decoration: Chunky.box(SproutColors.paper, radius: BorderRadius.circular(18)),
     child: IconText(
       text,
       maxLines: 2,
@@ -362,11 +354,7 @@ class _Label extends StatelessWidget {
   Widget build(BuildContext context) => Container(
     margin: const EdgeInsets.only(top: 6),
     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-    decoration: BoxDecoration(
-      color: SproutColors.paper,
-      borderRadius: BorderRadius.circular(100),
-      boxShadow: _softShadow,
-    ),
+    decoration: Chunky.box(SproutColors.paper, radius: BorderRadius.circular(100), lipHeight: 2),
     child: IconText(
       text,
       style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFF4A4257)),
@@ -403,7 +391,7 @@ class _EmptyRing extends StatelessWidget {
           Container(
             width: button,
             height: button,
-            decoration: BoxDecoration(shape: BoxShape.circle, color: SproutColors.paper, boxShadow: _softShadow),
+            decoration: Chunky.box(SproutColors.paper, radius: BorderRadius.circular(button), lipHeight: 3.5),
             child: Icon(Icons.add_rounded, color: accent, size: button * 0.6, weight: 700),
           ),
         ],

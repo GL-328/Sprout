@@ -1,5 +1,6 @@
 import 'package:confetti/confetti.dart';
 import 'package:flutter/material.dart';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
@@ -20,6 +21,7 @@ import 'quest_actions.dart';
 import 'today_providers.dart';
 import '../../ui/layout/insets.dart';
 import '../../ui/art/icon_art.dart';
+import '../../ui/theme/app_theme.dart';
 
 class TodayScreen extends ConsumerStatefulWidget {
   const TodayScreen({super.key});
@@ -223,7 +225,7 @@ class SeedMeterCard extends ConsumerWidget {
         ? '$streak days of caring for yourself'
         : null;
     return SoftCard(
-      color: const Color(0xFF7FC48B).withValues(alpha: 0.14),
+      color: theme.brightness == Brightness.dark ? null : SproutColors.butter,
       padding: const EdgeInsets.fromLTRB(14, 12, 16, 12),
       child: Row(
         children: [

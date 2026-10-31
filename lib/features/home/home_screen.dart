@@ -1,5 +1,4 @@
 import 'dart:math' as math;
-import 'dart:ui' show ImageFilter;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -31,6 +30,8 @@ import 'quests_panel.dart';
 import 'seed_sheets.dart';
 import '../../ui/art/icon_art.dart';
 import '../../ui/layout/insets.dart';
+import '../../ui/theme/app_theme.dart';
+import '../../ui/theme/chunky.dart';
 import '../../ui/widgets/measure_size.dart';
 import 'home_tutorial.dart';
 
@@ -482,7 +483,7 @@ class _Header extends ConsumerWidget {
   }
 }
 
-/// A small, soft, see-through pill.
+/// A small painted pill: solid white, with a soft outline and lip.
 class _Frosted extends StatelessWidget {
   const _Frosted({super.key, required this.child, required this.onTap, required this.label, this.circle = false});
 
@@ -499,15 +500,13 @@ class _Frosted extends StatelessWidget {
       label: label,
       excludeSemantics: true,
       onTap: onTap,
-      child: ClipRRect(
-        borderRadius: radius,
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
-          child: Material(
-            color: Colors.white.withValues(alpha: 0.55),
-            shape: circle ? const CircleBorder() : RoundedRectangleBorder(borderRadius: radius),
-            child: InkWell(onTap: onTap, child: child),
-          ),
+      child: DecoratedBox(
+        decoration: Chunky.box(SproutColors.paper, radius: radius),
+        child: Material(
+          color: SproutColors.paper,
+          borderRadius: radius,
+          clipBehavior: Clip.antiAlias,
+          child: InkWell(onTap: onTap, child: child),
         ),
       ),
     );

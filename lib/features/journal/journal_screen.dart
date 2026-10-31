@@ -39,6 +39,7 @@ class JournalScreen extends StatelessWidget {
           bottom: const TabBar(
             isScrollable: true,
             tabAlignment: TabAlignment.start,
+            padding: EdgeInsets.fromLTRB(12, 4, 12, 8),
             tabs: [
               Tab(text: 'Moods'),
               Tab(text: 'Quests'),
