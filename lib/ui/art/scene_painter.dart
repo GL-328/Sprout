@@ -191,43 +191,23 @@ class GardenScenePainter extends CustomPainter {
       ],
     ).createShader(Rect.fromCircle(center: c, radius: radius));
 
+  /// A simple, flat sun: a ring of pointed spikes around a round face.
+  /// Warmer near the horizon.
   void _sun(Canvas canvas, Offset c, double r, double low) {
-    final warm = Color.lerp(const Color(0xFFFFC94D), const Color(0xFFFF9F5A), low * 0.8)!;
-    final light = Color.lerp(const Color(0xFFFFEDA6), const Color(0xFFFFD08A), low * 0.8)!;
-    canvas.drawCircle(c, r * 2.8, _glow(c, r * 2.8, _mute(light), 0.45));
-    // Soft, rounded rays that turn very slowly (one ray's width per loop).
-    const rays = 10;
-    canvas.save();
-    canvas.translate(c.dx, c.dy);
-    canvas.rotate(phase * 2 * math.pi / rays);
-    for (var i = 0; i < rays; i++) {
-      final a = i * 2 * math.pi / rays;
-      canvas.save();
-      canvas.rotate(a);
-      canvas.drawRRect(
-        RRect.fromRectAndRadius(
-          Rect.fromCenter(center: Offset(r * 1.42, 0), width: r * 0.5, height: r * 0.3),
-          Radius.circular(r * 0.15),
-        ),
-        _fill(_mute(light).withValues(alpha: 0.9)),
-      );
-      canvas.restore();
+    final spikes = _mute(Color.lerp(const Color(0xFFFFC94D), const Color(0xFFFFA05A), low * 0.8)!);
+    final face = _mute(Color.lerp(const Color(0xFFFFDA63), const Color(0xFFFFB86B), low * 0.8)!);
+    // Twelve spikes that turn very slowly (one spike's width per loop).
+    const count = 12;
+    final spin = phase * 2 * math.pi / count;
+    final star = Path();
+    for (var i = 0; i < count * 2; i++) {
+      final a = spin + i * math.pi / count;
+      final radius = i.isEven ? r * 1.6 : r * 1.12;
+      final p = Offset(c.dx + radius * math.cos(a), c.dy + radius * math.sin(a));
+      i == 0 ? star.moveTo(p.dx, p.dy) : star.lineTo(p.dx, p.dy);
     }
-    canvas.restore();
-    final disc = Rect.fromCircle(center: c, radius: r);
-    canvas.drawCircle(
-      c,
-      r,
-      Paint()
-        ..shader = RadialGradient(
-          center: const Alignment(-0.35, -0.4),
-          colors: [_mute(light), _mute(warm)],
-        ).createShader(disc),
-    );
-    canvas.drawOval(
-      Rect.fromCenter(center: c.translate(-r * 0.34, -r * 0.38), width: r * 0.5, height: r * 0.3),
-      _fill(Colors.white.withValues(alpha: 0.4)),
-    );
+    canvas.drawPath(star..close(), _fill(spikes));
+    canvas.drawCircle(c, r, _fill(face));
   }
 
   void _moon(Canvas canvas, Offset c, double r) {
