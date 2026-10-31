@@ -59,16 +59,16 @@ void main() {
     await env.garden.moveOn(plant.id);
     expect(await env.garden.watchPlants('meadow').first, isEmpty);
     expect((await env.garden.watchAllPlants().first).single.isKeepsake, isTrue);
-    expect(await env.garden.firstFreeSlot('meadow'), 1);
+    expect(await env.garden.firstFreeSlot('meadow'), 0);
   });
 
-  test('new plants go in the middle spot first, then outwards', () async {
-    expect(await env.garden.firstFreeSlot('meadow'), 1);
-    final a = await env.seeds.add('apple_tree', Rarity.common, SeedSource.quests);
-    await env.garden.plantSeed(a.id, 'meadow', 1);
+  test('new plants fill the spots left to right, the way the garden shows them', () async {
     expect(await env.garden.firstFreeSlot('meadow'), 0);
+    final a = await env.seeds.add('apple_tree', Rarity.common, SeedSource.quests);
+    await env.garden.plantSeed(a.id, 'meadow', 0);
+    expect(await env.garden.firstFreeSlot('meadow'), 1);
     final b = await env.seeds.add('apple_tree', Rarity.common, SeedSource.quests);
-    await env.garden.plantSeed(b.id, 'meadow', 0);
+    await env.garden.plantSeed(b.id, 'meadow', 1);
     expect(await env.garden.firstFreeSlot('meadow'), 2);
   });
 

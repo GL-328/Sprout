@@ -4,7 +4,7 @@ A Finch-like self-care app: finish quests, earn seeds, grow a garden. Flutter, A
 The owner is GL-328 (repo GL-328/Sprout, renamed from GL328). Read this first in every session.
 
 ## Toolchain and checks
-- Flutter 3.47.7, `dart format -l 120`, `flutter analyze` must be clean, `flutter test` must pass (217 tests).
+- Flutter 3.47.7, `dart format -l 120`, `flutter analyze` must be clean, `flutter test` must pass (220 tests).
 - Riverpod 3 (unlistened providers pause: don't await `.future` from a Notifier, read repositories directly), drift
   (in-memory DB in tests), game rules in `assets/config/game_config.yaml`.
 - Visual checks: `test/visual/*` render PNGs to `build/visual/` (`loadAppFonts`, `setPhoneScreen`, `shot`,
@@ -13,6 +13,7 @@ The owner is GL-328 (repo GL-328/Sprout, renamed from GL328). Read this first in
 - AppBar titles need an explicit font size in the theme (the text theme has no sizes when the theme is built).
 - Sound: `lib/core/sound_service.dart`. Effects are made by `tool/generate_sounds.py`, music (one seamless OGG
   loop per plot) by `tool/generate_music.py` (numpy + ffmpeg); Settings has separate Sounds and Music switches.
+  The shell (`app_shell.dart`) picks the music by tab: the plot's tune on Home, `shop` in the Shop, quiet elsewhere.
   Every button ticks via the global `TapSounds` listener (`lib/ui/widgets/tap_sounds.dart`, anything with
   `Semantics(button: true)`), so don't add tap sounds by hand.
 - No emoji anywhere in the app: flat painted icons via `ArtIcon(id)` / `IconText` in `lib/ui/art/icon_art.dart`
@@ -32,10 +33,17 @@ The owner is GL-328 (repo GL-328/Sprout, renamed from GL328). Read this first in
 - Commits are authored as `GL-328 <331449904+GL-328@users.noreply.github.com>` (the owner's GitHub private
   email blocks pushes that expose their real address).
 
-## Developer mode (hidden)
+## Developer mode: a separate dev account (hidden)
 - Settings → About Sprout → tap "Version …" 7 times → password (only its SHA-256 is in `lib/core/dev_mode.dart`;
-  never write the password itself into the repo). Turning it on saves a full backup snapshot to a file, then
-  unlocks every plot. "Reset and turn off" (card at the top of Settings) restores that snapshot exactly.
+  never write the password itself into the repo). That opens the **dev account**: its own database
+  (`sprout_dev`), set up by `DevAccount.seed` (every plot, 5,000 coins, seeds of each rarity). The owner's own
+  garden (`sprout`) is never touched. After the first unlock, Settings shows "Open dev account"; in the dev
+  account it shows "Back to my garden" and "Reset dev account", and Home shows a "Dev account" badge.
+- `lib/app_root.dart` swaps accounts by rebuilding the whole `ProviderScope` on the other database
+  (`activeAccountProvider`, `accountSwitcherProvider`, `lib/core/accounts.dart`); the open account is remembered
+  in `account.txt`. The dev account schedules no reminders and has no Friends.
+- The old in-place developer mode (snapshot + reset) is gone; `restoreOldDevSnapshot` undoes it on start if it
+  was left on.
 
 ## Friends (built, off until Firebase is set up)
 - Add friends by 8-letter code, accept/decline/block/remove, visit friends' gardens read-only, once-a-day visit

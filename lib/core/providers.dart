@@ -19,6 +19,7 @@ import 'clock.dart';
 import 'notifications_service.dart';
 import 'sound_service.dart';
 import 'updater.dart';
+import 'accounts.dart';
 
 /// Overridden in `main.dart` once the config has been loaded.
 final gameConfigProvider = Provider<GameConfig>((ref) => throw UnimplementedError('gameConfigProvider not set'));
@@ -96,6 +97,8 @@ final reminderSchedulerProvider = Provider<ReminderScheduler>((ref) => LocalNoti
 /// Re-schedules reminder notifications. Invalidate it after quests or
 /// reminder settings change.
 final reminderSyncProvider = FutureProvider<void>((ref) async {
+  // Only the owner's own garden schedules reminders; the dev account never does.
+  if (ref.watch(activeAccountProvider) == Account.dev) return;
   final settings = ref.watch(settingsProvider);
   final repo = ref.read(questRepositoryProvider);
   final scheduler = ref.read(reminderSchedulerProvider);
@@ -145,6 +148,7 @@ final soundServiceProvider = Provider<SoundService>((ref) {
   final service = AudioSoundService(enabled: settings.soundOn, musicEnabled: settings.musicOn);
   ref.listen(settingsProvider.select((s) => s.soundOn), (_, on) => service.setEnabled(on));
   ref.listen(settingsProvider.select((s) => s.musicOn), (_, on) => service.setMusicEnabled(on));
+  ref.onDispose(service.dispose);
   return service;
 });
 

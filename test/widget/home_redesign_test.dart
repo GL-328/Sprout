@@ -56,19 +56,18 @@ void main() {
         .widget<AnimatedOpacity>(find.ancestor(of: find.byTooltip(tooltip), matching: find.byType(AnimatedOpacity)))
         .opacity;
 
-    // It opens on the middle spot, so both arrows are there.
+    // It starts on the far-left spot: nothing to go back to yet.
+    expect(opacity('Previous plant'), 0);
+    expect(opacity('Next plant'), 1);
+    await tester.tap(find.byTooltip('Next plant'));
+    await settle(tester);
     expect(opacity('Previous plant'), 1);
     expect(opacity('Next plant'), 1);
     await tester.tap(find.byTooltip('Next plant'));
     await settle(tester);
     // On the last spot the next arrow fades away and ignores taps.
     expect(opacity('Next plant'), 0);
-    await tester.tap(find.byTooltip('Previous plant'));
-    await settle(tester);
-    await tester.tap(find.byTooltip('Previous plant'));
-    await settle(tester);
-    expect(opacity('Previous plant'), 0);
-    expect(opacity('Next plant'), 1);
+    expect(opacity('Previous plant'), 1);
   });
 
   testWidgets('placed decorations stand on the ground, above the quests panel', (tester) async {

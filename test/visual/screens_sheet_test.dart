@@ -24,7 +24,7 @@ Future<AppDatabase> seeded(WidgetTester tester) async {
     await seeds.ensurePlot('meadow');
     final garden = GardenService(db, testConfig, clock, seeds, counters);
     final s = await seeds.add('berry_bush', Rarity.common, SeedSource.quests);
-    await garden.plantSeed(s.id, 'meadow', 1);
+    await garden.plantSeed(s.id, 'meadow', 0);
     await seeds.add('apple_tree', Rarity.common, SeedSource.quests);
     await counters.add('coins', 120);
     final quests = QuestRepository(db, const Clock());
@@ -50,7 +50,7 @@ void main() {
       await seeds.ensurePlot('meadow');
       final garden = GardenService(db, testConfig, const Clock(), seeds, CountersRepository(db));
       final s = await seeds.add('giant_sunflower', Rarity.common, SeedSource.quests);
-      await garden.plantSeed(s.id, 'meadow', 1);
+      await garden.plantSeed(s.id, 'meadow', 0);
     });
     await tester.pumpWidget(
       shot(testApp(db, settings: const AppSettings(name: 'Sam', onboardingDone: true, reducedMotion: true))),

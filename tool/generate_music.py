@@ -251,6 +251,11 @@ SONGS = {
                    chord_octave=4, melody_range=(midi("E5"), midi("E6")), lead="bell", lead_gain=0.2, arp="pluck",
                    arp_step=1, arp_pattern=[0, 2, 3, 1], arp_gain=0.24, pad=0.3, bass=0.2,
                    rhythm=[2, 2, 3], rest=0.45),
+    # The Shop: cheerful and light, a music box over bouncy marimba.
+    "shop": dict(bpm=104, beats=4, bars=16, key="D", mode="major", chords=[("D", "maj"), ("B", "min"), ("G", "maj"), ("A", "maj")],
+                 chord_octave=4, melody_range=(midi("D5"), midi("D6")), lead="bell", lead_gain=0.24, arp="marimba",
+                 arp_step=0.5, arp_pattern=[0, None, 1, 2, None, 1, 3, None], arp_gain=0.26, pad=0.1, bass=0.3,
+                 rhythm=[0.5, 1, 1, 2], rest=0.3),
 }
 
 

@@ -34,6 +34,7 @@ import '../../ui/art/icon_art.dart';
 import '../../ui/layout/insets.dart';
 import '../../ui/widgets/measure_size.dart';
 import 'home_tutorial.dart';
+import '../../core/accounts.dart';
 
 /// The garden: one plot, one plant at a time, with today's quests below.
 class HomeScreen extends ConsumerStatefulWidget {
@@ -44,14 +45,12 @@ class HomeScreen extends ConsumerStatefulWidget {
 }
 
 class _HomeScreenState extends ConsumerState<HomeScreen> with SingleTickerProviderStateMixin {
-  /// The carousel opens on the middle spot, so there's a plant to either side.
-  late final _slots = PageController(viewportFraction: PlantCarousel.viewportFraction, initialPage: _slot);
+  /// The carousel always starts on the far-left plant.
+  final _slots = PageController(viewportFraction: PlantCarousel.viewportFraction);
   late final _ambient = AnimationController(vsync: this, duration: const Duration(seconds: 24));
   String? _envId;
 
-  /// The plot on screen, for its music.
-  String? _shownEnv;
-  late int _slot = ref.read(gameConfigProvider).startingEnvironment.slots ~/ 2;
+  int _slot = 0;
 
   /// Measured heights of the header and the quests panel, so the garden
   /// always fits between them, at any text size. Estimates until measured.
@@ -92,32 +91,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with SingleTickerProvid
     });
   }
 
-  /// Each plot's music plays only while Home is the visible tab and the app is open.
-  void _syncMusic() {
-    final visible = _foreground && TickerMode.valuesOf(context).enabled;
-    ref.read(soundServiceProvider).setMusic(visible ? _shownEnv : null);
-  }
-
   final Set<String> _recorded = {};
-  bool _foreground = true;
-  late final _lifecycle = AppLifecycleListener(
-    onStateChange: (state) {
-      _foreground = state == AppLifecycleState.resumed;
-      _syncMusic();
-    },
-  );
-
-  @override
-  void initState() {
-    super.initState();
-    _lifecycle;
-  }
-
   @override
   void dispose() {
     _slots.dispose();
     _ambient.dispose();
-    _lifecycle.dispose();
     super.dispose();
   }
 
@@ -154,12 +132,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with SingleTickerProvid
   Future<void> _pickPlot(String current) async {
     final picked = await showPlotPicker(context, current: current);
     if (picked != null && picked != current && mounted) {
-      final middle = ref.read(gameConfigProvider).environment(picked).slots ~/ 2;
       setState(() {
         _envId = picked;
-        _slot = middle;
+        _slot = 0;
       });
-      if (_slots.hasClients) _slots.jumpToPage(middle);
+      if (_slots.hasClients) _slots.jumpToPage(0);
     }
   }
 
@@ -177,8 +154,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with SingleTickerProvid
     final now = ref.watch(nowProvider).value ?? ref.watch(clockProvider).now();
     final name = ref.watch(settingsProvider.select((s) => s.name));
     final envId = _envId != null && plots.containsKey(_envId) ? _envId! : config.startingEnvironment.id;
-    _shownEnv = envId;
-    _syncMusic();
+    if (ref.read(shownPlotProvider) != envId) {
+      // Tell the shell which plot is showing (for its music), after this frame.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) ref.read(shownPlotProvider.notifier).show(envId);
+      });
+    }
     final env = config.environment(envId);
     final unlockedAt = plots[envId] ?? now;
     final season = seasonFor(unlockedAt: unlockedAt, now: now, daysPerSeason: config.daysPerSeason);
@@ -488,6 +469,21 @@ class _Header extends ConsumerWidget {
                 children: [
                   IconText(plotLabel, style: theme.textTheme.bodySmall?.copyWith(color: color.withValues(alpha: 0.75))),
                   Icon(Icons.expand_more_rounded, size: 16, color: color.withValues(alpha: 0.75)),
+                  if (ref.watch(activeAccountProvider) == Account.dev) ...[
+                    const SizedBox(width: 8),
+                    // So the test garden is never mistaken for the real one.
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.primary,
+                        borderRadius: BorderRadius.circular(100),
+                      ),
+                      child: Text(
+                        'Dev account',
+                        style: theme.textTheme.labelSmall?.copyWith(color: Colors.white, fontWeight: FontWeight.w800),
+                      ),
+                    ),
+                  ],
                 ],
               ),
             ),

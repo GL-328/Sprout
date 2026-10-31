@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/accounts.dart';
 import '../../core/dev_mode.dart';
 import '../../core/providers.dart';
 import '../../ui/widgets/soft_card.dart';
@@ -26,16 +27,19 @@ class _BuildLineState extends ConsumerState<BuildLine> {
   Future<void> _tap() async {
     if (++_count < _taps) return;
     _count = 0;
-    if (await ref.read(devModeServiceProvider).isOn()) {
-      if (mounted) _say(context, 'Developer mode is on. You can reset it in Settings.');
+    if (ref.read(activeAccountProvider) == Account.dev) {
+      _say(context, "You're in the dev account. Settings has the way back to your garden.");
       return;
     }
-    if (!mounted) return;
     final password = await showDialog<String>(context: context, builder: (_) => const _PasswordDialog());
     if (password == null || !mounted) return;
-    final ok = await ref.read(devModeServiceProvider).enable(password);
-    ref.invalidate(devModeProvider);
-    if (mounted) _say(context, ok ? 'Developer mode is on. Every plot is unlocked.' : "That's not it.");
+    if (!devPasswordMatches(password)) {
+      _say(context, "That's not it.");
+      return;
+    }
+    await ref.read(settingsRepositoryProvider).writeValue(devUnlockedKey, 'true');
+    ref.invalidate(devUnlockedProvider);
+    await ref.read(accountSwitcherProvider)(Account.dev);
   }
 
   @override
@@ -93,7 +97,8 @@ class _PasswordDialogState extends State<_PasswordDialog> {
   );
 }
 
-/// Shown at the top of Settings while developer mode is on.
+/// At the top of Settings: in the dev account, the way back and a reset; in
+/// the owner's own account (once unlocked), the way into the dev account.
 class DevModeCard extends ConsumerWidget {
   const DevModeCard({super.key});
 
@@ -101,10 +106,10 @@ class DevModeCard extends ConsumerWidget {
     final ok = await showDialog<bool>(
       context: context,
       builder: (c) => AlertDialog(
-        title: const Text('Reset and turn off?'),
+        title: const Text('Reset the dev account?'),
         content: const Text(
-          'Your garden goes back to exactly how it was before developer mode: plots, plants, coins, seeds '
-          'and quests. Anything done since then is undone too.',
+          'The dev garden starts again from scratch: every plot unlocked, 5,000 coins and a few seeds. '
+          'Your own garden is not touched.',
         ),
         actions: [
           TextButton(onPressed: () => Navigator.pop(c), child: const Text('Cancel')),
@@ -112,19 +117,15 @@ class DevModeCard extends ConsumerWidget {
         ],
       ),
     );
-    if (ok != true) return;
-    await ref.read(devModeServiceProvider).reset();
-    await ref.read(gardenServiceProvider).ensureStartingPlot();
-    await ref.read(settingsProvider.notifier).reload();
-    ref.invalidate(reminderSyncProvider);
-    ref.invalidate(devModeProvider);
-    if (context.mounted) _say(context, 'Developer mode is off. Your garden is back as it was.');
+    if (ok == true) await ref.read(accountSwitcherProvider)(Account.dev, reset: true);
   }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    if (ref.watch(devModeProvider).value != true) return const SizedBox.shrink();
+    final dev = ref.watch(activeAccountProvider) == Account.dev;
+    if (!dev && ref.watch(devUnlockedProvider).value != true) return const SizedBox.shrink();
     final theme = Theme.of(context);
+    final switcher = ref.read(accountSwitcherProvider);
     return Padding(
       padding: const EdgeInsets.only(bottom: 20),
       child: SoftCard(
@@ -132,14 +133,26 @@ class DevModeCard extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Developer mode', style: theme.textTheme.titleMedium),
+            Text(dev ? "You're in the dev account" : 'Developer', style: theme.textTheme.titleMedium),
             const SizedBox(height: 6),
             Text(
-              'All plots are unlocked for testing. Reset puts your garden back to how it was before.',
+              dev
+                  ? 'A separate garden for testing. Nothing here touches your own garden.'
+                  : 'A separate dev garden for testing, with every plot unlocked. Your own garden stays as it is.',
               style: theme.textTheme.bodyMedium?.copyWith(height: 1.4),
             ),
             const SizedBox(height: 12),
-            FilledButton(onPressed: () => _reset(context, ref), child: const Text('Reset and turn off')),
+            Wrap(
+              spacing: 10,
+              runSpacing: 8,
+              children: [
+                if (dev) ...[
+                  FilledButton(onPressed: () => switcher(Account.main), child: const Text('Back to my garden')),
+                  OutlinedButton(onPressed: () => _reset(context, ref), child: const Text('Reset dev account')),
+                ] else
+                  FilledButton(onPressed: () => switcher(Account.dev), child: const Text('Open dev account')),
+              ],
+            ),
           ],
         ),
       ),

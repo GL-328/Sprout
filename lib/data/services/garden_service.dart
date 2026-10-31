@@ -73,11 +73,8 @@ class GardenService {
       for (final r in await (_db.select(_db.plants)..where((t) => t.envId.equals(envId) & t.uprootedAt.isNull())).get())
         r.slot,
     };
-    // The middle spot first, then outwards: left, right, and so on.
-    final slots = _config.environment(envId).slots;
-    final middle = slots ~/ 2;
-    for (var d = 0; d < slots; d++) {
-      final i = middle + (d.isOdd ? -(d + 1) ~/ 2 : d ~/ 2);
+    // Left to right, the order the garden shows them in.
+    for (var i = 0; i < _config.environment(envId).slots; i++) {
       if (!used.contains(i)) return i;
     }
     return null;
