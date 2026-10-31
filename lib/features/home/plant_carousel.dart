@@ -391,23 +391,57 @@ class _EmptyRing extends StatelessWidget {
         alignment: Alignment.center,
         children: [
           Positioned(bottom: 0, child: dim(plantArtProvider.groundSpot(size: size * 1.1))),
-          // A soft accent halo that breathes, then a white button with a +.
+          // See-through: a white ring that breathes out and fades away, then
+          // a white ring around an orange +, so the soil shows through.
           Container(
-            width: button * (1.1 + 0.25 * pulse),
-            height: button * (1.1 + 0.25 * pulse),
+            width: button * (1 + 0.3 * pulse),
+            height: button * (1 + 0.3 * pulse),
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: accent.withValues(alpha: 0.28 * (1 - pulse) + 0.1),
+              border: Border.all(color: SproutColors.paper.withValues(alpha: 0.7 * (1 - pulse)), width: 2),
             ),
           ),
           Container(
             width: button,
             height: button,
-            decoration: BoxDecoration(shape: BoxShape.circle, color: SproutColors.paper, boxShadow: _softShadow),
-            child: Icon(Icons.add_rounded, color: accent, size: button * 0.6, weight: 700),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(color: SproutColors.paper.withValues(alpha: 0.9), width: 3),
+            ),
           ),
+          CustomPaint(size: Size.square(button * 0.5), painter: _PlusPainter(accent)),
         ],
       ),
     );
   }
+}
+
+/// An orange + with a white outline, readable on any grass.
+class _PlusPainter extends CustomPainter {
+  _PlusPainter(this.colour);
+
+  final Color colour;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final w = size.width;
+    final cross = Path()
+      ..moveTo(w / 2, w * 0.1)
+      ..lineTo(w / 2, w * 0.9)
+      ..moveTo(w * 0.1, w / 2)
+      ..lineTo(w * 0.9, w / 2);
+    Paint pen(Color c, double width) => Paint()
+      ..color = c
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = width
+      ..strokeCap = StrokeCap.round;
+    final bar = w * 0.16;
+    final edge = bar + math.max(3.0, bar * 0.7);
+    canvas.drawPath(cross.shift(const Offset(0, 1.5)), pen(Colors.black.withValues(alpha: 0.08), edge));
+    canvas.drawPath(cross, pen(SproutColors.paper, edge));
+    canvas.drawPath(cross, pen(colour, bar));
+  }
+
+  @override
+  bool shouldRepaint(_PlusPainter old) => old.colour != colour;
 }
