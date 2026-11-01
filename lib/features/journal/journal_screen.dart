@@ -12,6 +12,7 @@ import '../../domain/models/quest.dart';
 import '../../ui/art/plant_art_provider.dart';
 import '../../ui/theme/category_style.dart';
 import '../../ui/widgets/soft_card.dart';
+import '../mood/mood_check_in_card.dart';
 import '../../ui/widgets/tile_grid.dart';
 import '../home/garden_providers.dart';
 import '../mood/moods.dart';
@@ -76,9 +77,15 @@ class _MoodsTabState extends ConsumerState<_MoodsTab> {
         .whereType<MoodEntry>()
         .toList();
 
+    final now = DateTime.now();
+    final today = dayKey(now);
+    final atThisMonth = _month.year == now.year && _month.month == now.month;
     return ListView(
       padding: AppInsets.list(context, top: 16),
       children: [
+        // Set (or change) today's mood right here, as well as on Today.
+        const MoodCheckInCard(),
+        const SizedBox(height: 16),
         SoftCard(
           padding: const EdgeInsets.all(16),
           child: Column(
@@ -99,7 +106,10 @@ class _MoodsTabState extends ConsumerState<_MoodsTab> {
                   ),
                   IconButton(
                     tooltip: 'Next month',
-                    onPressed: () => setState(() => _month = DateTime(_month.year, _month.month + 1)),
+                    // No moods in the future to look at.
+                    onPressed: atThisMonth
+                        ? null
+                        : () => setState(() => _month = DateTime(_month.year, _month.month + 1)),
                     icon: const Icon(Icons.chevron_right),
                   ),
                 ],
@@ -129,7 +139,8 @@ class _MoodsTabState extends ConsumerState<_MoodsTab> {
                         final key = dayKey(DateTime(first.year, first.month, d));
                         final mood = moods[key];
                         final isRest = rest.contains(key);
-                        return Tooltip(
+                        final isToday = key == today;
+                        final cell = Tooltip(
                           message: mood == null
                               ? (isRest ? 'Rest day' : '')
                               : '${moodOption(mood.value).label}${mood.note.isEmpty ? '' : ': ${mood.note}'}',
@@ -140,6 +151,7 @@ class _MoodsTabState extends ConsumerState<_MoodsTab> {
                                   ? theme.colorScheme.onSurface.withValues(alpha: 0.04)
                                   : moodOption(mood.value).color,
                               borderRadius: BorderRadius.circular(12),
+                              border: isToday ? Border.all(color: theme.colorScheme.primary, width: 2) : null,
                             ),
                             child: mood == null
                                 ? (isRest
@@ -147,6 +159,13 @@ class _MoodsTabState extends ConsumerState<_MoodsTab> {
                                       : Text('$d', style: theme.textTheme.bodySmall))
                                 : ArtIcon(moodOption(mood.value).icon, size: 24),
                           ),
+                        );
+                        if (!isToday) return cell;
+                        // Today's square opens the mood picker.
+                        return Semantics(
+                          button: true,
+                          label: mood == null ? 'Today: how are you feeling?' : "Today: change today's mood",
+                          child: GestureDetector(onTap: () => showMoodSheet(context, ref), child: cell),
                         );
                       },
                     ),

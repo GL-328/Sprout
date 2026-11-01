@@ -9,8 +9,9 @@ import 'test_app.dart';
 void main() {
   // At 60 frames a second over the 24 second loop, gentle flyers move only a
   // little between frames: no shaking or jitter.
-  for (final id in ['ladybird', 'firefly', 'butterfly']) {
-    testWidgets('$id flies smoothly', (tester) async {
+  // Every visitor, flying or walking: nothing quick or harsh on the eyes.
+  for (final id in testConfig.visitors.keys) {
+    testWidgets('$id moves smoothly', (tester) async {
       (double, double, double)? last;
       double? lastDy;
       var reversals = 0;

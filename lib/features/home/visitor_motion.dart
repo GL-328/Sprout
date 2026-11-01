@@ -6,12 +6,11 @@ import '../../config/game_config.dart';
 import '../../ui/art/icon_art.dart';
 
 /// How a visitor gets about.
-enum _Gait { flutter, buzz, drift, glide, perch, hop, waddle, stride, amble }
+enum _Gait { flutter, drift, glide, perch, hop, waddle, stride, amble }
 
 _Gait _gaitOf(String id) => switch (id) {
   'butterfly' => _Gait.flutter,
-  'bee' => _Gait.buzz,
-  'ladybird' || 'firefly' => _Gait.drift,
+  'bee' || 'ladybird' || 'firefly' => _Gait.drift,
   'songbird' || 'parrot' => _Gait.glide,
   'owl' => _Gait.perch,
   'rabbit' || 'frog' || 'squirrel' => _Gait.hop,
@@ -116,13 +115,16 @@ class AnimatedVisitor extends StatelessWidget {
     var scaleY = 1.0;
     var turn = 0.0;
     var glow = 1.0;
+    // A smooth 0..1 swell that repeats [n] times per loop: no snaps.
+    double swell(int n) => still ? 0 : 0.5 - 0.5 * math.cos(phase * 2 * math.pi * n + offset);
+    // Everything here is slow and soft, so nothing is harsh on the eyes.
     switch (gait) {
       case _Gait.flutter:
-        // Seen from above: the wings open and fold about three times a
-        // second, and now and then it glides with them open for a beat.
+        // Seen from above: the wings gently open and fold (about one and a
+        // half times a second), and now and then it glides with them open.
         final beat = (0.5 + 0.5 * wave(3)).clamp(0.0, 1.0);
         final glide = 1 - beat * beat;
-        scaleX = 1 - (0.7 - 0.6 * glide) * wave(72).abs();
+        scaleX = 1 - (0.45 - 0.35 * glide) * swell(36);
         if (!still) {
           // It turns to face the way it's flying (the art's head points up).
           double rate(int n) => 2 * math.pi * n * math.cos(phase * 2 * math.pi * n + offset);
@@ -130,42 +132,37 @@ class AnimatedVisitor extends StatelessWidget {
           final vy = 30 * rate(2) + 9 * rate(7);
           turn = math.atan2(vx, -vy);
         }
-      case _Gait.buzz:
-        lift = 1.5 * wave(240);
-        turn = 0.08 * wave(6);
       case _Gait.drift:
-        // A slow, smooth float with a gentle bob: no jitter.
+        // A slow, smooth float with a gentle bob: no buzzing or jitter.
         lift = 3 * wave(3);
-        if (visitor.id == 'firefly') {
-          glow = 0.6 + 0.4 * (0.5 + 0.5 * wave(12));
-          turn = 0.08 * wave(2, math.pi / 2);
-        } else {
-          // The ladybird is seen from above, head up: it leans smoothly
-          // towards the side it's drifting to.
+        if (visitor.id == 'ladybird') {
+          // Seen from above, head up: it leans smoothly towards the side it's
+          // drifting to.
           turn = 0.5 * wave(2, math.pi / 2);
+        } else {
+          turn = 0.08 * wave(2, math.pi / 2);
+          if (visitor.id == 'firefly') glow = 0.6 + 0.4 * (0.5 + 0.5 * wave(12));
         }
       case _Gait.glide:
         // A slow wingbeat, a gentle tilt into the turns.
-        scaleY = 0.92 + 0.08 * wave(36).abs();
+        scaleY = 0.95 + 0.05 * swell(12);
         turn = 0.12 * wave(2, math.pi / 2);
       case _Gait.perch:
         // Looks about, and now and then settles its feathers.
         turn = 0.07 * wave(3);
         scaleY = 1 - 0.05 * math.pow(wave(4).abs(), 8);
       case _Gait.hop:
-        final h = wave(40).abs();
-        lift = 12 * h;
-        // A little squash on landing.
-        scaleY = 0.88 + 0.12 * math.min(1, h * 3);
-        scaleX = 1.06 - 0.06 * math.min(1, h * 3);
+        // Small, soft hops, a little under one every two seconds.
+        lift = 5 * swell(10);
       case _Gait.waddle:
-        turn = 0.14 * wave(36);
-        lift = 1.5 * wave(72).abs();
+        turn = 0.06 * wave(12);
+        lift = 1 * swell(24);
       case _Gait.stride:
-        lift = 2.5 * wave(36).abs();
+        lift = 1.5 * swell(12);
       case _Gait.amble:
-        lift = 1 * wave(6).abs();
+        lift = 1 * swell(6);
     }
+
     // The art faces left; turn it round when heading right. The butterfly
     // and the ladybird (seen from above) turn their whole body instead.
     final turnsBody = gait == _Gait.flutter || visitor.id == 'ladybird';
