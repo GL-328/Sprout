@@ -4,7 +4,7 @@ A Finch-like self-care app: finish quests, earn seeds, grow a garden. Flutter, A
 The owner is GL-328 (repo GL-328/Sprout, renamed from GL328). Read this first in every session.
 
 ## Toolchain and checks
-- Flutter 3.47.7, `dart format -l 120`, `flutter analyze` must be clean, `flutter test` must pass (236 tests).
+- Flutter 3.47.7, `dart format -l 120`, `flutter analyze` must be clean, `flutter test` must pass (252 tests).
 - Riverpod 3 (unlistened providers pause: don't await `.future` from a Notifier, read repositories directly), drift
   (in-memory DB in tests), game rules in `assets/config/game_config.yaml`.
 - Visual checks: `test/visual/*` render PNGs to `build/visual/` (`loadAppFonts`, `setPhoneScreen`, `shot`,
@@ -18,6 +18,16 @@ The owner is GL-328 (repo GL-328/Sprout, renamed from GL328). Read this first in
   `Semantics(button: true)`), so don't add tap sounds by hand.
 - No emoji anywhere in the app: flat painted icons via `ArtIcon(id)` / `IconText` in `lib/ui/art/icon_art.dart`
   (guarded by `test/widget/no_emoji_test.dart`).
+
+- Notifications: Settings → Notifications has one switch each for daily check-in (`remindersOn`), quest reminders,
+  fruit ready and plant fully grown. Channels `sprout_reminders` / `sprout_garden` are high importance (pop-ups).
+  Ids: reminders < 5000, garden notices 5000-8999 (`planGardenNotices`, synced by `gardenNoticeSyncProvider`),
+  dev test notices 9000+ (the dev account's "Test notifications" buttons). The dev account schedules nothing itself.
+- Home-screen widgets (`home_widget`): Today (meter + next two quests) and Mood check-in. Dart side
+  `lib/core/home_widgets.dart` (`WidgetSnapshot`, only the main account writes; taps arrive as `sprout://today` and
+  `sprout://mood?value=N`, handled in `app.dart`). Android side `SproutWidgets.kt`, `res/layout/widget_*.xml`,
+  `res/xml/widget_*_info.xml`. Mood faces in `res/drawable-nodpi` come from `flutter test tool/render_widget_art_test.dart`.
+  Flutter's own deep linking is off in the manifest so widget links don't become routes.
 
 ## Builds and updates
 - `.github/workflows/build-apk.yml`: build number = Actions run number. `main` publishes the **latest** release;

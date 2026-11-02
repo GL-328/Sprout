@@ -5,8 +5,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/accounts.dart';
 import '../../core/dev_mode.dart';
+import '../../core/home_widgets.dart';
 import '../../core/providers.dart';
 import '../../ui/widgets/soft_card.dart';
+import '../../core/notifications_service.dart';
+import '../../domain/logic/reminders.dart';
 
 void _say(BuildContext context, String text) => ScaffoldMessenger.of(context)
   ..hideCurrentSnackBar()
@@ -236,9 +239,131 @@ class DevModeCard extends ConsumerWidget {
                   ),
               ],
             ),
+            if (dev) ...[
+              const SizedBox(height: 16),
+              const _TestNotifications(),
+              const SizedBox(height: 16),
+              const _TestWidgets(),
+            ],
           ],
         ),
       ),
     );
   }
 }
+
+/// Try the notifications out from the dev account: one straight away, and
+/// two that arrive in 10 seconds, so there's time to close Sprout first.
+class _TestNotifications extends ConsumerWidget {
+  const _TestNotifications();
+
+  static final samples = [
+    (
+      label: 'Pop up now',
+      delay: Duration.zero,
+      notice: GardenNotice(
+        id: testNoticeBaseId,
+        title: 'Your garden says hi',
+        body: 'Want to take a moment to check in? No pressure at all.',
+        at: _never,
+      ),
+    ),
+    (
+      label: 'Fruit ready in 10 seconds',
+      delay: const Duration(seconds: 10),
+      notice: GardenNotice(
+        id: testNoticeBaseId + 1,
+        title: 'Apples ready to pick',
+        body: 'Your apple tree has something for you.',
+        at: _never,
+      ),
+    ),
+    (
+      label: 'Plant grown in 10 seconds',
+      delay: const Duration(seconds: 10),
+      notice: GardenNotice(
+        id: testNoticeBaseId + 2,
+        title: 'Your giant sunflower is fully grown',
+        body: 'Come and see how it turned out.',
+        at: _never,
+      ),
+    ),
+  ];
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Test notifications', style: theme.textTheme.titleSmall),
+        const SizedBox(height: 4),
+        Text(
+          'For the 10-second ones, close Sprout or lock your phone and wait for them to pop up.',
+          style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+        ),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            for (final s in samples)
+              OutlinedButton(
+                onPressed: () async {
+                  final scheduler = ref.read(reminderSchedulerProvider);
+                  if (!await scheduler.requestPermission()) {
+                    if (context.mounted) {
+                      _say(context, 'Notifications are turned off for Sprout in your phone settings.');
+                    }
+                    return;
+                  }
+                  await scheduler.test(s.notice, delay: s.delay);
+                  if (context.mounted && s.delay > Duration.zero) {
+                    _say(context, 'On its way in ${s.delay.inSeconds} seconds.');
+                  }
+                },
+                child: Text(s.label),
+              ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+/// Shows the dev garden on the home-screen widgets, to try them out.
+class _TestWidgets extends ConsumerWidget {
+  const _TestWidgets();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Home screen widgets', style: theme.textTheme.titleSmall),
+        const SizedBox(height: 4),
+        Text(
+          'They go back to your own garden the next time you open it.',
+          style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+        ),
+        const SizedBox(height: 8),
+        OutlinedButton(
+          onPressed: () async {
+            final snapshot = ref.read(widgetSnapshotProvider);
+            if (snapshot == null) {
+              _say(context, 'Still loading, try again in a moment.');
+              return;
+            }
+            await ref.read(homeWidgetBridgeProvider).write(snapshot);
+            if (context.mounted) _say(context, 'The widgets show the dev garden now.');
+          },
+          child: const Text('Fill the widgets with this garden'),
+        ),
+      ],
+    );
+  }
+}
+
+/// Test notices go out when asked, not at a set time.
+final _never = DateTime.utc(2000);

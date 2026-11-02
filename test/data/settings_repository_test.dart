@@ -36,6 +36,9 @@ void main() {
       musicOn: true,
       reducedMotion: true,
       remindersOn: true,
+      notifyQuests: true,
+      notifyFruit: true,
+      notifyGrown: true,
       checkInReminderMinutes: 8 * 60 + 30,
       autoUpdate: false,
     );
@@ -49,5 +52,13 @@ void main() {
     await repo.writeValue('x', '1');
     await repo.writeValue('x', '2');
     expect(await repo.readValue('x'), '2');
+  });
+
+  test('anyone with reminders on before keeps their quest reminders', () async {
+    await repo.writeValue('reminders_on', 'true');
+    final s = await repo.load();
+    expect(s.remindersOn, isTrue);
+    expect(s.notifyQuests, isTrue);
+    expect(s.notifyFruit || s.notifyGrown, isFalse, reason: 'the new garden ones start off');
   });
 }

@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="widget_today_description">Your seed meter and the next quests for today</string>
+    <string name="widget_mood_description">Check in with how you\'re feeling, in one tap</string>
+</resources>

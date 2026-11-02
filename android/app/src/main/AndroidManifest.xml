@@ -32,7 +32,25 @@
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
+            <!-- Widget taps (sprout://today, sprout://mood) are handled by the app itself,
+                 not turned into routes by Flutter. -->
+            <meta-data android:name="flutter_deeplinking_enabled" android:value="false" />
         </activity>
+        <!-- Home screen widgets: Today, and the Mood check-in. -->
+        <receiver android:name=".TodayWidgetProvider" android:exported="false"
+            android:label="Sprout: Today">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_today_info" />
+        </receiver>
+        <receiver android:name=".MoodWidgetProvider" android:exported="false"
+            android:label="Sprout: Mood check-in">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_mood_info" />
+        </receiver>
         <receiver android:exported="false" android:name=".UpdateStatusReceiver" />
         <receiver android:exported="false" android:name=".PackageReplacedReceiver">
             <intent-filter>

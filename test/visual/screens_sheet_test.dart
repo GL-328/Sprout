@@ -1,4 +1,11 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:sprout/core/accounts.dart';
+import 'package:sprout/core/home_widgets.dart';
+import 'package:sprout/core/notifications_service.dart';
+import 'package:sprout/core/providers.dart';
+import 'package:sprout/features/settings/dev_mode_section.dart';
 import 'package:sprout/core/clock.dart';
 import 'package:sprout/data/db/app_database.dart';
 import 'package:sprout/data/repositories/counters_repository.dart';
@@ -40,6 +47,28 @@ Future<AppDatabase> seeded(WidgetTester tester) async {
 }
 
 void main() {
+  testWidgets('the dev card with test notifications', (tester) async {
+    await loadAppFonts();
+    setPhoneScreen(tester, size: const Size(360, 780), systemBar: 0);
+    final db = memoryDb();
+    addTearDown(db.close);
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          gameConfigProvider.overrideWithValue(testConfig),
+          databaseProvider.overrideWithValue(db),
+          initialSettingsProvider.overrideWithValue(const AppSettings(onboardingDone: true)),
+          reminderSchedulerProvider.overrideWithValue(const NoopReminderScheduler()),
+          homeWidgetBridgeProvider.overrideWithValue(const NoopHomeWidgetBridge()),
+          activeAccountProvider.overrideWithValue(Account.dev),
+        ],
+        child: themed(const Padding(padding: EdgeInsets.all(16), child: DevModeCard())),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await savePng(tester, 'dev_card');
+  });
+
   testWidgets('a new seed in the garden and in its sheet', (tester) async {
     await loadAppFonts();
     setPhoneScreen(tester);
@@ -125,6 +154,16 @@ void main() {
       await tester.tap(find.text('Today').last);
       await tester.pumpAndSettle();
       await savePng(tester, 'today_$tag');
+
+      await tester.tap(find.text('Settings').last);
+      await tester.pumpAndSettle();
+      await savePng(tester, 'settings_$tag');
+      await tester.scrollUntilVisible(find.text('All off'), 200, scrollable: find.byType(Scrollable).last);
+      await tester.pumpAndSettle();
+      await savePng(tester, 'settings_notifications_$tag');
+      await tester.tap(find.text('All off'));
+      await tester.pumpAndSettle();
+      await savePng(tester, 'notifications_$tag');
     });
   }
 }

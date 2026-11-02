@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- About 4 x 1. -->
+<appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
+    android:description="@string/widget_mood_description"
+    android:initialLayout="@layout/widget_mood"
+    android:minWidth="250dp"
+    android:minHeight="80dp"
+    android:minResizeWidth="220dp"
+    android:minResizeHeight="60dp"
+    android:previewImage="@drawable/widget_mood_5"
+    android:previewLayout="@layout/widget_mood"
+    android:resizeMode="horizontal|vertical"
+    android:targetCellWidth="4"
+    android:targetCellHeight="1"
+    android:updatePeriodMillis="1800000"
+    android:widgetCategory="home_screen" />

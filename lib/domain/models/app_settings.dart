@@ -18,6 +18,9 @@ class AppSettings {
     this.reducedMotion = false,
     this.remindersOn = false,
     this.checkInReminderMinutes = 9 * 60,
+    this.notifyQuests = false,
+    this.notifyFruit = false,
+    this.notifyGrown = false,
     this.autoUpdate = true,
   });
 
@@ -32,11 +35,20 @@ class AppSettings {
   final bool musicOn;
   final bool reducedMotion;
 
-  /// Master switch for gentle reminders. Off unless the user turns it on.
+  /// The daily check-in reminder. Off unless the user turns it on.
   final bool remindersOn;
 
   /// Time of the daily check-in reminder, in minutes after midnight.
   final int checkInReminderMinutes;
+
+  /// Reminders for the quests the user gave a reminder time.
+  final bool notifyQuests;
+
+  /// A notification when a plant has fruit ready to pick.
+  final bool notifyFruit;
+
+  /// A notification when a plant is fully grown.
+  final bool notifyGrown;
 
   /// Check GitHub for a newer build and install it. On unless turned off.
   final bool autoUpdate;
@@ -52,6 +64,9 @@ class AppSettings {
     bool? reducedMotion,
     bool? remindersOn,
     int? checkInReminderMinutes,
+    bool? notifyQuests,
+    bool? notifyFruit,
+    bool? notifyGrown,
     bool? autoUpdate,
   }) => AppSettings(
     name: name ?? this.name,
@@ -64,6 +79,9 @@ class AppSettings {
     reducedMotion: reducedMotion ?? this.reducedMotion,
     remindersOn: remindersOn ?? this.remindersOn,
     checkInReminderMinutes: checkInReminderMinutes ?? this.checkInReminderMinutes,
+    notifyQuests: notifyQuests ?? this.notifyQuests,
+    notifyFruit: notifyFruit ?? this.notifyFruit,
+    notifyGrown: notifyGrown ?? this.notifyGrown,
     autoUpdate: autoUpdate ?? this.autoUpdate,
   );
 
@@ -78,6 +96,9 @@ class AppSettings {
     'reduced_motion': '$reducedMotion',
     'reminders_on': '$remindersOn',
     'check_in_reminder_minutes': '$checkInReminderMinutes',
+    'notify_quests': '$notifyQuests',
+    'notify_fruit': '$notifyFruit',
+    'notify_grown': '$notifyGrown',
     'auto_update': '$autoUpdate',
   };
 
@@ -100,6 +121,11 @@ class AppSettings {
       reducedMotion: e['reduced_motion'] == 'true',
       remindersOn: e['reminders_on'] == 'true',
       checkInReminderMinutes: int.tryParse(e['check_in_reminder_minutes'] ?? '') ?? d.checkInReminderMinutes,
+      // Quest reminders used to come with the one reminders switch, so they
+      // stay on for anyone who had reminders on before this choice existed.
+      notifyQuests: (e['notify_quests'] ?? e['reminders_on']) == 'true',
+      notifyFruit: e['notify_fruit'] == 'true',
+      notifyGrown: e['notify_grown'] == 'true',
       autoUpdate: e['auto_update'] != 'false',
     );
   }

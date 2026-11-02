@@ -7,6 +7,10 @@ import '../../data/repositories/wellbeing_repository.dart';
 import '../../data/services/economy_service.dart';
 import '../../domain/logic/streaks.dart';
 import '../../domain/models/plant.dart';
+import '../../core/accounts.dart';
+import '../../domain/logic/reminders.dart';
+
+import 'package:flutter/foundation.dart';
 
 /// Unlocked plots and when they were unlocked.
 /// The plot Home is showing, so the shell can play its music.
@@ -75,4 +79,21 @@ final visitorLureProvider = FutureProvider<bool>((ref) async {
   final raw = await ref.watch(settingsRepositoryProvider).readValue(visitorLureUntilKey);
   final until = raw == null ? null : DateTime.tryParse(raw);
   return until != null && until.isAfter(now);
+});
+
+/// Keeps the fruit-ready and fully-grown notifications in step with the
+/// garden: re-planned whenever plants or the notification switches change.
+/// Only the owner's own garden schedules them, never the dev account.
+final gardenNoticeSyncProvider = FutureProvider<void>((ref) async {
+  if (ref.watch(activeAccountProvider) == Account.dev) return;
+  final settings = ref.watch(settingsProvider);
+  final plants = ref.watch(allPlantsProvider).value;
+  if (plants == null) return;
+  final notices = planGardenNotices(settings, ref.read(gameConfigProvider), plants, ref.read(clockProvider).now());
+  try {
+    await ref.read(reminderSchedulerProvider).replaceGarden(notices);
+  } catch (e) {
+    // A nice-to-have; never break the app over it.
+    debugPrint('Could not schedule garden notifications: $e');
+  }
 });

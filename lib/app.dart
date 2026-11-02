@@ -1,10 +1,14 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'core/home_widgets.dart';
 import 'core/providers.dart';
 import 'domain/models/app_settings.dart';
 import 'features/home/home_screen.dart';
+import 'features/mood/mood_check_in_card.dart';
 import 'features/journal/journal_screen.dart';
 import 'features/onboarding/onboarding_screen.dart';
 import 'features/settings/settings_screen.dart';
@@ -14,6 +18,7 @@ import 'features/shop/shop_screen.dart';
 import 'features/today/today_screen.dart';
 import 'ui/theme/app_theme.dart';
 import 'ui/widgets/tap_sounds.dart';
+import 'features/home/garden_providers.dart';
 
 abstract final class Routes {
   static const onboarding = '/onboarding';
@@ -66,6 +71,7 @@ class SproutApp extends ConsumerStatefulWidget {
 
 class _SproutAppState extends ConsumerState<SproutApp> {
   late final AppLifecycleListener _lifecycle;
+  StreamSubscription<Uri?>? _widgetTaps;
 
   @override
   void initState() {
@@ -80,14 +86,38 @@ class _SproutAppState extends ConsumerState<SproutApp> {
         await updates.check();
       },
     );
+    _widgetTaps = listenForWidgetLinks(ref.read(homeWidgetBridgeProvider), _openLink);
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       await updates.afterLaunch();
       await updates.check();
     });
   }
 
+  /// A tap on a home-screen widget: Today opens the Today tab, a mood face
+  /// opens the mood picker with that face chosen.
+  Future<void> _openLink(WidgetLink link) async {
+    if (!mounted || !ref.read(settingsProvider).onboardingDone) return;
+    final router = ref.read(routerProvider);
+    switch (link) {
+      case TodayLink():
+        router.go(Routes.today);
+      case MoodLink(:final mood):
+        router.go(Routes.home);
+        // Wait for the app to be on screen (it may have only just started).
+        BuildContext? context;
+        for (var i = 0; i < 40 && mounted; i++) {
+          await WidgetsBinding.instance.endOfFrame;
+          context = router.routerDelegate.navigatorKey.currentContext;
+          if (context != null && ref.read(todayMoodProvider).hasValue) break;
+          await Future<void>.delayed(const Duration(milliseconds: 50));
+        }
+        if (mounted && context != null && context.mounted) await showMoodSheet(context, ref, initial: mood);
+    }
+  }
+
   @override
   void dispose() {
+    _widgetTaps?.cancel();
     _lifecycle.dispose();
     super.dispose();
   }
@@ -96,6 +126,8 @@ class _SproutAppState extends ConsumerState<SproutApp> {
   Widget build(BuildContext context) {
     // Keeps reminders in sync with settings and quests.
     ref.listen(reminderSyncProvider, (_, _) {});
+    ref.listen(gardenNoticeSyncProvider, (_, _) {});
+    ref.listen(homeWidgetSyncProvider, (_, _) {});
     final theme = ref.watch(settingsProvider.select((s) => s.theme));
     final accent = ref.watch(settingsProvider.select((s) => s.accent));
     return MaterialApp.router(
