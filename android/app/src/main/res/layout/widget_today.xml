@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The Today widget: the seed meter and the next two quests. Filled in by TodayWidgetProvider.
+     The text here is what the widget picker shows as a preview. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/today_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/widget_bg"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:fontFamily="sans-serif-medium"
+            android:text="Today"
+            android:textColor="@color/widget_ink"
+            android:textSize="17sp" />
+
+        <TextView
+            android:id="@+id/today_left"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="2 to go"
+            android:textColor="@color/widget_ink_soft"
+            android:textSize="13sp" />
+    </LinearLayout>
+
+    <ProgressBar
+        android:id="@+id/today_meter"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="match_parent"
+        android:layout_height="10dp"
+        android:layout_marginTop="10dp"
+        android:max="3"
+        android:progress="1"
+        android:progressDrawable="@drawable/widget_meter" />
+
+    <TextView
+        android:id="@+id/today_meter_label"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:text="1 of 3 to your next seed"
+        android:textColor="@color/widget_ink_soft"
+        android:textSize="12sp" />
+
+    <LinearLayout
+        android:id="@+id/today_q1_row"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <ImageView
+            android:layout_width="8dp"
+            android:layout_height="8dp"
+            android:importantForAccessibility="no"
+            android:src="@drawable/widget_dot" />
+
+        <TextView
+            android:id="@+id/today_q1"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:text="Drink a glass of water"
+            android:textColor="@color/widget_ink"
+            android:textSize="14sp" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/today_q2_row"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <ImageView
+            android:layout_width="8dp"
+            android:layout_height="8dp"
+            android:importantForAccessibility="no"
+            android:src="@drawable/widget_dot" />
+
+        <TextView
+            android:id="@+id/today_q2"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:text="Stretch for two minutes"
+            android:textColor="@color/widget_ink"
+            android:textSize="14sp" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/today_note"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:text="All done for today"
+        android:textColor="@color/widget_ink"
+        android:textSize="14sp"
+        android:visibility="gone" />
+</LinearLayout>

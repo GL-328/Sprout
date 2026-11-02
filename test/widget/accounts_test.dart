@@ -11,6 +11,7 @@ import 'package:sprout/app_root.dart';
 import 'package:sprout/core/accounts.dart';
 import 'package:sprout/core/clock.dart';
 import 'package:sprout/core/dev_mode.dart';
+import 'package:sprout/core/home_widgets.dart';
 import 'package:sprout/core/notifications_service.dart';
 import 'package:sprout/core/providers.dart';
 import 'package:sprout/core/sound_service.dart';
@@ -87,6 +88,7 @@ void main() {
         overrides: [
           clockProvider.overrideWithValue(const Clock()),
           reminderSchedulerProvider.overrideWithValue(const NoopReminderScheduler()),
+          homeWidgetBridgeProvider.overrideWithValue(const NoopHomeWidgetBridge()),
           soundServiceProvider.overrideWithValue(const SilentSoundService()),
           updaterProvider.overrideWithValue(const NoopUpdater()),
         ],
@@ -156,6 +158,7 @@ void main() {
         overrides: [
           devPasswordHashProvider.overrideWithValue(sha256.convert(utf8.encode(password)).toString()),
           reminderSchedulerProvider.overrideWithValue(const NoopReminderScheduler()),
+          homeWidgetBridgeProvider.overrideWithValue(const NoopHomeWidgetBridge()),
           soundServiceProvider.overrideWithValue(const SilentSoundService()),
           updaterProvider.overrideWithValue(const NoopUpdater()),
         ],

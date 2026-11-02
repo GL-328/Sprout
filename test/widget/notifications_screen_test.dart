@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sprout/core/accounts.dart';
+import 'package:sprout/core/home_widgets.dart';
 import 'package:sprout/core/notifications_service.dart';
 import 'package:sprout/core/providers.dart';
 import 'package:sprout/core/sound_service.dart';
@@ -38,6 +39,7 @@ void main() {
           databaseProvider.overrideWithValue(db),
           initialSettingsProvider.overrideWithValue(const AppSettings(onboardingDone: true, reducedMotion: true)),
           reminderSchedulerProvider.overrideWithValue(scheduler),
+          homeWidgetBridgeProvider.overrideWithValue(const NoopHomeWidgetBridge()),
           soundServiceProvider.overrideWithValue(const SilentSoundService()),
           activeAccountProvider.overrideWithValue(account),
         ],

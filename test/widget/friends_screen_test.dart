@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sprout/core/clock.dart';
+import 'package:sprout/core/home_widgets.dart';
 import 'package:sprout/core/notifications_service.dart';
 import 'package:sprout/core/providers.dart';
 import 'package:sprout/core/sound_service.dart';
@@ -65,6 +66,7 @@ Widget friendsApp(AppDatabase db, FakeFriendsWorld world) => ProviderScope(
     databaseProvider.overrideWithValue(db),
     initialSettingsProvider.overrideWithValue(const AppSettings(onboardingDone: true, reducedMotion: true)),
     reminderSchedulerProvider.overrideWithValue(const NoopReminderScheduler()),
+    homeWidgetBridgeProvider.overrideWithValue(const NoopHomeWidgetBridge()),
     soundServiceProvider.overrideWithValue(const SilentSoundService()),
     updaterProvider.overrideWithValue(const NoopUpdater()),
     friendsBackendProvider.overrideWithValue(FakeFriendsBackend(world, 'alice')),

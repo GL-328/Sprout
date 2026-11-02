@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/accounts.dart';
 import '../../core/dev_mode.dart';
+import '../../core/home_widgets.dart';
 import '../../core/providers.dart';
 import '../../ui/widgets/soft_card.dart';
 import '../../core/notifications_service.dart';
@@ -238,7 +239,12 @@ class DevModeCard extends ConsumerWidget {
                   ),
               ],
             ),
-            if (dev) ...[const SizedBox(height: 16), const _TestNotifications()],
+            if (dev) ...[
+              const SizedBox(height: 16),
+              const _TestNotifications(),
+              const SizedBox(height: 16),
+              const _TestWidgets(),
+            ],
           ],
         ),
       ),
@@ -319,6 +325,40 @@ class _TestNotifications extends ConsumerWidget {
                 child: Text(s.label),
               ),
           ],
+        ),
+      ],
+    );
+  }
+}
+
+/// Shows the dev garden on the home-screen widgets, to try them out.
+class _TestWidgets extends ConsumerWidget {
+  const _TestWidgets();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Home screen widgets', style: theme.textTheme.titleSmall),
+        const SizedBox(height: 4),
+        Text(
+          'They go back to your own garden the next time you open it.',
+          style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+        ),
+        const SizedBox(height: 8),
+        OutlinedButton(
+          onPressed: () async {
+            final snapshot = ref.read(widgetSnapshotProvider);
+            if (snapshot == null) {
+              _say(context, 'Still loading, try again in a moment.');
+              return;
+            }
+            await ref.read(homeWidgetBridgeProvider).write(snapshot);
+            if (context.mounted) _say(context, 'The widgets show the dev garden now.');
+          },
+          child: const Text('Fill the widgets with this garden'),
         ),
       ],
     );

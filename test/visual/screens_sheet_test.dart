@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sprout/core/accounts.dart';
+import 'package:sprout/core/home_widgets.dart';
 import 'package:sprout/core/notifications_service.dart';
 import 'package:sprout/core/providers.dart';
 import 'package:sprout/features/settings/dev_mode_section.dart';
@@ -48,7 +49,7 @@ Future<AppDatabase> seeded(WidgetTester tester) async {
 void main() {
   testWidgets('the dev card with test notifications', (tester) async {
     await loadAppFonts();
-    setPhoneScreen(tester, size: const Size(360, 640), systemBar: 0);
+    setPhoneScreen(tester, size: const Size(360, 780), systemBar: 0);
     final db = memoryDb();
     addTearDown(db.close);
     await tester.pumpWidget(
@@ -58,6 +59,7 @@ void main() {
           databaseProvider.overrideWithValue(db),
           initialSettingsProvider.overrideWithValue(const AppSettings(onboardingDone: true)),
           reminderSchedulerProvider.overrideWithValue(const NoopReminderScheduler()),
+          homeWidgetBridgeProvider.overrideWithValue(const NoopHomeWidgetBridge()),
           activeAccountProvider.overrideWithValue(Account.dev),
         ],
         child: themed(const Padding(padding: EdgeInsets.all(16), child: DevModeCard())),

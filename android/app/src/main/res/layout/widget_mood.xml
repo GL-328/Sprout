@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The Mood widget: five faces to check in with, or today's mood once it's set.
+     Filled in by MoodWidgetProvider. -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/mood_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/widget_bg">
+
+    <LinearLayout
+        android:id="@+id/mood_pick"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center_vertical"
+        android:orientation="vertical"
+        android:paddingStart="12dp"
+        android:paddingTop="10dp"
+        android:paddingEnd="12dp"
+        android:paddingBottom="10dp">
+
+        <TextView
+            android:id="@+id/mood_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="4dp"
+            android:fontFamily="sans-serif-medium"
+            android:text="How are you feeling?"
+            android:textColor="@color/widget_ink"
+            android:textSize="15sp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:orientation="horizontal">
+
+            <ImageView
+                android:id="@+id/mood_1"
+                android:layout_width="0dp"
+                android:layout_height="44dp"
+                android:layout_weight="1"
+                android:contentDescription="Feeling rough"
+                android:scaleType="fitCenter"
+                android:src="@drawable/widget_mood_1" />
+
+            <ImageView
+                android:id="@+id/mood_2"
+                android:layout_width="0dp"
+                android:layout_height="44dp"
+                android:layout_weight="1"
+                android:contentDescription="Feeling low"
+                android:scaleType="fitCenter"
+                android:src="@drawable/widget_mood_2" />
+
+            <ImageView
+                android:id="@+id/mood_3"
+                android:layout_width="0dp"
+                android:layout_height="44dp"
+                android:layout_weight="1"
+                android:contentDescription="Feeling okay"
+                android:scaleType="fitCenter"
+                android:src="@drawable/widget_mood_3" />
+
+            <ImageView
+                android:id="@+id/mood_4"
+                android:layout_width="0dp"
+                android:layout_height="44dp"
+                android:layout_weight="1"
+                android:contentDescription="Feeling good"
+                android:scaleType="fitCenter"
+                android:src="@drawable/widget_mood_4" />
+
+            <ImageView
+                android:id="@+id/mood_5"
+                android:layout_width="0dp"
+                android:layout_height="44dp"
+                android:layout_weight="1"
+                android:contentDescription="Feeling great"
+                android:scaleType="fitCenter"
+                android:src="@drawable/widget_mood_5" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/mood_done"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:padding="14dp"
+        android:visibility="gone">
+
+        <ImageView
+            android:id="@+id/mood_face"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:importantForAccessibility="no"
+            android:src="@drawable/widget_mood_4" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="14dp"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/mood_label"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:fontFamily="sans-serif-medium"
+                android:text="Feeling good today"
+                android:textColor="@color/widget_ink"
+                android:textSize="15sp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Tap to change"
+                android:textColor="@color/widget_ink_soft"
+                android:textSize="13sp" />
+        </LinearLayout>
+    </LinearLayout>
+</FrameLayout>
