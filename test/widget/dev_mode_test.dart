@@ -26,6 +26,9 @@ void main() {
     await settle(tester);
     expect(find.text('Developer mode'), findsNothing, reason: 'hidden until unlocked');
     await tester.scrollUntilVisible(find.text('About Sprout'), 200, scrollable: find.byType(Scrollable).last);
+    // Clear of the floating tab bar.
+    await tester.drag(find.byType(Scrollable).last, const Offset(0, -300));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('About Sprout'));
     await settle(tester);
 

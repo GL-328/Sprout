@@ -11,6 +11,7 @@ import '../../ui/widgets/soft_card.dart';
 import 'about_screen.dart';
 import 'data_section.dart';
 import 'dev_mode_section.dart';
+import 'notifications_screen.dart';
 import 'updates_section.dart';
 import '../../ui/layout/insets.dart';
 
@@ -114,45 +115,14 @@ class SettingsScreen extends ConsumerWidget {
             ],
           ),
           _Section(
-            title: 'Reminders',
+            title: 'Notifications',
             children: [
-              SwitchListTile(
-                title: const Text('Gentle reminders'),
-                subtitle: const Text('Turn on a daily check-in nudge, plus any quest reminders you set'),
-                value: s.remindersOn,
-                onChanged: (v) async {
-                  if (v && !await ref.read(reminderSchedulerProvider).requestPermission()) {
-                    if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Notifications are turned off for Sprout in your phone settings.'),
-                        ),
-                      );
-                    }
-                    return;
-                  }
-                  await notifier.update((x) => x.copyWith(remindersOn: v));
-                },
-              ),
               ListTile(
-                enabled: s.remindersOn,
-                title: const Text('Check-in time'),
-                trailing: Text(
-                  TimeOfDay(
-                    hour: s.checkInReminderMinutes ~/ 60,
-                    minute: s.checkInReminderMinutes % 60,
-                  ).format(context),
-                  style: theme.textTheme.titleMedium,
-                ),
-                onTap: () async {
-                  final t = await showTimePicker(
-                    context: context,
-                    initialTime: TimeOfDay(hour: s.checkInReminderMinutes ~/ 60, minute: s.checkInReminderMinutes % 60),
-                  );
-                  if (t != null) {
-                    await notifier.update((x) => x.copyWith(checkInReminderMinutes: t.hour * 60 + t.minute));
-                  }
-                },
+                leading: const Icon(Icons.notifications_active_outlined),
+                title: const Text('Notifications'),
+                subtitle: Text(_notificationSummary(s)),
+                trailing: const Icon(Icons.chevron_right_rounded),
+                onTap: () => pushPage(context, const NotificationsScreen()),
               ),
             ],
           ),
@@ -228,4 +198,15 @@ class _Section extends StatelessWidget {
       ),
     );
   }
+}
+
+/// A short line saying which notifications are on.
+String _notificationSummary(AppSettings s) {
+  final on = [
+    if (s.remindersOn) 'check-in',
+    if (s.notifyQuests) 'quests',
+    if (s.notifyFruit) 'fruit',
+    if (s.notifyGrown) 'fully grown',
+  ];
+  return on.isEmpty ? 'All off' : 'On: ${on.join(', ')}';
 }

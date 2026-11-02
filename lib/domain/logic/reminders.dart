@@ -1,5 +1,8 @@
+import '../../config/game_config.dart';
 import '../models/app_settings.dart';
+import '../models/plant.dart';
 import '../models/quest.dart';
+import 'growth.dart';
 
 /// One repeating reminder to schedule.
 class ReminderPlan {
@@ -18,18 +21,19 @@ class ReminderPlan {
 
 const checkInReminderId = 1;
 
-/// Every reminder that should exist, given the settings and quests.
-/// Nothing is scheduled unless the user turned reminders on.
+/// Every reminder that should exist, given the settings and quests. Each
+/// kind is only scheduled if the user turned it on.
 List<ReminderPlan> planReminders(AppSettings settings, List<Quest> quests) {
-  if (!settings.remindersOn) return const [];
   final plans = <ReminderPlan>[
-    ReminderPlan(
-      id: checkInReminderId,
-      title: 'Your garden says hi',
-      body: 'Want to take a moment to check in? No pressure at all.',
-      minutes: settings.checkInReminderMinutes,
-    ),
+    if (settings.remindersOn)
+      ReminderPlan(
+        id: checkInReminderId,
+        title: 'Your garden says hi',
+        body: 'Want to take a moment to check in? No pressure at all.',
+        minutes: settings.checkInReminderMinutes,
+      ),
   ];
+  if (!settings.notifyQuests) return plans;
   for (final (i, q) in quests.indexed) {
     if (!q.reminderOn || q.archived || !q.showOnToday || q.reminderMinutes == null) continue;
     const body = 'A gentle nudge, only if it feels right today.';
@@ -43,4 +47,56 @@ List<ReminderPlan> planReminders(AppSettings settings, List<Quest> quests) {
     }
   }
   return plans;
+}
+
+/// A one-off garden notification at a set moment.
+class GardenNotice {
+  const GardenNotice({required this.id, required this.title, required this.body, required this.at});
+
+  final int id;
+  final String title;
+  final String body;
+  final DateTime at;
+}
+
+/// Garden notifications use ids from here up, apart from the reminders.
+const gardenNoticeBaseId = 5000;
+
+/// The next garden moment for each plant: when it becomes fully grown, and
+/// when its next fruit is ready. Only the kinds the user turned on, and only
+/// ones still to come (fruit already waiting is no news).
+List<GardenNotice> planGardenNotices(AppSettings settings, GameConfig config, List<Plant> plants, DateTime now) {
+  if (!settings.notifyFruit && !settings.notifyGrown) return const [];
+  final notices = <GardenNotice>[];
+  for (final (i, p) in plants.indexed) {
+    if (p.isKeepsake || !config.species.containsKey(p.speciesId)) continue;
+    final species = config.speciesById(p.speciesId);
+    final status = Growth.status(species, plantedAt: p.plantedAt, fruitAnchor: p.fruitAnchorAt, now: now);
+    final base = gardenNoticeBaseId + i * 2;
+    if (!status.isMature) {
+      if (settings.notifyGrown) {
+        notices.add(
+          GardenNotice(
+            id: base,
+            title: 'Your ${species.name.toLowerCase()} is fully grown',
+            body: 'Come and see how it turned out.',
+            at: status.maturedAt,
+          ),
+        );
+      }
+      continue;
+    }
+    final wait = status.untilNextHarvest;
+    if (settings.notifyFruit && wait != null && status.readyHarvests == 0) {
+      notices.add(
+        GardenNotice(
+          id: base + 1,
+          title: '${species.fruit.name} ready to pick',
+          body: 'Your ${species.name.toLowerCase()} has something for you.',
+          at: now.add(wait),
+        ),
+      );
+    }
+  }
+  return notices;
 }

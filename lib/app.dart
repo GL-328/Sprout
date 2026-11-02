@@ -14,6 +14,7 @@ import 'features/shop/shop_screen.dart';
 import 'features/today/today_screen.dart';
 import 'ui/theme/app_theme.dart';
 import 'ui/widgets/tap_sounds.dart';
+import 'features/home/garden_providers.dart';
 
 abstract final class Routes {
   static const onboarding = '/onboarding';
@@ -96,6 +97,7 @@ class _SproutAppState extends ConsumerState<SproutApp> {
   Widget build(BuildContext context) {
     // Keeps reminders in sync with settings and quests.
     ref.listen(reminderSyncProvider, (_, _) {});
+    ref.listen(gardenNoticeSyncProvider, (_, _) {});
     final theme = ref.watch(settingsProvider.select((s) => s.theme));
     final accent = ref.watch(settingsProvider.select((s) => s.accent));
     return MaterialApp.router(
